@@ -8,11 +8,12 @@ Written in **R**: the data pipeline, an Excel workbook with native charts, and a
 
 ## Quick start
 
+Runs on Windows, Linux and macOS. You need R (4.3 or newer); RStudio is optional.
+
 ```bash
 git clone https://github.com/mhs795/EV-uptake-by-income.git
 cd EV-uptake-by-income
-Rscript R/install_packages.R   # first time only
-Rscript run_dashboard.R        # open the dashboard (uses the committed processed data)
+Rscript run_dashboard.R        # installs any missing R packages, then opens the dashboard
 ```
 
 The processed tables, the dashboard data and the workbook are committed. You can open the dashboard or
@@ -20,7 +21,9 @@ The processed tables, the dashboard data and the workbook are committed. You can
 
 ### In RStudio
 
-Open `ev_uptake_income.Rproj` (File → Open Project). Then open `run_dashboard.R` and click **Source**. Any script
+Open `ev_uptake_income.Rproj` (File → Open Project). Then open `run_dashboard.R` and click **Source**. On a new PC the
+first run installs the R packages it needs (needs internet, a few minutes). On Linux, install the libraries the `sf` package needs first:
+`sudo apt install libgdal-dev libgeos-dev libproj-dev libudunits2-dev`. Any script
 also works with **Source** or line by line, whatever your working directory is.
 
 ## Rebuild everything

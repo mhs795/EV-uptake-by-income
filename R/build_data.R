@@ -97,9 +97,11 @@ load_postcode_income <- function() {
 fuel_group <- function(labels, bev, phev) fifelse(labels %chin% bev, "bev", fifelse(labels %chin% phev, "phev", "other"))
 count_num <- function(x) { v <- suppressWarnings(as.numeric(x)); v[is.na(v)] <- 0; v }
 
+# R's own unzip, not the unzip command, so this also works on Windows
 read_zip_member <- function(zipfile, member, select = NULL) {
-  fread(cmd = sprintf("unzip -p %s %s", shQuote(zipfile), shQuote(member)), sep = CFG$nsw$sep, colClasses = "character",
-        select = select, showProgress = FALSE)
+  tmp <- tempfile(); on.exit(unlink(tmp, recursive = TRUE))
+  f <- unzip(zipfile, files = member, exdir = tmp, junkpaths = TRUE)
+  fread(f, sep = CFG$nsw$sep, colClasses = "character", select = select, showProgress = FALSE)
 }
 zip_members <- function(zipfile) unzip(zipfile, list = TRUE)$Name
 member_month <- function(m) { p <- strsplit(m, "_")[[1]]; x <- p[length(p) - 1]; paste0(substr(x, 1, 4), "-", substr(x, 5, 6)) }

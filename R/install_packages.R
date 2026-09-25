@@ -1,4 +1,5 @@
 # Install the R packages this project uses (only the ones you don't have).
+# run_dashboard.R and run_all.R call this for you, so you rarely need to run it by hand.
 # On Linux, binaries come from Posit Package Manager, which is much faster than
 # building from source. sf needs the GDAL/GEOS/PROJ system libraries
 # (Ubuntu: sudo apt install libgdal-dev libgeos-dev libproj-dev libudunits2-dev).
@@ -18,8 +19,14 @@ if (!length(missing)) {
       options(HTTPUserAgent = sprintf("R/%s R (%s)", getRversion(), paste(getRversion(), R.version$platform, R.version$arch, R.version$os)))
     }
   }
-  cat("Installing:", missing, "\nfrom", repo, "\n")
-  install.packages(missing, repos = repo, lib = .libPaths()[1], Ncpus = max(1L, parallel::detectCores() - 1L))
+  # a fresh R has no personal library yet, and the system one usually isn't writable (Windows especially)
+  lib <- Sys.getenv("R_LIBS_USER")
+  if (nzchar(lib) && !dir.exists(lib)) dir.create(lib, recursive = TRUE)
+  if (nzchar(lib) && dir.exists(lib)) .libPaths(c(lib, .libPaths())) else lib <- .libPaths()[1]
+  cat("Installing:", missing, "\nfrom", repo, "\ninto", lib, "\n")
+  install.packages(missing, repos = repo, lib = lib, Ncpus = max(1L, parallel::detectCores() - 1L))
   still <- setdiff(pkgs, rownames(installed.packages()))
-  if (length(still)) stop("Could not install: ", paste(still, collapse = ", "))
+  if (length(still)) stop("Could not install: ", paste(still, collapse = ", "),
+                          if ("sf" %in% still && Sys.info()[["sysname"]] == "Linux")
+                            "\nsf needs system libraries first: sudo apt install libgdal-dev libgeos-dev libproj-dev libudunits2-dev")
 }
