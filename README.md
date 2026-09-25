@@ -4,6 +4,9 @@ This project asks how battery-electric vehicle (BEV) take-up in **NSW, QLD and V
 different income. It covers new registrations (flow) and the registered fleet (stock), and looks at the effect
 of the **2026 Middle East / Strait of Hormuz fuel crisis**. Every input is public open data.
 
+It also covers **every council area in Australia**: the BEV fleet (BITRE, all states), rooftop solar and home
+batteries (Clean Energy Regulator) and public EV charging stations (OpenStreetMap), set against area income.
+
 Written in **R**: the data pipeline, an Excel workbook with native charts, and a **Shiny** dashboard.
 
 ## Quick start
@@ -37,13 +40,25 @@ Rscript run_all.R --only workbook  # one step
 | Step | Script | What it does |
 |---|---|---|
 | `install` | `R/install_packages.R` | Installs the R packages that are missing (binaries from Posit Package Manager on Linux) |
-| `download` | `R/download_raw.R` | Fetches ~1.8 GB of public raw data into `raw_data/`, from the URLs in `raw_data/**/urls.txt`; files you already have are skipped |
+| `update` | `R/update_sources.R` | Lists the files on each open-data portal (TfNSW, QLD, VIC DTP, data.gov.au), rewrites `raw_data/**/urls.txt` and deletes local files the portal has changed, so `download` fetches them again. CER files and OpenStreetMap are always refreshed; fuel prices are copied from the `au_fuel_prices` project if it is on this computer |
+| `download` | `R/download_raw.R` | Fetches ~1.9 GB of public raw data into `raw_data/`, from the URLs in `raw_data/**/urls.txt`; files you already have are skipped |
 | `data` | `R/build_data.R` | `raw_data/` → `processed/*.csv` (~5 min). Also writes `processed/adjustments.csv`, the log of every data adjustment |
-| `boundaries` | `R/fetch_boundaries.R` | ABS boundaries (LGAs, VIC postcodes, states) and suburb names for each VIC postcode |
+| `boundaries` | `R/fetch_boundaries.R` | ABS boundaries (every council area, VIC postcodes, states) and suburb names for each VIC postcode |
+| `context` | `R/build_context.R` | All states: BITRE fleet, CER solar and batteries, OpenStreetMap charging stations and Census people/dwellings for every council area (and VIC postcode). Postcode data are shared out to council areas by Census population, using the ABS mesh-block files |
 | `workbook` | `R/build_workbook.R` | `EV_uptake_by_income.xlsx`: charts first, then Summary, raw numbers, top 10s, fuel crisis, inputs, detailed tables, sources, data adjustments, notes. Shares and totals are live Excel formulas |
 | `dashboard` | `R/dashboard_data.R` | `processed/dashboard.rds` for the Shiny app |
 
 Then run `Rscript run_dashboard.R`. It opens the dashboard at http://127.0.0.1:8050.
+
+### Getting the latest data
+
+Click **Update data** at the top of the dashboard. It runs `Rscript run_all.R --from update` in the background,
+shows its progress, rebuilds every table, the workbook and the dashboard, then reloads the page. Close the workbook in
+Excel first. The same thing from a terminal:
+
+```bash
+Rscript run_all.R --from update
+```
 
 All settings (analysis windows, thresholds, fuel-label mappings, the crisis-onset rule, file paths) are
 in **`config.yaml`**. No numbers are hard-coded in the scripts.
@@ -57,7 +72,7 @@ run_all.R            one command to run the whole project
 run_dashboard.R      open the Shiny dashboard
 config.yaml          every setting
 R/                   pipeline scripts (+ sources.csv, notes.csv used in the workbook)
-app/app.R            the Shiny dashboard (GARY / NELLY flat Material design)
+app/app.R            the Shiny dashboard (GARY / NELLY flat Material design); "Update data" button rebuilds everything
 raw_data/            downloads (git-ignored except urls.txt lists and raw_data/fuel/*.csv)
 processed/           tidy tables, boundaries and dashboard.rds (committed)
 EV_uptake_by_income.xlsx
@@ -82,6 +97,16 @@ EV_uptake_by_income.xlsx
   (Table 8) by postcode.
 - **Fuel prices**: NSW FuelCheck, QLD Fuel Price Reporting and AIP terminal gate prices. Monthly averages are
   kept in `raw_data/fuel/`, copied from the author's `au_fuel_prices` project.
+- **All states — BEV fleet**: BITRE *Road vehicles Australia* (data.gov.au), 31 January each year from 2021:
+  passenger and light commercial vehicles by garaging postcode and motive power. This is the only EV-by-area data for
+  SA, WA, TAS, NT and the ACT. None of those states publishes new registrations by area, so for them the measure is the
+  fleet and its change over a year, not monthly sales. BITRE randomly perturbs small counts for privacy.
+- **Rooftop solar and home batteries**: Clean Energy Regulator small-scale installation postcode data, monthly. Solar
+  counts every system with certificates since 2001 (including upgrades); batteries only since 1 July 2025.
+- **Charging stations**: OpenStreetMap (`amenity=charging_station`, public sites only) via the Overpass API. Fast = a DC
+  plug or 50 kW or more. Volunteer-mapped: fast chargers are well covered, small AC sites less so.
+- **Postcode → council area**: ABS mesh-block allocation files and Census 2021 mesh-block counts. Each postcode is
+  shared out by its people (vehicles, chargers) or dwellings (solar, batteries).
 - **Suburbs**: no state publishes EV data by suburb. VIC postcodes are named by the ABS suburbs whose points
   fall inside them.
 
@@ -97,6 +122,8 @@ and proxy is on its **Data_Adjustments** sheet, with the number of records it af
 - Income groups are ranked within each state and weighted by earners (each holds about a fifth of the state's earners, whole
   areas kept together). QLD council areas are large (Brisbane alone is about a quarter of QLD earners), so QLD groups are uneven.
   Full method and each group's make-up: the workbook's **Income_Groups** sheet and the dashboard's Income groups tab.
+- All-states measures are fleet counts at 31 January (latest: January 2025; BITRE publishes each year around October),
+  so they cannot show the 2026 fuel crisis. Charging-site counts depend on how well OpenStreetMap is mapped locally.
 - The fuel-crisis comparison is before/after (crisis months vs the same months a year earlier), so other
   changes in 2026 fall inside it too.
 

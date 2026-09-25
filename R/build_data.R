@@ -23,43 +23,9 @@ source(file.path(local({
 suppressPackageStartupMessages(library(readxl))
 
 # ---------------------------------------------------------------- income ----
-# Earner-weighted income groups: sort by income, cut the cumulative earner
-# share into n equal slices; the midpoint of each area's slice decides its
-# group, so no group is empty. 1 = lowest income.
-income_groups <- function(d, value_col, weight_col, n) {
-  d <- d[order(d[[value_col]], method = "radix")]
-  w <- d[[weight_col]]
-  mid <- cumsum(w) / sum(w) - w / sum(w) / 2
-  d[, income_group := pmin(floor(mid * n) + 1L, n)]
-  d
-}
-
 load_lga_income <- function() {
   c <- CFG$income
-  f <- file.path(RAW, c$lga_file)
-  hdr <- as.data.table(read_excel(f,
-    sheet = c$lga_sheet, skip = c$lga_header_rows[1], n_max = 2, col_names = FALSE,
-    .name_repair = "minimal"
-  ))
-  top <- unlist(hdr[1])
-  bot <- unlist(hdr[2])
-  top <- zoo_fill(top)
-  nm <- ifelse(is.na(top), bot, paste0(top, "|", bot))
-  d <- as.data.table(read_excel(f,
-    sheet = c$lga_sheet, skip = c$lga_header_rows[2] + 1, col_names = FALSE,
-    .name_repair = "minimal"
-  ))
-  setnames(d, make.unique(nm[seq_len(ncol(d))]))
-  d <- d[!is.na(suppressWarnings(as.numeric(LGA)))]
-  d[, lga_code := as.character(as.integer(as.numeric(LGA)))]
-  d[, state := fcase(substr(lga_code, 1, 1) == "1", "NSW", substr(lga_code, 1, 1) == "3", "QLD")]
-  d <- d[!is.na(state)]
-  out <- data.table(
-    state = d$state, lga_code = d$lga_code, lga_name = d[["LGA NAME"]],
-    median_income = suppressWarnings(as.numeric(d[[paste0(c$lga_measure, "|", c$lga_year)]])),
-    earners = suppressWarnings(as.numeric(d[[paste0(c$lga_weight, "|", c$lga_year)]]))
-  )
-  out <- na.omit(out)
+  out <- read_lga_income()[state %chin% c("NSW", "QLD")]
   unin <- startsWith(out$lga_name, "Unincorporated")
   adj("ABS LGA income", "Dropped unincorporated areas", "No council area to match registrations to", sprintf("%d areas", sum(unin)))
   out <- out[!unin]
@@ -73,12 +39,6 @@ load_lga_income <- function() {
   out <- rbindlist(lapply(split(out, out$state), income_groups, "median_income", "earners", c$n_groups))
   setorderv(out, c("state", "lga_name"))
   out
-}
-
-# forward-fill a header row (Excel merged cells come through as NA)
-zoo_fill <- function(x) {
-  for (i in seq_along(x)[-1]) if (is.na(x[i])) x[i] <- x[i - 1]
-  x
 }
 
 load_postcode_income <- function() {

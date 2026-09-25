@@ -25,7 +25,10 @@ pc <- rd("postcode_income.csv")
 fuel <- rd("fuel_prices.csv")
 onset <- rd("fuel_crisis_onset.csv")
 subs <- rd("vic_postcode_suburbs.csv")
-for (x in names(CFG$map$postcode_name_overrides)) subs[postcode == as.integer(x), suburbs := CFG$map$postcode_name_overrides[[x]]]
+for (x in names(CFG$map$postcode_name_overrides)) {
+  if (!as.integer(x) %in% subs$postcode) subs <- rbind(subs, data.table(postcode = as.integer(x), suburbs = "")) # override may name a postcode with no ABS suburb point
+  subs[postcode == as.integer(x), suburbs := CFG$map$postcode_name_overrides[[x]]]
+}
 gaps <- rd("nsw_unmapped_months.csv")$month
 
 flow[, private := customer == PRIVATE]
@@ -180,6 +183,110 @@ vic_q <- vic[, .(per1000 = sum(bev) / sum(vehicles) * 1000), by = quarter]
 kpi_vic <- V[, .(fleet = sum(bev, na.rm = TRUE), per1000veh = sum(bev, na.rm = TRUE) / sum(vehicles, na.rm = TRUE) * 1000)]
 for (v in names(views)) views[[v]]$kpi$VIC <- kpi_vic
 
+# ---- all states: BEV fleet (BITRE), solar, batteries, charging stations ---------------
+X <- CFG$context
+ctx <- fread(file.path(OUT, "lga_context.csv"), colClasses = list(character = "lga_code"))
+cdates <- setNames(rd("context_dates.csv")$value, rd("context_dates.csv")$item)
+BY <- as.integer(strsplit(cdates[["bitre_years"]], ",")[[1]])
+y1 <- max(BY)
+y0 <- y1 - 1L
+ratio <- function(a, b, k = 1) fifelse(b > 0, a / b * k, NA_real_)
+aus_measures <- function(d) {
+  d[, `:=`(
+    bitre_per1000 = ratio(bev1, lv1, 1000), bitre_add1000 = ratio(bev1 - bev0, lv0, 1000),
+    solar_per100 = ratio(solar_n, dwellings, 100), solar_kw_dw = ratio(solar_kw, dwellings),
+    bat_per1000 = ratio(battery_n, dwellings, 1000), bat_kwh_dw = ratio(battery_kwh, dwellings),
+    chg_per10k = ratio(chg_sites, persons, 1e4), fast_per10k = ratio(chg_fast, persons, 1e4), bev_per_site = ratio(bev1, chg_sites)
+  )]
+}
+AUS <- ctx[, .(
+  id = lga_code, state, name = lga_name, income = median_income, earners, pop = persons, persons, dwellings, group = income_group,
+  lv1 = get(paste0("lv_", y1)), lv0 = get(paste0("lv_", y0)), bev1 = get(paste0("bev_", y1)), bev0 = get(paste0("bev_", y0)),
+  solar_n, solar_kw, battery_n, battery_kwh, chg_sites, chg_fast
+)]
+aus_measures(AUS)
+AUS[, `:=`(elig_fleet = lv1 >= X$min_light_vehicles, elig_dw = dwellings >= X$min_dwellings, elig = lv1 >= X$min_light_vehicles)]
+AUS[, `:=`(elig_site = elig_fleet & chg_sites > 0)]
+AUS_STATES <- unname(unlist(X$states))
+# yearly BEVs per 1,000 light vehicles (BITRE), per area and per state, for the detail chart
+aus_series <- ctx[, c("lga_code", paste0("bev_", BY), paste0("lv_", BY)), with = FALSE]
+aus_series <- aus_series[, c(list(id = lga_code), setNames(lapply(BY, function(y) ratio(get(paste0("bev_", y)), get(paste0("lv_", y)), 1000)), BY))]
+aus_state_year <- rbindlist(lapply(BY, function(y) ctx[, .(year = y, per1000 = sum(get(paste0("bev_", y))) / sum(get(paste0("lv_", y))) * 1000), by = state]))
+
+# group totals (pooled, like the registration groups), each state plus all of Australia
+aus_group <- function(d) {
+  g <- d[, .(
+    lv1 = sum(lv1), lv0 = sum(lv0), bev1 = sum(bev1), bev0 = sum(bev0), solar_n = sum(solar_n), solar_kw = sum(solar_kw), battery_n = sum(battery_n),
+    battery_kwh = sum(battery_kwh), chg_sites = sum(chg_sites), chg_fast = sum(chg_fast), persons = sum(persons), dwellings = sum(dwellings),
+    inc_lo = min(income), inc_hi = max(income), areas = .N
+  ), keyby = group]
+  aus_measures(g)
+  g[]
+}
+aus_groups <- rbind(
+  rbindlist(lapply(AUS_STATES, function(s) aus_group(AUS[state == s])[, state := s])),
+  aus_group(AUS)[, state := "AUS"]
+)
+# monthly solar and battery installations per 1,000 dwellings, by income group (Australia)
+sbm <- fread(file.path(OUT, "solar_battery_lga_month.csv"), colClasses = list(character = "lga_code"))
+sbm[AUS, `:=`(group = i.group, dwellings = i.dwellings), on = c(lga_code = "id")]
+aus_month <- sbm[!is.na(group), .(solar_n = sum(solar_n), battery_n = sum(battery_n), dwellings = sum(dwellings)), keyby = .(group, month)]
+aus_month[, `:=`(solar_1000 = solar_n / dwellings * 1000, battery_1000 = battery_n / dwellings * 1000)]
+aus_month_total <- sbm[, .(solar_n = sum(solar_n), battery_n = sum(battery_n)), keyby = month]
+
+# how each measure moves with the BEV fleet across council areas: Spearman rank correlation,
+# raw and after taking out area income (ranks residualised on income rank), per state
+spear <- function(x, y) suppressWarnings(cor(rank(x), rank(y)))
+partial <- function(x, y, z) {
+  rx <- resid(lm(rank(x) ~ rank(z)))
+  ry <- resid(lm(rank(y) ~ rank(z)))
+  suppressWarnings(cor(rx, ry))
+}
+CORR_VARS <- c(income = "Median income", solar_per100 = "Solar per 100 dwellings", bat_per1000 = "Batteries per 1,000 dwellings", chg_per10k = "Charging sites per 10,000 people")
+aus_corr <- rbindlist(lapply(c("AUS", AUS_STATES), function(s) {
+  d <- AUS[elig_fleet == TRUE & (s == "AUS" | state == s)]
+  if (nrow(d) < 8) {
+    return(NULL)
+  }
+  rbindlist(lapply(names(CORR_VARS), function(v) {
+    data.table(state = s, var = v, label = CORR_VARS[[v]], n = nrow(d), r = spear(d$bitre_per1000, d[[v]]), r_inc = if (v == "income") NA_real_ else partial(d$bitre_per1000, d[[v]], d$income))
+  }))
+}))
+# the same solar, battery, charger (and BITRE fleet) measures on the NSW + QLD and VIC postcode views
+CTX_COLS <- c("bitre_per1000", "bitre_add1000", "solar_per100", "solar_kw_dw", "bat_per1000", "bat_kwh_dw", "chg_sites", "chg_fast", "chg_per10k", "bev_per_site", "elig_fleet", "elig_dw", "elig_site")
+GRP_COLS <- setdiff(CTX_COLS, c("elig_fleet", "elig_dw", "elig_site"))
+for (v in names(views)) {
+  views[[v]]$lga <- merge(views[[v]]$lga, AUS[, c("id", CTX_COLS), with = FALSE], by = "id", all.x = TRUE)
+  views[[v]]$groups <- merge(views[[v]]$groups, aus_groups[state %chin% c("NSW", "QLD"), c("state", "group", GRP_COLS), with = FALSE], by = c("state", "group"), all.x = TRUE)
+}
+pcx <- rd("vic_postcode_context.csv")
+V[pcx, `:=`(
+  persons = i.persons, dwellings = i.dwellings, solar_n = i.solar_n, solar_kw = i.solar_kw, battery_n = i.battery_n, battery_kwh = i.battery_kwh,
+  chg_sites = i.chg_sites, chg_fast = i.chg_fast
+), on = "postcode"]
+vic_measures <- function(d) {
+  d[, `:=`(
+    solar_per100 = ratio(solar_n, dwellings, 100), solar_kw_dw = ratio(solar_kw, dwellings), bat_per1000 = ratio(battery_n, dwellings, 1000),
+    bat_kwh_dw = ratio(battery_kwh, dwellings), chg_per10k = ratio(chg_sites, persons, 1e4), bev_per_site = ratio(bev, chg_sites)
+  )]
+}
+vic_measures(V)
+V[, `:=`(elig_dw = !is.na(dwellings) & dwellings >= X$min_dwellings, elig_site = !is.na(chg_sites) & chg_sites > 0 & !is.na(bev))]
+gv_ctx <- V[!is.na(dwellings), .(
+  solar_n = sum(solar_n), solar_kw = sum(solar_kw), battery_n = sum(battery_n), battery_kwh = sum(battery_kwh), chg_sites = sum(chg_sites),
+  chg_fast = sum(chg_fast), persons = sum(persons), dwellings = sum(dwellings), bev = sum(bev, na.rm = TRUE)
+), keyby = group]
+vic_measures(gv_ctx)
+gv_ctx[, state := "VIC"]
+VG <- c("solar_per100", "solar_kw_dw", "bat_per1000", "bat_kwh_dw", "chg_sites", "chg_fast", "chg_per10k", "bev_per_site")
+for (v in names(views)) views[[v]]$groups[gv_ctx, (VG) := mget(paste0("i.", VG)), on = c("state", "group")]
+chargers <- fread(file.path(OUT, "chargers.csv"))[, .(lat, lon, name, operator, fast, capacity, state, lga_code = as.character(lga_code))]
+context <- list(
+  areas = AUS, series = aus_series, state_year = aus_state_year, groups = aus_groups, month = aus_month, month_total = aus_month_total, corr = aus_corr,
+  chargers = chargers, states = AUS_STATES, bitre_years = BY, y1 = y1, y0 = y0, cer_last = cdates[["cer_last_month"]],
+  battery_first = cdates[["battery_first_month"]], osm_date = cdates[["osm_date"]]
+)
+
 # ---- geometry -------------------------------------------------------------------
 sf_use_s2(FALSE)
 geo_lga <- st_read(file.path(OUT, "lga_boundaries.geojson"), quiet = TRUE)[, c("lga_code_2023")]
@@ -194,7 +301,7 @@ saveRDS(
   c(views$all, list(
     views = views, private_label = PRIVATE,
     cust = list(recent = cust, group = ct_group, month = ct_month, top = ct_top, order = CT_ORDER),
-    vic = V, vic_series = V_series, vic_q = vic_q,
+    vic = V, vic_series = V_series, vic_q = vic_q, aus = AUS, context = context,
     months = months, quarters = quarters, fuel = fuel[month >= months[1]], gaps = gaps[gaps >= months[1]],
     crisis = list(start = cr0, end = cr1, py_start = py0, py_end = py1, vic_quarter = ql),
     recent = list(start = int_to_ym(ym_to_int(lastm[["NSW"]]) - WIN + 1L), end = lastm[["NSW"]]),

@@ -1,5 +1,5 @@
 # Download generalised boundaries from the ABS ArcGIS REST service:
-#   processed/lga_boundaries.geojson           NSW + QLD LGAs (ASGS 2023)
+#   processed/lga_boundaries.geojson           every council area in Australia (ASGS 2023)
 #   processed/vic_postcode_boundaries.geojson  VIC postal areas (ASGS 2021)
 #   processed/australia_states.geojson         all states, for the map base layer
 #   processed/vic_postcode_suburbs.csv         each VIC postcode named by its ABS suburbs
@@ -63,7 +63,7 @@ postcode_suburbs <- function(poa_file) {
   logf("VIC postcodes named: %d", nrow(out))
 }
 
-lga <- query(M$lga_service, "state_code_2021 IN ('1','3')", "lga_code_2023,lga_name_2023,state_code_2021", M$lga_offset_deg)
+lga <- query(M$lga_service, "state_code_2021 IN ('1','2','3','4','5','6','7','8')", "lga_code_2023,lga_name_2023,state_code_2021", M$lga_offset_deg)
 save_geojson(lga, "lga_boundaries.geojson")
 logf("LGA features: %d", length(lga$features))
 

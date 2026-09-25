@@ -160,3 +160,55 @@ map:
   suburb_names_per_postcode: 3
   # Postcodes whose ABS locality point falls in a neighbouring postcode
   postcode_name_overrides: {3000: Melbourne CBD}
+
+# ---- all states: fleet, solar, batteries and charging stations by area -----------
+# Built by R/build_context.R for every council area in Australia (and each VIC postcode).
+context:
+  states: {"1": NSW, "2": VIC, "3": QLD, "4": SA, "5": WA, "6": TAS, "7": NT, "8": ACT}
+  # ABS names the ACT "Unincorporated ACT"; it is a real, populated area, so it is kept
+  # (other "Unincorporated ..." areas are dropped, as for the registration analysis)
+  keep_unincorporated: [Unincorporated ACT]
+  # Postcode -> council area: each postcode's counts are shared out by the Census 2021
+  # people (vehicles, chargers) or dwellings (solar, batteries) in its mesh blocks
+  mb_poa_file: abs_mb/POA_2021_AUST.xlsx
+  mb_lga_file: abs_mb/LGA_2023_AUST.xlsx
+  mb_counts_file: abs_mb/mesh_block_counts_2021.xlsx
+  # BITRE Road vehicles Australia, 31 January of each year, by garaging postcode
+  bitre_glob: bitre/bitre_poagar_mtvpwr_*.csv
+  bitre_light_types: [Passenger vehicles, Light commercial vehicles]
+  bitre_bev_label: Battery/Fuel-cell electric
+  # CER Small-scale Renewable Energy Scheme postcode data (monthly)
+  cer_files:
+    solar_n: cer/cer_solar_installations.csv
+    solar_kw: cer/cer_solar_capacity.csv
+    battery_n: cer/cer_battery_installations.csv
+    battery_kwh: cer/cer_battery_capacity.csv
+  # Monthly solar/battery series kept from this month
+  series_from: "2023-01"
+  # OpenStreetMap public charging stations (Overpass API)
+  # tried in order; the first answers with the newest data, the mirror can lag by weeks
+  overpass_urls: [https://overpass-api.de/api/interpreter, https://overpass.private.coffee/api/interpreter, https://overpass.kumi.systems/api/interpreter]
+  overpass_bbox: [-44.0, 112.5, -9.0, 154.0]
+  osm_file: osm/charging_stations.json
+  # OSM access values that mean the site is not open to the public
+  osm_private_access: ["private", "no", "permit", "employees", "residents"]
+  # A site is "fast" if it has a DC plug type or any output tag of at least this many kW
+  fast_sockets: [type2_combo, chademo, tesla_supercharger, tesla_supercharger_ccs, gb_dc, ccs1]
+  fast_min_kw: 50
+  # Areas need at least this many light vehicles (BITRE) / dwellings (Census) to be coloured
+  min_light_vehicles: 500
+  min_dwellings: 200
+
+# ---- "Update data": find the latest files on each open-data portal ------------------
+# R/update_sources.R lists every file on these CKAN portals, rewrites raw_data/**/urls.txt
+# and deletes any local file the portal has changed since it was downloaded, so the
+# download step fetches it again. CER files and OpenStreetMap are always refreshed.
+update:
+  since_year: 2022
+  nsw: {portal: "https://opendata.transport.nsw.gov.au/data", package: 2342b8e4-d4fc-4549-82de-b36380ea46f2}
+  qld: {portal: "https://www.data.qld.gov.au", package: f70d8de3-c284-41af-887e-be885381dd46}
+  vic: {portal: "https://opendata.transport.vic.gov.au", package: 54e52c3b-6016-4166-a241-c253e26b8f62}
+  bitre: {portal: "https://data.gov.au/data", search: "road-vehicles-australia-january", resource_pattern: "poagar-mtvpwr"}
+  # Monthly fuel prices are copied from the au_fuel_prices project when it is on this
+  # computer (run PRICES there first for the newest months); otherwise the copies kept here are used
+  fuel_source_dir: ~/models/au_fuel_prices/work

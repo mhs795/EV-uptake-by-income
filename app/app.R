@@ -19,13 +19,17 @@ PROC <- file.path(ROOT, Sys.getenv("EV_PROCESSED", CFG$paths$processed))
 D <- readRDS(file.path(PROC, "dashboard.rds"))
 WORKBOOK <- file.path(ROOT, Sys.getenv("EV_WORKBOOK", D$workbook))
 
+`%||%` <- function(a, b) if (is.null(a)) b else a
+`%|NA|%` <- function(a, b) if (is.null(a) || is.na(a)) b else unname(a)
+
 # ---- palette (GARY colorway) ---------------------------------------------------
 COL <- list(
   primary = "#1F7AE0", text = "#1A1D21", med = "#6B7280", low = "#9AA5B1", divider = "#E3E6EA",
   nsw = "#1976D2", qld = "#F57C00", vic = "#00897B", other = "#CFD6DE", band = "rgba(245,124,0,0.10)",
   na = "#E3E6EA", land = "#FFFFFF", coast = "#B8C1CC"
 )
-STATE_COL <- c(NSW = COL$nsw, QLD = COL$qld, VIC = COL$vic)
+STATE_COL <- c(NSW = COL$nsw, QLD = COL$qld, VIC = COL$vic, SA = "#C62828", WA = "#6A1B9A", TAS = "#2E7D32", NT = "#8D6E63", ACT = "#00ACC1", AUS = "#1F7AE0")
+CHG_COL <- c(fast = "#E65100", slow = "#00897B")
 CT_COL <- c(Private = "#1F7AE0", Business = "#F57C00", `Dealer demonstrator` = "#00897B", Government = "#9AA5B1", Organisation = "#F57C00")
 SEQ <- c("#E3F2FD", "#BBDEFB", "#90CAF9", "#5AA2EE", "#1F7AE0", "#1565C0", "#0D47A1")
 GROUP_COL <- c("#90CAF9", "#5AA2EE", "#1F7AE0", "#1565C0", "#0D47A1")
@@ -45,6 +49,22 @@ mon <- function(ym) format(as.Date(paste0(ym, "-01")), "%b %y")
 qmon <- function(q) mon(sprintf("%s-%02d", substr(q, 1, 4), as.integer(substr(q, 6, 6)) * 3L))
 crisis_label <- sprintf("%s–%s", mon(D$crisis$start), mon(D$crisis$end))
 
+# rooftop solar, home batteries (CER) and public chargers (OpenStreetMap): the same on every geography.
+# 'grp' is the heading the measure sits under in the dropdowns; 'elig' names the column that says
+# whether an area is big enough to colour
+energy_metrics <- function(bev_per_site_note) {
+  list(
+    solar_per100 = list(label = sprintf("Rooftop solar systems per 100 dwellings (to %s)", mon(D$context$cer_last)), fmt = num1, elig = "elig_dw", grp = "Rooftop solar and home batteries"),
+    solar_kw_dw = list(label = "Rooftop solar kW per dwelling", fmt = num1, elig = "elig_dw", grp = "Rooftop solar and home batteries"),
+    bat_per1000 = list(label = sprintf("Home batteries per 1,000 dwellings (%s–%s)", mon(D$context$battery_first), mon(D$context$cer_last)), fmt = num1, elig = "elig_dw", grp = "Rooftop solar and home batteries"),
+    bat_kwh_dw = list(label = "Home battery kWh per dwelling", fmt = num1, elig = "elig_dw", grp = "Rooftop solar and home batteries"),
+    chg_sites = list(label = "Public charging sites (count)", fmt = int, elig = "elig_dw", grp = "EV charging"),
+    chg_fast = list(label = "Fast (DC) charging sites (count)", fmt = int, elig = "elig_dw", grp = "EV charging"),
+    chg_per10k = list(label = "Public charging sites per 10,000 people", fmt = num1, elig = "elig_dw", grp = "EV charging"),
+    bev_per_site = list(label = paste("BEVs per public charging site", bev_per_site_note), fmt = num1, elig = "elig_site", grp = "EV charging")
+  )
+}
+INCOME_GRP <- "Income"
 METRICS <- list(
   lga = list(
     share = list(label = sprintf("BEV share of new cars (%s)", RW), fmt = pct),
@@ -54,7 +74,9 @@ METRICS <- list(
     bev = list(label = sprintf("New BEVs registered, %s (count)", RW), fmt = int),
     per1000veh = list(label = sprintf("BEVs per 1,000 light vehicles — fleet, %s (NSW only)", mon(D$fleet_dates$NSW)), fmt = num1),
     fleet_bev = list(label = "BEVs in the fleet (count; QLD: BEVs seen since 2022)", fmt = int),
-    income = list(label = "Median total income of earners, 2022-23", fmt = usd)
+    bitre_per1000 = list(label = sprintf("BEVs per 1,000 light vehicles — BITRE fleet, Jan %d (NSW and QLD)", D$context$y1), fmt = num1, elig = "elig_fleet"),
+    energy_metrics(sprintf("(BITRE fleet, Jan %d)", D$context$y1)),
+    income = list(label = "Median total income of earners, 2022-23", fmt = usd, grp = INCOME_GRP)
   ),
   vic = list(
     per1000veh = list(label = sprintf("BEVs per 1,000 vehicles — fleet, %s", qmon(D$fleet_dates$VIC)), fmt = num1),
@@ -62,9 +84,28 @@ METRICS <- list(
     add_c1000 = list(label = sprintf("BEVs added in the crisis quarter (to %s) per 1,000 vehicles", qmon(D$crisis$vic_quarter)), fmt = num1),
     bev = list(label = "BEVs in the fleet (count)", fmt = int),
     add_c = list(label = "BEVs added in the crisis quarter (count)", fmt = int),
-    income = list(label = "Median taxable income, 2023-24", fmt = usd)
+    energy_metrics(sprintf("(VIC fleet, %s)", qmon(D$fleet_dates$VIC))),
+    income = list(label = "Median taxable income, 2023-24", fmt = usd, grp = INCOME_GRP)
+  ),
+  # all states: fleet from BITRE (31 January), solar and batteries from the CER, chargers from OpenStreetMap.
+  # 'elig' names the column that says whether an area is big enough to colour
+  aus = list(
+    bitre_per1000 = list(label = sprintf("BEVs per 1,000 light vehicles — fleet, Jan %d", D$context$y1), fmt = num1, elig = "elig_fleet"),
+    bitre_add1000 = list(label = sprintf("BEVs added per 1,000 light vehicles, Jan %d–Jan %d", D$context$y0, D$context$y1), fmt = num1, elig = "elig_fleet"),
+    bev1 = list(label = sprintf("BEVs in the fleet, Jan %d (count)", D$context$y1), fmt = int, elig = "elig_fleet"),
+    energy_metrics(sprintf("(BITRE fleet, Jan %d)", D$context$y1)),
+    income = list(label = "Median total income of earners, 2022-23", fmt = usd, grp = INCOME_GRP)
   )
 )
+# energy_metrics() returns a list of measures: splice it into each geography's list
+METRICS <- lapply(METRICS, function(g) do.call(c, lapply(seq_along(g), function(i) if (is.null(g[[i]]$label)) g[[i]] else setNames(list(g[[i]]), names(g)[i]))))
+# measures the Solar, batteries & chargers tab can set against the BEV fleet
+EN_X <- METRICS$aus[c("bat_per1000", "solar_per100", "chg_per10k", "income")]
+# areas coloured / ranked for metric m: big enough (the metric's own size test) and not missing
+ok_rows <- function(d, m) {
+  e <- d[[m$elig %||% "elig"]]
+  (m$key == "income" | (!is.na(e) & e)) & !is.na(d[[m$key]])
+}
 short <- function(lab) sub(" —.*| \\(.*", "", lab)
 
 # ---- plotly theme (GARY) -----------------------------------------------------------
@@ -126,6 +167,10 @@ html, body { background: var(--md-bg) !important; color: var(--md-text); font-fa
 .toolbar { display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap; background: var(--md-surface); border: 1px solid var(--md-divider);
   border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; }
 .toolbar .form-group { margin-bottom: 0; }
+.tb-check { height: 36px; display: flex; align-items: center; }
+.tb-check .checkbox { margin: 0; } .tb-check label { font-size: 13px; font-weight: 600; color: var(--md-text-med); cursor: pointer; }
+.upd-log { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 11.5px; background: #F5F6F8; border: 1px solid var(--md-divider); border-radius: 8px; padding: 10px; max-height: 320px; overflow-y: auto; white-space: pre-wrap; }
+table.md td.neg { color: #C62828; } table.md td.pos { color: #1565C0; }
 .toolbar .shiny-input-container { width: auto !important; }
 .toolbar label.control-label, .tb-label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .6px; font-weight: 600; color: var(--md-text-low); margin-bottom: 4px; }
 .toolbar .form-select, .toolbar .selectize-input { font-size: 13px; border-radius: 8px; border-color: var(--md-divider); min-height: 36px; }
@@ -201,19 +246,30 @@ seg <- function(id, choices, label = NULL) {
     }))
   )
 }
-geo_seg <- function(id) seg(id, c("NSW + QLD" = "lga", "VIC" = "vic"), "Geography")
+geo_seg <- function(id, aus = TRUE) {
+  seg(id, c("NSW + QLD" = "lga", if (aus) c("All states" = "aus"), "VIC postcodes" = "vic"), "Geography")
+}
 state_sel <- function(id, geo_id) {
-  conditionalPanel(
-    sprintf("input.%s != 'vic'", geo_id),
-    div(class = "tb-state", selectInput(id, "State", c("NSW + QLD" = "ALL", "NSW", "QLD")))
+  tagList(
+    conditionalPanel(
+      sprintf("input.%s == 'lga' || input.%s == null", geo_id, geo_id),
+      div(class = "tb-state", selectInput(id, "State", c("NSW + QLD" = "ALL", "NSW", "QLD")))
+    ),
+    conditionalPanel(
+      sprintf("input.%s == 'aus'", geo_id),
+      div(class = "tb-state", selectInput(paste0(id, "_aus"), "State", c("All states" = "ALL", D$context$states)))
+    )
   )
 }
+# dropdown choices, in sections ("BEV take-up", "Rooftop solar and home batteries", "EV charging", "Income")
 metric_choices <- function(g, drop = NULL) {
   m <- METRICS[[g]][setdiff(names(METRICS[[g]]), drop)]
-  setNames(names(m), vapply(m, `[[`, "", "label"))
+  grp <- vapply(m, function(x) x$grp %||% "BEV take-up", "")
+  ch <- setNames(names(m), vapply(m, `[[`, "", "label"))
+  lapply(split(ch, factor(grp, levels = unique(grp))), as.list)
 }
 # all customers or private buyers only (NSW + QLD; VIC data have no customer type)
-cust_seg <- function(id, geo_id) conditionalPanel(sprintf("input.%s != 'vic'", geo_id), seg(id, c("All" = "all", "Private only" = "private"), "Customers"))
+cust_seg <- function(id, geo_id) conditionalPanel(sprintf("input.%s == 'lga' || input.%s == null", geo_id, geo_id), seg(id, c("All" = "all", "Private only" = "private"), "Customers"))
 metric_sel <- function(id, label, drop = NULL) div(class = "tb-metric", selectInput(id, label, metric_choices("lga", drop)))
 
 card <- function(title, note = NULL, ...) div(class = "card2", h2(title), if (!is.null(note)) p(class = "note", note), ...)
@@ -240,20 +296,21 @@ ui <- page(
     class = "md-header",
     div(class = "md-brand-icon", HTML('<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg>')),
     div(
-      div(class = "md-header-title", "EV uptake by regional income — NSW, QLD, VIC"),
-      div(class = "md-header-sub", "Battery-electric vehicles in state registration data against ATO/ABS median income by area")
+      div(class = "md-header-title", "EV uptake by regional income — Australia"),
+      div(class = "md-header-sub", "New BEV registrations (NSW, QLD, VIC) and the BEV fleet, rooftop solar, home batteries and chargers (every state) against ATO/ABS median income by area")
     ),
     div(
       class = "md-header-right",
       span(class = "md-chip", sprintf("Recent window: %s", RW)),
       span(class = "md-chip warn", sprintf("Fuel crisis: %s", crisis_label)),
+      actionButton("upd_go", "Update data", class = "md-btn", title = "Fetch the latest public data and rebuild the dashboard and workbook"),
       div(
         class = "dropdown",
         tags$button(class = "md-btn md-btn-filled dropdown-toggle", type = "button", `data-bs-toggle` = "dropdown", "Download"),
         tags$ul(
           class = "dropdown-menu dropdown-menu-end",
           dl_item("dl_workbook", "Full workbook", "Every table, chart, source and adjustment"),
-          dl_item("dl_areas", "All areas", "NSW + QLD councils and VIC postcodes"),
+          dl_item("dl_areas", "All areas", "Councils in every state, and VIC postcodes"),
           dl_item("dl_top", "Top & bottom 10s", "Every metric, both geographies"),
           dl_item("dl_groups", "Income-group summary", "Totals by income group and customer type, and how groups are built"),
           dl_item("dl_series", "Monthly series + fuel prices", "Per-area trends and state totals")
@@ -273,6 +330,8 @@ ui <- page(
           class = "card2 sources", h2("Data"),
           "Public data: TfNSW, QLD TMR and VIC DTP vehicle registrations; ABS Personal Income 2022-23 (ATO-based); ATO Taxation Statistics 2023-24; ",
           "NSW FuelCheck, QLD fuel prices, AIP; ABS boundaries. NSW and QLD are by council area (LGA); VIC by postcode, named by its suburbs. ",
+          "All states: BITRE Road vehicles Australia (fleet by postcode), Clean Energy Regulator solar and battery postcode data, OpenStreetMap charging stations, ",
+          "shared out to council areas with ABS mesh blocks and Census 2021 counts. ",
           "Sources, data adjustments and method are in the full workbook (Download, top right)."
         )
       ),
@@ -280,6 +339,7 @@ ui <- page(
         value = "map",
         div(
           class = "toolbar", geo_seg("map_geo"), state_sel("map_st", "map_geo"), cust_seg("map_cust", "map_geo"), metric_sel("map_metric", "Colour areas by"),
+          div(class = "tb-check", checkboxInput("map_chg", "Charging stations", FALSE)),
           actionButton("map_reset", "Reset view", class = "md-btn"),
           span(class = "tb-hint", "Click an area on the map or a dot on the scatter to see its trend.")
         ),
@@ -299,10 +359,39 @@ ui <- page(
           )
         )
       ),
+      nav_panel("Solar, batteries & chargers",
+        value = "energy",
+        div(
+          class = "toolbar",
+          div(class = "tb-state", selectInput("en_st", "State", c("Australia (pooled)" = "AUS", "Each state side by side" = "EACH", setNames(D$context$states, D$context$states)))),
+          div(class = "tb-metric", selectInput("en_x", "Compare the BEV fleet with", setNames(names(EN_X), vapply(EN_X, `[[`, "", "label")))),
+          span(
+            class = "tb-hint", style = "max-width:520px",
+            sprintf("Every council area in Australia, grouped into fifths of each state's earners. Fleet: BITRE, 31 Jan %d. Solar and batteries: CER to %s. Chargers: OpenStreetMap, %s.", D$context$y1, mon(D$context$cer_last), D$context$osm_date)
+          )
+        ),
+        div(
+          class = "grid-even",
+          card(sprintf("BEVs per 1,000 light vehicles by income group — Jan %d", D$context$y1), "Registered fleet at the garaging postcode. Other states publish no monthly new registrations by area, so this is a fleet measure.", plotlyOutput("en_bev", height = 260)),
+          card(sprintf("BEVs added per 1,000 light vehicles, Jan %d–Jan %d", D$context$y0, D$context$y1), "Change in the BEV fleet over the latest year: new BEVs less the few scrapped or moved away.", plotlyOutput("en_add", height = 260)),
+          card("Rooftop solar systems per 100 dwellings", "Every system with certificates since 2001, including upgrades, so a home can count twice. Pooled: group total ÷ group dwellings.", plotlyOutput("en_solar", height = 260)),
+          card(sprintf("Home batteries per 1,000 dwellings, %s–%s", mon(D$context$battery_first), mon(D$context$cer_last)), "Batteries entered the CER scheme on 1 July 2025 (Cheaper Home Batteries); earlier ones are not in the data.", plotlyOutput("en_bat", height = 260)),
+          card("Public charging sites per 10,000 people", "OpenStreetMap sites open to the public. Rural highway fast chargers serve travellers, not residents, so low-income rural areas score high.", plotlyOutput("en_chg", height = 260)),
+          card("BEVs per public charging site", "BEV fleet ÷ public sites in the group. Most BEV owners charge at home, so this is about coverage, not queues.", plotlyOutput("en_per_site", height = 260)),
+          card("Home batteries installed per month, per 1,000 dwellings — Australia by income group", "CER, by installation month. The latest months are incomplete (certificates can be created up to a year later). Shaded: fuel crisis.", plotlyOutput("en_bat_month", height = 260)),
+          card("Rooftop solar installed per month, per 1,000 dwellings — Australia by income group", "Same source and caveat. Shaded: fuel crisis.", plotlyOutput("en_solar_month", height = 260)),
+          card(textOutput("en_sc_title", inline = TRUE), "Each dot is a council area (small areas hidden), sized by population. Hover for the name.", plotlyOutput("en_scatter", height = 320)),
+          div(
+            class = "card2", h2("How each measure moves with the BEV fleet, across council areas"),
+            p(class = "note", "Spearman rank correlation with BEVs per 1,000 light vehicles, across council areas. In brackets: after taking out area income (ranks adjusted for income rank). Blue = more BEVs where there is more of it; red = fewer."),
+            uiOutput("en_corr")
+          )
+        )
+      ),
       nav_panel("Income groups",
         value = "income",
         div(
-          class = "toolbar", geo_seg("grp_geo"), cust_seg("grp_cust", "grp_geo"), metric_sel("grp_metric", "Measure", drop = c("income", "add_c")),
+          class = "toolbar", geo_seg("grp_geo", aus = FALSE), cust_seg("grp_cust", "grp_geo"), metric_sel("grp_metric", "Measure", drop = c("income", "add_c")),
           span(class = "tb-hint", "Areas are grouped into fifths of each state's earners, from the lowest-income areas (Q1) to the highest (Q5).")
         ),
         div(
@@ -384,7 +473,11 @@ server <- function(input, output, session) {
   # ---- per-tab view: geography, state filter, metric
   view <- function(prefix, drop = NULL) {
     geo <- reactive(input[[paste0(prefix, "_geo")]] %||% "lga")
-    st <- reactive(if (geo() == "vic") "VIC" else input[[paste0(prefix, "_st")]] %||% "ALL")
+    st <- reactive(switch(geo(),
+      vic = "VIC",
+      aus = input[[paste0(prefix, "_st_aus")]] %||% "ALL",
+      input[[paste0(prefix, "_st")]] %||% "ALL"
+    ))
     cust <- reactive(input[[paste0(prefix, "_cust")]] %||% "all")
     dv <- reactive(D$views[[cust()]]) # lga, lga_series, groups, state_month for the chosen customers
     mid <- paste0(prefix, "_metric")
@@ -392,7 +485,8 @@ server <- function(input, output, session) {
       {
         ch <- metric_choices(geo(), drop)
         cur <- isolate(input[[mid]])
-        updateSelectInput(session, mid, choices = ch, selected = if (isTRUE(cur %in% ch)) cur else ch[[1]])
+        keys <- unlist(ch, use.names = FALSE)
+        updateSelectInput(session, mid, choices = ch, selected = if (isTRUE(cur %in% keys)) cur else keys[1])
       },
       ignoreInit = TRUE
     )
@@ -402,11 +496,17 @@ server <- function(input, output, session) {
       if (!isTRUE(k %in% setdiff(names(m), drop))) k <- setdiff(names(m), drop)[1]
       c(key = k, m[[k]])
     })
-    areas <- reactive(if (geo() == "vic") D$vic else if (st() == "ALL") dv()$lga else dv()$lga[state == st()])
+    areas <- reactive({
+      a <- switch(geo(),
+        vic = D$vic,
+        aus = D$aus,
+        dv()$lga
+      )
+      if (geo() == "vic" || st() == "ALL") a else a[state == st()]
+    })
     eligible <- reactive({
       a <- areas()
-      k <- metric()$key
-      a[(k == "income" | elig) & !is.na(a[[k]])]
+      a[ok_rows(a, metric())]
     })
     list(geo = geo, st = st, cust = cust, dv = dv, metric = metric, areas = areas, eligible = eligible)
   }
@@ -429,19 +529,24 @@ server <- function(input, output, session) {
       a <- selected()
       if (is.null(a)) {
         return(tagList(
-          div(class = "sel-name", if (v$geo() == "lga") {
-            sprintf(
+          div(class = "sel-name", switch(v$geo(),
+            lga = sprintf(
               "All %s council areas%s", if (v$st() == "ALL") "NSW and QLD" else v$st(),
               if (v$cust() == "private") " — private buyers" else ""
-            )
-          } else {
+            ),
+            aus = sprintf("All %s council areas", if (v$st() == "ALL") "Australian" else v$st()),
             "All VIC postcodes"
-          }),
+          )),
           div(class = "sel-meta", "No area selected: showing state averages.")
         ))
       }
       k <- function(l, x) div(class = "kpi", tags$b(x), span(l))
-      ks <- if (v$geo() == "lga") {
+      ks <- if (v$geo() == "aus") {
+        list(
+          k(sprintf("BEVs per 1,000 light vehicles, Jan %d", D$context$y1), num1(a$bitre_per1000)), k("Solar per 100 dwellings", num1(a$solar_per100)),
+          k("Batteries per 1,000 dwellings", num1(a$bat_per1000)), k("Public charging sites (fast)", sprintf("%s (%s)", int(a$chg_sites), int(a$chg_fast)))
+        )
+      } else if (v$geo() == "lga") {
         list(
           k(sprintf("BEV share, %s", RW), pct(a$share)), k(sprintf("Crisis %s (year earlier)", crisis_label), sprintf("%s (%s)", pct(a$share_c), pct(a$share_p))),
           if (a$state == "NSW") k("BEVs per 1,000 light vehicles", num1(a$per1000veh)) else k("BEVs seen per 1,000 earners", num1(a$per1000pop))
@@ -454,18 +559,39 @@ server <- function(input, output, session) {
           class = "sel-name", if (v$geo() == "vic") sprintf("%s — %s", a$name, a$id) else a$name,
           span(class = "sel-clear", onclick = sprintf("Shiny.setInputValue('%s_clear', Math.random())", id), "Clear ×")
         ),
-        div(class = "sel-meta", sprintf("%s · median income %s · income group Q%d of %d%s", a$state, usd(a$income), a$group, NG, if (a$elig) "" else " · small area, treat with care")),
+        div(class = "sel-meta", sprintf("%s · median income %s · income group Q%d of %d%s", a$state, usd(a$income), a$group, NG, if (isTRUE(a$elig)) "" else " · small area, treat with care")),
         div(class = "kpis", ks)
       )
     })
-    output[[paste0(id, "_line_title")]] <- renderText(if (v$geo() == "lga") "BEV share of new registrations, monthly" else "BEVs per 1,000 registered vehicles, quarterly")
+    output[[paste0(id, "_line_title")]] <- renderText(switch(v$geo(),
+      lga = "BEV share of new registrations, monthly",
+      aus = "BEVs per 1,000 light vehicles, 31 January each year (BITRE)",
+      "BEVs per 1,000 registered vehicles, quarterly"
+    ))
     output[[paste0(id, "_line_note")]] <- renderText({
       a <- selected()
+      if (v$geo() == "aus") {
+        return(if (is.null(a)) "State averages. Fleet counts, not new sales: no state other than NSW and QLD publishes new registrations by area." else sprintf("%s vs %s average.", a$name, a$state))
+      }
       if (is.null(a)) "State averages. Shaded: fuel crisis." else sprintf("%s vs %s average. Shaded: fuel crisis.", a$name, a$state)
     })
     output[[paste0(id, "_line")]] <- renderPlotly({
       a <- selected()
       p <- plot_ly()
+      if (v$geo() == "aus") {
+        C <- D$context
+        x <- as.Date(sprintf("%d-01-31", C$bitre_years))
+        sy <- C$state_year
+        sts <- if (!is.null(a)) a$state else if (v$st() == "ALL") C$states else v$st()
+        for (s in sts) {
+          p <- p |> add_lines(
+            x = x, y = sy[state == s][match(C$bitre_years, year), per1000], name = paste(s, if (!is.null(a)) "average" else ""),
+            line = list(color = if (is.null(a)) STATE_COL[[s]] else COL$low, width = 2, dash = if (is.null(a)) "solid" else "dash")
+          )
+        }
+        if (!is.null(a)) p <- p |> add_lines(x = x, y = unlist(C$series[id == a$id, -1]), name = a$name, line = list(color = STATE_COL[[a$state]], width = 2))
+        return(p |> theme_plot(yfmt = ".0f") |> layout(hovermode = "x unified"))
+      }
       if (v$geo() == "lga") {
         x <- mdate(D$months)
         sm <- v$dv()$state_month
@@ -547,6 +673,42 @@ server <- function(input, output, session) {
           )
         )
       }),
+      local({
+        A <- D$context$groups[state == "AUS"]
+        a <- function(q, k) A[group == q][[k]]
+        c(
+          "Every state shows the same gradient in the BEV fleet. ",
+          sprintf(
+            "Across all %d council areas in Australia, the richest fifth had %s BEVs per 1,000 light vehicles in January %d vs %s in the poorest (%.1f×), and added %s vs %s per 1,000 over the latest year. Only NSW and QLD publish new registrations by area; for the other states this is BITRE's fleet count (Solar, batteries & chargers tab).",
+            nrow(D$aus), num1(a(NG, "bitre_per1000")), D$context$y1, num1(a(1, "bitre_per1000")), a(NG, "bitre_per1000") / a(1, "bitre_per1000"),
+            num1(a(NG, "bitre_add1000")), num1(a(1, "bitre_add1000"))
+          )
+        )
+      }),
+      local({
+        A <- D$context$groups[state == "AUS"]
+        a <- function(q, k) A[group == q][[k]]
+        C <- D$context$corr[state == "AUS"]
+        cr <- function(v, k = "r") C[var == v][[k]]
+        c(
+          "Solar doesn't follow income; batteries track BEVs. ",
+          sprintf(
+            "Rooftop solar is highest in middle-income areas (%s per 100 dwellings in Q3) and lowest in the richest (%s), where apartments dominate. Home batteries since %s track the BEV fleet across areas (rank correlation %+.2f, %+.2f after allowing for income), while solar barely does (%+.2f).",
+            num1(a(3, "solar_per100")), num1(a(NG, "solar_per100")), mon(D$context$battery_first), cr("bat_per1000"), cr("bat_per1000", "r_inc"), cr("solar_per100")
+          )
+        )
+      }),
+      local({
+        A <- D$context$groups[state == "AUS"]
+        a <- function(q, k) A[group == q][[k]]
+        c(
+          "Public chargers are spread thinner where BEVs are. ",
+          sprintf(
+            "OpenStreetMap lists %s public charging sites (%s fast). Per head, the poorest fifth of areas has the most (%s per 10,000 people vs %s in the richest), mostly highway fast chargers in rural councils, while the richest fifth has %s BEVs per public site vs %s in the poorest. Most owners there can charge at home.",
+            int(nrow(D$context$chargers)), int(sum(D$context$chargers$fast)), num1(a(1, "chg_per10k")), num1(a(NG, "chg_per10k")), num1(a(NG, "bev_per_site")), num1(a(1, "bev_per_site"))
+          )
+        )
+      }),
       c("Caveat. ", "This compares areas, not people: it shows where BEVs are registered, not who bought them. Business, dealer and government vehicles are registered at the organisation's address, and novated leases and retirees' wealth also blur the link to income.")
     )
     tags$ul(lapply(items, function(x) tags$li(tags$b(x[1]), x[2])))
@@ -572,7 +734,7 @@ server <- function(input, output, session) {
     b <- bins()
     k <- mv$metric()$key
     v <- d[[k]]
-    ok <- (k == "income" | d$elig) & !is.na(v)
+    ok <- ok_rows(d, mv$metric())
     out <- rep(COL$na, length(v))
     if (!is.null(b) && length(b) > 1) out[ok] <- SEQ[pmin(findInterval(v[ok], b, rightmost.closed = TRUE, all.inside = TRUE), length(SEQ))]
     out
@@ -584,17 +746,21 @@ server <- function(input, output, session) {
       addControl(html = "Boundaries © ABS (ASGS)", position = "bottomright", className = "leaflet-control-attribution")
   })
   outputOptions(output, "map", suspendWhenHidden = FALSE)
+  # switching geography also resets the metric and the state list: wait for those to settle,
+  # so the map is redrawn once, not three times (the all-states map is ~100k vertices)
+  map_data <- debounce(reactive(list(d = shapes(), m = mv$metric(), geo = mv$geo(), colours = colour_of(shapes()))), 300)
   observe({
-    d <- shapes()
-    m <- mv$metric()
+    md <- map_data()
+    d <- md$d
+    m <- md$m
     lab <- sprintf(
       "<b>%s (%s)</b><br>%s: %s<br>Median income: %s<br>Income group: Q%d", htmlEscape(d$name), d$state, short(m$label),
-      ifelse((m$key == "income" | d$elig) & !is.na(d[[m$key]]), m$fmt(d[[m$key]]), "too few registrations"), usd(d$income), d$group
+      ifelse(ok_rows(d, m), m$fmt(d[[m$key]]), if (md$geo == "aus") "area too small" else "too few registrations"), usd(d$income), d$group
     )
     leafletProxy("map") |>
       clearGroup("areas") |>
       addPolygons(
-        data = d, layerId = ~id, group = "areas", fillColor = colour_of(d), fillOpacity = 0.85, color = "#FFFFFF", weight = 0.6,
+        data = d, layerId = ~id, group = "areas", fillColor = md$colours, fillOpacity = 0.85, color = "#FFFFFF", weight = 0.6,
         label = lapply(lab, HTML), highlightOptions = highlightOptions(weight = 2, color = COL$text, bringToFront = TRUE),
         labelOptions = labelOptions(style = list("font-family" = "Inter", "font-size" = "12px"))
       )
@@ -603,6 +769,8 @@ server <- function(input, output, session) {
     p <- leafletProxy("map")
     if (mv$geo() == "vic") {
       p |> fitBounds(144.3, -38.6, 145.6, -37.4)
+    } else if (mv$st() == "ALL" && mv$geo() == "aus") {
+      p |> fitBounds(112.9, -43.8, 153.8, -10.4)
     } else if (mv$st() == "ALL") {
       p |> fitBounds(112.9, -43.8, 153.8, -10.4)
     } else {
@@ -635,6 +803,29 @@ server <- function(input, output, session) {
     fit_view()
   })
   observeEvent(input$map_shape_click, map_sel(input$map_shape_click$id))
+  # public charging stations (OpenStreetMap), for the states on screen
+  observe({
+    p <- leafletProxy("map") |> clearGroup("chargers")
+    if (!isTRUE(input$map_chg)) {
+      return()
+    }
+    ch <- D$context$chargers
+    sts <- switch(mv$geo(),
+      vic = "VIC",
+      lga = if (mv$st() == "ALL") c("NSW", "QLD") else mv$st(),
+      if (mv$st() == "ALL") D$context$states else mv$st()
+    )
+    ch <- ch[state %chin% sts]
+    lab <- sprintf(
+      "<b>%s</b><br>%s%s<br>%s", htmlEscape(ch$name), htmlEscape(ch$operator), ifelse(is.na(ch$capacity), "", sprintf(" · %d bays", ch$capacity)),
+      ifelse(ch$fast, "Fast (DC)", "AC / destination")
+    )
+    p |> addCircleMarkers(
+      data = ch, lng = ~lon, lat = ~lat, group = "chargers", radius = ifelse(ch$fast, 4.5, 3.5), stroke = TRUE, weight = 1, color = "#FFFFFF",
+      fillColor = ifelse(ch$fast, CHG_COL[["fast"]], CHG_COL[["slow"]]), fillOpacity = 0.95, label = lapply(lab, HTML),
+      options = pathOptions(pane = "markerPane")
+    )
+  })
   observeEvent(event_data("plotly_click", source = "sc"), {
     e <- event_data("plotly_click", source = "sc")
     if (!is.null(e$customdata)) map_sel(e$customdata)
@@ -648,11 +839,25 @@ server <- function(input, output, session) {
       if (nrow(g)) p |> addPolylines(data = g, group = "sel", color = COL$text, weight = 2.5)
     }
   })
-  output$map_title <- renderText(paste0(mv$metric()$label, if (mv$geo() != "vic" && mv$cust() == "private") " — private buyers only" else ""))
+  output$map_title <- renderText(paste0(mv$metric()$label, if (mv$geo() == "lga" && mv$cust() == "private") " — private buyers only" else ""))
+  # what grey means depends on the measure's own size test
+  grey_note <- function(m) {
+    switch(m$elig %||% "elig",
+      elig_dw = sprintf("Grey = fewer than %s dwellings.", int(CFG$context$min_dwellings)),
+      elig_fleet = sprintf("Grey = fewer than %s light vehicles.", int(CFG$context$min_light_vehicles)),
+      elig_site = "Grey = no public charging site.",
+      if (mv$geo() == "vic") "Grey = too few vehicles or individuals." else "Grey = fewer than the minimum new registrations."
+    )
+  }
   output$map_note <- renderText(if (mv$geo() == "lga") {
-    "Council areas (LGAs) in NSW and QLD; other states in outline. Colour bins are sevenths of the areas shown. Grey = fewer than the minimum new registrations."
+    paste("Council areas (LGAs) in NSW and QLD; other states in outline. Colour bins are sevenths of the areas shown.", grey_note(mv$metric()))
+  } else if (mv$geo() == "aus") {
+    sprintf(
+      "Every council area in Australia. Fleet: BITRE, 31 Jan; solar and batteries: CER; chargers: OpenStreetMap (%s). Postcode data are shared out to council areas by Census population. Grey = fewer than %s light vehicles or %s dwellings.",
+      D$context$osm_date, int(CFG$context$min_light_vehicles), int(CFG$context$min_dwellings)
+    )
   } else {
-    "Postcodes, named by their ABS suburbs. Opens on Greater Melbourne — zoom out for regional Victoria. Colour bins are sevenths of postcodes."
+    paste("Postcodes, named by their ABS suburbs. Opens on Greater Melbourne — zoom out for regional Victoria. Colour bins are sevenths of postcodes.", grey_note(mv$metric()))
   })
   output$legend <- renderUI({
     b <- bins()
@@ -664,16 +869,25 @@ server <- function(input, output, session) {
       class = "legend-row", lapply(seq_len(length(b) - 1), function(i) {
         div(class = "sw", tags$i(style = sprintf("background:%s", SEQ[i])), span(if (i < length(b) - 1) paste("≤", f(b[i + 1])) else paste(">", f(b[i]))))
       }),
+      if (isTRUE(input$map_chg)) {
+        div(
+          style = "margin-left:12px;display:flex;gap:10px;align-items:center",
+          lapply(c(fast = "Fast (DC) charger", slow = "AC charger"), function(l) {
+            k <- if (startsWith(l, "Fast")) "fast" else "slow"
+            span(style = "display:inline-flex;gap:5px;align-items:center", tags$i(style = sprintf("width:9px;height:9px;border-radius:50%%;background:%s;display:inline-block", CHG_COL[[k]])), l)
+          })
+        )
+      },
       div(
         style = "margin-left:12px;display:flex;gap:6px;align-items:center", tags$i(style = sprintf("width:14px;height:10px;background:%s;display:inline-block", COL$na)),
-        "Too few registrations / no data"
+        "Too small / no data"
       )
     )
   })
   # scatter: income vs the map metric (vs BEV take-up when the map shows income itself)
   sc_key <- reactive({
     k <- mv$metric()$key
-    if (k == "income") (if (mv$geo() == "lga") "share" else "per1000veh") else k
+    if (k == "income") switch(mv$geo(), lga = "share", aus = "bitre_per1000", "per1000veh") else k
   })
   output$sc_title <- renderText({
     l <- METRICS[[mv$geo()]][[sc_key()]]$label
@@ -682,7 +896,8 @@ server <- function(input, output, session) {
   output$scatter <- renderPlotly({
     key <- sc_key()
     fmt <- METRICS[[mv$geo()]][[key]]$fmt
-    a <- mv$areas()[elig == TRUE & !is.na(get(key))]
+    a <- mv$areas()
+    a <- a[ok_rows(a, c(key = key, METRICS[[mv$geo()]][[key]]))]
     p <- plot_ly(source = "sc")
     for (s in unique(a$state)) {
       d <- a[state == s]
@@ -922,6 +1137,73 @@ server <- function(input, output, session) {
     )
   })
 
+  # ---- Solar, batteries & chargers tab (all states)
+  en_st <- reactive(input$en_st %||% "AUS")
+  en_bars <- function(key, fmt) {
+    G <- D$context$groups
+    sts <- switch(en_st(),
+      EACH = D$context$states[D$context$states != "ACT"], # the ACT is one area: one group, no gradient
+      en_st()
+    )
+    bars(lapply(sts, function(s) {
+      g <- G[state == s][match(seq_len(NG), group)]
+      list(name = if (s == "AUS") "Australia" else s, colour = STATE_COL[[s]], vals = g[[key]])
+    }), axis_of(fmt), fmt)
+  }
+  output$en_bev <- renderPlotly(en_bars("bitre_per1000", num1))
+  output$en_add <- renderPlotly(en_bars("bitre_add1000", num1))
+  output$en_solar <- renderPlotly(en_bars("solar_per100", num1))
+  output$en_bat <- renderPlotly(en_bars("bat_per1000", num1))
+  output$en_chg <- renderPlotly(en_bars("chg_per10k", num1))
+  output$en_per_site <- renderPlotly(en_bars("bev_per_site", num1))
+  en_month <- function(key, from) {
+    m <- D$context$month[month >= from]
+    p <- plot_ly()
+    for (g in seq_len(NG)) {
+      d <- m[group == g]
+      p <- p |> add_lines(x = mdate(d$month), y = d[[key]], name = QLAB[g], line = list(color = GROUP_COL[g], width = 2))
+    }
+    p |>
+      theme_plot(yfmt = ",.1f") |>
+      layout(shapes = list(crisis_band(mdate(D$crisis$start), mdate(D$crisis$end))), hovermode = "x unified")
+  }
+  output$en_bat_month <- renderPlotly(en_month("battery_1000", D$context$battery_first))
+  output$en_solar_month <- renderPlotly(en_month("solar_1000", CFG$context$series_from))
+  en_xm <- reactive(c(key = input$en_x %||% names(EN_X)[1], EN_X[[input$en_x %||% names(EN_X)[1]]]))
+  output$en_sc_title <- renderText(sprintf("BEVs per 1,000 light vehicles vs %s", sub("^(.)", "\\L\\1", short(en_xm()$label), perl = TRUE)))
+  output$en_scatter <- renderPlotly({
+    x <- en_xm()
+    a <- D$aus[elig_fleet == TRUE & ok_rows(D$aus, x)]
+    if (!en_st() %chin% c("AUS", "EACH")) a <- a[state == en_st()]
+    p <- plot_ly()
+    for (s in intersect(D$context$states, a$state)) {
+      d <- a[state == s]
+      p <- p |> add_markers(
+        x = d[[x$key]], y = d$bitre_per1000, name = s,
+        marker = list(color = STATE_COL[[s]], size = pmax(5, sqrt(d$persons) / 25), opacity = 0.7, line = list(color = "#FFFFFF", width = 1)),
+        text = sprintf("<b>%s (%s)</b><br>%s: %s<br>BEVs per 1,000: %s<br>Median income %s", d$name, s, short(x$label), x$fmt(d[[x$key]]), num1(d$bitre_per1000), usd(d$income)),
+        hoverinfo = "text"
+      )
+    }
+    p |>
+      theme_plot(yfmt = ",.0f", xtitle = short(x$label), ytitle = "BEVs per 1,000") |>
+      layout(xaxis = list(tickformat = axis_of(x$fmt), type = if (x$key == "chg_per10k") "log" else "linear"))
+  })
+  output$en_corr <- renderUI({
+    C <- D$context$corr
+    sts <- intersect(c("AUS", D$context$states), C$state)
+    cell <- function(r, ri) {
+      tags$td(class = paste("num", if (!is.na(r) && abs(r) >= 0.2) (if (r > 0) "pos" else "neg")), if (is.na(ri)) sprintf("%+.2f", r) else sprintf("%+.2f (%+.2f)", r, ri))
+    }
+    tags$table(
+      class = "md", tags$thead(tags$tr(tags$th("State"), tags$th(class = "num", "Areas"), lapply(unique(C$label), function(l) tags$th(class = "num", l)))),
+      tags$tbody(lapply(sts, function(s) {
+        d <- C[state == s]
+        tags$tr(tags$td(if (s == "AUS") "Australia" else s), tags$td(class = "num", d$n[1]), lapply(seq_len(nrow(d)), function(i) cell(d$r[i], d$r_inc[i])))
+      }))
+    )
+  })
+
   # ---- Rankings tab: clicking a row fills the detail panel beside it, nothing else
   rank_sel <- reactiveVal(NULL)
   detail_server("rank_sel", rv, rank_sel)
@@ -930,9 +1212,9 @@ server <- function(input, output, session) {
   rank_ord <- reactive(input$rank_ord %||% "top")
   output$rank_title <- renderText(sprintf(
     "%s: %s%s", if (rank_ord() == "top") "Highest 10" else "Lowest 10", rv$metric()$label,
-    if (rv$geo() != "vic" && rv$cust() == "private") " — private buyers" else ""
+    if (rv$geo() == "lga" && rv$cust() == "private") " — private buyers" else ""
   ))
-  output$rank_note <- renderText(if (rv$metric()$key == "income") "All areas." else "Areas with too few registrations are left out.")
+  output$rank_note <- renderText(if (rv$metric()$key == "income") "All areas." else if (rv$geo() == "aus") "Areas with too few vehicles or dwellings are left out." else "Areas with too few registrations are left out.")
   output$rank_tbl <- renderUI({
     e <- rv$eligible()
     k <- rv$metric()$key
@@ -969,13 +1251,26 @@ server <- function(input, output, session) {
       new = paste("New regos (all customer types),", RW), bev = paste("BEV,", RW), share = paste("BEV share,", RW), p_new = "New regos, year before crisis",
       p_bev = "BEV, year before crisis", share_p = "BEV share, year before crisis", c_new = "New regos, crisis months", c_bev = "BEV, crisis months",
       share_c = "BEV share, crisis months", chg = "Change (pp)", mult = "Crisis ÷ year earlier", fleet_bev = "BEV fleet (NSW est.; QLD BEVs seen since 2022)",
-      fleet_veh = "Light-vehicle fleet (NSW)", per1000veh = "BEV per 1,000 light vehicles (NSW)", per1000pop = "BEV fleet per 1,000 earners", elig = "Above size threshold"
+      fleet_veh = "Light-vehicle fleet (NSW)", per1000veh = "BEV per 1,000 light vehicles (NSW)", per1000pop = "BEV fleet per 1,000 earners",
+      bitre_per1000 = "BEVs per 1,000 light vehicles (BITRE fleet)", solar_per100 = "Solar per 100 dwellings (CER)", bat_per1000 = "Batteries per 1,000 dwellings (CER)",
+      chg_sites = "Public charging sites (OSM)", chg_fast = "Fast (DC) sites", chg_per10k = "Charging sites per 10,000 people", elig = "Above size threshold"
+    ),
+    aus = c(
+      state = "State", name = "Council area", id = "LGA code", income = "Median total income 2022-23 ($)", earners = "Earners", group = "Income group within state (1 = lowest)",
+      persons = "People (Census 2021)", dwellings = "Dwellings (Census 2021)", lv1 = sprintf("Light vehicles, Jan %d (BITRE)", D$context$y1),
+      bev1 = sprintf("BEVs, Jan %d (BITRE)", D$context$y1), bev0 = sprintf("BEVs, Jan %d (BITRE)", D$context$y0),
+      bitre_per1000 = "BEVs per 1,000 light vehicles", bitre_add1000 = "BEVs added per 1,000 light vehicles, latest year",
+      solar_n = "Solar systems (CER, since 2001)", solar_kw = "Solar kW", solar_per100 = "Solar per 100 dwellings", battery_n = "Home batteries (CER, since Jul 2025)",
+      battery_kwh = "Battery kWh", bat_per1000 = "Batteries per 1,000 dwellings", chg_sites = "Public charging sites (OSM)", chg_fast = "Fast (DC) sites",
+      chg_per10k = "Charging sites per 10,000 people", bev_per_site = "BEVs per charging site"
     ),
     vic = c(
       id = "Postcode", name = "Suburbs", income = "Median taxable income 2023-24 ($)", pop = "Individuals", group = "Income group (1 = lowest)",
       vehicles = "Vehicles (latest)", bev = "BEV (latest)", per1000veh = "BEV per 1,000 vehicles", recent_vehicles = "Recent-model vehicles",
       recent_bev = "Recent-model BEV", rshare = "BEV share of recent-model", add_c = "BEV added, crisis quarter", add_c1000 = "Added per 1,000 vehicles, crisis quarter",
-      add_p = "BEV added, same quarter a year earlier", add_p1000 = "Added per 1,000, year earlier", elig = "Above size threshold"
+      add_p = "BEV added, same quarter a year earlier", add_p1000 = "Added per 1,000, year earlier",
+      solar_per100 = "Solar per 100 dwellings (CER)", bat_per1000 = "Batteries per 1,000 dwellings (CER)",
+      chg_sites = "Public charging sites (OSM)", chg_fast = "Fast (DC) sites", chg_per10k = "Charging sites per 10,000 people", elig = "Above size threshold"
     )
   )
   area_table <- function(g) {
@@ -988,18 +1283,18 @@ server <- function(input, output, session) {
   output$dl_workbook <- downloadHandler(filename = function() basename(WORKBOOK), content = function(f) file.copy(WORKBOOK, f))
   output$dl_areas <- downloadHandler(
     filename = "EV_by_income_all_areas.xlsx",
-    content = function(f) write_xlsx(list(`NSW + QLD councils` = area_table("lga"), `VIC postcodes` = area_table("vic"), About = about), f)
+    content = function(f) write_xlsx(list(`NSW + QLD councils` = area_table("lga"), `All states councils` = area_table("aus"), `VIC postcodes` = area_table("vic"), About = about), f)
   )
   output$dl_top <- downloadHandler(filename = "EV_top_and_bottom_10.xlsx", content = function(f) {
     sheets <- list()
-    for (g in c("lga", "vic")) {
+    for (g in c("lga", "aus", "vic")) {
       for (k in names(METRICS[[g]])) {
-        a <- D[[g]][(k == "income" | elig) & !is.na(get(k))]
+        a <- D[[g]][ok_rows(D[[g]], c(key = k, METRICS[[g]][[k]]))]
         mk <- function(d) {
           data.frame(Rank = seq_len(nrow(d)), Area = d$name, Code = d$id, State = d$state, `Median income ($)` = d$income, Value = d[[k]], check.names = FALSE) |>
             setNames(c("Rank", "Area", "Code", "State", "Median income ($)", METRICS[[g]][[k]]$label))
         }
-        tag <- if (g == "lga") "" else "VIC "
+        tag <- c(lga = "", aus = "AU ", vic = "VIC ")[[g]]
         sheets[[paste0(tag, "Top ", k)]] <- mk(a[order(-get(k))][seq_len(min(10, .N))])
         sheets[[paste0(tag, "Bottom ", k)]] <- mk(a[order(get(k))][seq_len(min(10, .N))])
       }
@@ -1037,11 +1332,70 @@ server <- function(input, output, session) {
       `State totals` = as.data.frame(D$state_month), `Fuel prices (c per L)` = as.data.frame(D$fuel), About = about
     ), f)
   })
+  # ---- "Update data": fetch the latest public data and rebuild everything, in a separate R process
+  # (Rscript run_all.R --from update). The workbook is rebuilt too. When it finishes the page reloads;
+  # touching app.R makes Shiny re-source it for the new session, so the fresh data are read.
+  UPD <- list(log = file.path(PROC, "update_log.txt"), err = file.path(PROC, "update_errors.txt"), status = file.path(PROC, "update_status.txt"))
+  upd_state <- function() if (file.exists(UPD$status)) readLines(UPD$status, warn = FALSE)[1] else ""
+  # a "running" status older than 3 hours is left over from a crashed run
+  upd_busy <- function() identical(upd_state(), "running") && difftime(Sys.time(), file.mtime(UPD$status), units = "hours") < 3
+  upd_running <- reactiveVal(FALSE)
+  tail_of <- function(f, n = 40) if (file.exists(f)) paste(utils::tail(readLines(f, warn = FALSE), n), collapse = "\n") else ""
+  observeEvent(input$upd_go, {
+    if (upd_busy()) {
+      upd_running(TRUE)
+      return(showModal(modalDialog(title = "Update already running", "Showing its progress.", uiOutput("upd_log"), footer = NULL, size = "l")))
+    }
+    showModal(modalDialog(
+      title = "Update data",
+      p("This fetches the latest public data and rebuilds everything, including the Excel workbook:"),
+      tags$ul(
+        tags$li("NSW, QLD and VIC registrations: new months and quarters, and any file the portal has changed"),
+        tags$li("BITRE fleet by postcode: a new January year when BITRE publishes it"),
+        tags$li("CER solar and batteries, and OpenStreetMap charging stations: always re-downloaded"),
+        tags$li(sprintf("Fuel prices: copied from the au_fuel_prices project if it is on this computer (%s)", CFG$update$fuel_source_dir))
+      ),
+      p(class = "note", "Takes about 10 minutes, longer if a large registration file has changed. Close the workbook in Excel first. The dashboard reloads itself when done."),
+      footer = tagList(modalButton("Cancel"), actionButton("upd_confirm", "Update now", class = "md-btn md-btn-filled"))
+    ))
+  })
+  observeEvent(input$upd_confirm, {
+    writeLines("running", UPD$status)
+    system2(file.path(R.home("bin"), "Rscript"), c(shQuote(file.path(ROOT, "run_all.R")), "--from", "update", "--status", shQuote(UPD$status)),
+      stdout = UPD$log, stderr = UPD$err, wait = FALSE
+    )
+    upd_running(TRUE)
+    showModal(modalDialog(title = "Updating data…", p(class = "note", "Progress of the rebuild (updates every few seconds):"), uiOutput("upd_log"), footer = NULL, size = "l"))
+  })
+  output$upd_log <- renderUI({
+    invalidateLater(2000)
+    div(class = "upd-log", tail_of(UPD$log))
+  })
+  observe({
+    req(upd_running())
+    invalidateLater(3000)
+    st <- upd_state()
+    if (identical(st, "ok")) {
+      upd_running(FALSE)
+      Sys.setFileTime(file.path(ROOT, "app", "app.R"), Sys.time())
+      showModal(modalDialog(
+        title = "Data updated", "Everything was rebuilt, including the workbook.", div(class = "upd-log", tail_of(UPD$log, 12)),
+        footer = actionButton("upd_reload", "Reload the dashboard", class = "md-btn md-btn-filled"), size = "l"
+      ))
+    } else if (startsWith(st, "failed")) {
+      upd_running(FALSE)
+      showModal(modalDialog(
+        title = "Update failed", p(sub("^failed: ", "", st)), p(class = "note", "Steps that finished before the error have already saved their output; the dashboard still shows the data it opened with. Fix the problem and run Update data again. Last messages:"),
+        div(class = "upd-log", paste(tail_of(UPD$log, 15), tail_of(UPD$err, 25), sep = "\n")),
+        easyClose = TRUE, footer = modalButton("Close"), size = "l"
+      ))
+    }
+  })
+  observeEvent(input$upd_reload, session$reload())
+
   # the links sit in a closed dropdown, and Shiny doesn't wire up hidden download links
   for (id in c("dl_workbook", "dl_areas", "dl_top", "dl_groups", "dl_series")) outputOptions(output, id, suspendWhenHidden = FALSE)
 }
 
-`%||%` <- function(a, b) if (is.null(a)) b else a
-`%|NA|%` <- function(a, b) if (is.null(a) || is.na(a)) b else unname(a)
 axis_of <- function(f) if (identical(f, pct)) ".0%" else if (identical(f, pp)) "+.1f" else if (identical(f, usd)) "$,.0f" else if (identical(f, int)) ",.0f" else ",.1f"
 shinyApp(ui, server)

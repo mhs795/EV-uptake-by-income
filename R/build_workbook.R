@@ -31,7 +31,7 @@ TEXT <- "1A1D21"
 MUTED <- "6B7280"
 BAND <- "F5F6F8"
 OTHER <- "C8CDD3"
-STATE_COL <- c(NSW = "1976D2", QLD = "F57C00", VIC = "00897B")
+STATE_COL <- c(NSW = "1976D2", QLD = "F57C00", VIC = "00897B", SA = "C62828", WA = "6A1B9A", TAS = "2E7D32", NT = "8D6E63", ACT = "00ACC1", Australia = "1A1D21")
 GROUP_COL <- c("90CAF9", "5AA2EE", "1F7AE0", "1565C0", "0D47A1")
 PCT <- "0.0%"
 NUM <- "#,##0"
@@ -69,8 +69,8 @@ WIN <- analysis_windows(flow)
 # ---- workbook + helpers -------------------------------------------------------
 SHEETS <- c(
   "Charts", "Summary", "Raw_Numbers", "Top10", "Fuel_Crisis", "Customer_Types", "Inputs", "Income_Groups", "Flow_Group_Summary", "Flow_Group_Month",
-  "Stock_Group", "LGA_Summary", "VIC_Postcode", "Suppression", "Sources", "Data_Adjustments", "Notes",
-  "Flow_LGA_Month", "Stock_NSW_LGA", "Stock_QLD_LGA", "VIC_Postcode_Qtr", "Fuel_Prices", "Rank_Keys"
+  "Stock_Group", "Context_Groups", "LGA_Summary", "VIC_Postcode", "LGA_Context", "Suppression", "Sources", "Data_Adjustments", "Notes",
+  "Flow_LGA_Month", "Stock_NSW_LGA", "Stock_QLD_LGA", "VIC_Postcode_Qtr", "Solar_Battery_Month", "Chargers", "Fuel_Prices", "Rank_Keys"
 )
 wb <- wb_workbook(creator = "EV_income")
 wb$set_base_font(font_size = 10, font_name = "Arial")
@@ -1052,6 +1052,164 @@ wb$set_row_heights(sheet = s, rows = NR, heights = 62)
 widths(s, c(10, 12, 12, 16, 100))
 
 # ================================================================= Charts ===
+# ================================================= all states: context sheets ==
+# Every council area in Australia: BEV fleet (BITRE), rooftop solar and home batteries (CER),
+# public charging stations (OpenStreetMap). Counts are values; every rate and group total is a formula.
+ctx <- fread(file.path(OUT, "lga_context.csv"), colClasses = list(character = "lga_code"))
+cdt <- setNames(rd("context_dates.csv")$value, rd("context_dates.csv")$item)
+BY <- as.integer(strsplit(cdt[["bitre_years"]], ",")[[1]])
+NY <- length(BY)
+CX <- CFG$context
+chg <- fread(file.path(OUT, "chargers.csv"), colClasses = list(character = "lga_code"))
+sbm <- fread(file.path(OUT, "solar_battery_lga_month.csv"), colClasses = list(character = "lga_code"))
+CTX_STATES <- unname(unlist(CX$states))
+
+s <- "Chargers"
+title(s, "Public EV charging stations — OpenStreetMap", sprintf(
+  "Snapshot %s via the Overpass API. Private sites dropped. Fast = a DC plug (CCS2, CHAdeMO, Tesla) or an output of %d kW or more. Volunteer-mapped: fast chargers are well covered, small AC sites less so.",
+  cdt[["osm_date"]], CX$fast_min_kw
+))
+head(s, 4, c("State", "LGA code", "Council area", "Site", "Operator / network", "Fast (1 = yes)", "Bays (where mapped)", "Latitude", "Longitude", "OpenStreetMap"))
+ch_ <- chg[, .(state, lga_code, lga = ctx$lga_name[match(lga_code, ctx$lga_code)], name, operator, fast = as.integer(fast), capacity, lat, lon, osm = paste0("https://www.openstreetmap.org/", osm_id))]
+put(s, ch_, 5)
+CH1 <- 4 + nrow(ch_)
+for (i in seq_len(nrow(ch_))) wb$add_hyperlink(sheet = s, dims = dims(4 + i, 10), target = ch_$osm[i])
+widths(s, c(7, 9, 24, 34, 26, 8, 9, 10, 10, 44))
+wb$freeze_pane(sheet = s, first_active_row = 5)
+wb$add_filter(sheet = s, rows = 4, cols = 1:10)
+
+s <- "LGA_Context"
+title(s, "Every council area in Australia — BEV fleet, rooftop solar, home batteries, charging stations", sprintf(
+  "Fleet: BITRE Road vehicles Australia, 31 January, passenger + light commercial, by garaging postcode. Solar and batteries: CER postcode data to %s (batteries from %s). Postcodes are shared out to council areas by Census 2021 people (vehicles) or dwellings (solar, batteries). Charging sites count the Chargers sheet.",
+  ym_long(cdt[["cer_last_month"]]), ym_long(cdt[["battery_first_month"]])
+))
+ctx[, big := get(paste0("lv_", max(BY))) >= CX$min_light_vehicles]
+cx <- ctx[order(-big, state, lga_name)] # coloured areas first, so the scatter range is contiguous
+C0 <- 5
+cr <- rows_of(nrow(cx), C0)
+CN <- max(cr)
+# column positions
+cLV <- 9L
+cBEV <- cLV + NY
+cSOL <- cBEV + NY
+cKW <- cSOL + 1L
+cBAT <- cSOL + 2L
+cKWH <- cSOL + 3L
+cCHG <- cSOL + 4L
+cFAST <- cSOL + 5L
+cR <- cFAST + 1L # first rate column
+head(s, 4, c(
+  "State", "LGA code", "Council area", "Median income ($)", "Earners", "Income group (within state)", "People (Census 2021)", "Dwellings (Census 2021)",
+  paste0("Light vehicles, Jan ", BY), paste0("BEVs, Jan ", BY), "Solar systems (since 2001)", "Solar kW", "Home batteries", "Battery kWh",
+  "Public charging sites", "Fast (DC) sites", sprintf("BEVs per 1,000 light vehicles, Jan %d", max(BY)),
+  sprintf("BEVs added per 1,000, Jan %d–%d", max(BY) - 1L, max(BY)), "Solar per 100 dwellings", "Batteries per 1,000 dwellings",
+  "Charging sites per 10,000 people", "BEVs per charging site", "Big enough to chart (1 = yes)"
+))
+x <- cx[, c("state", "lga_code", "lga_name", "median_income", "earners", "income_group", "persons", "dwellings", paste0("lv_", BY), paste0("bev_", BY), "solar_n", "solar_kw", "battery_n", "battery_kwh"), with = FALSE]
+x[, chg_sites := FML(sprintf("COUNTIFS(Chargers!$B$5:$B$%d,$B%d)", CH1, cr))]
+x[, chg_fast := FML(sprintf("COUNTIFS(Chargers!$B$5:$B$%d,$B%d,Chargers!$F$5:$F$%d,1)", CH1, cr, CH1))]
+lv1 <- L(cLV + NY - 1)
+lv0 <- L(cLV + NY - 2)
+b1 <- L(cBEV + NY - 1)
+b0 <- L(cBEV + NY - 2)
+x[, r1 := FML(sprintf('IF(%s%d>0,%s%d/%s%d*1000,"")', lv1, cr, b1, cr, lv1, cr))]
+x[, r2 := FML(sprintf('IF(%s%d>0,(%s%d-%s%d)/%s%d*1000,"")', lv0, cr, b1, cr, b0, cr, lv0, cr))]
+x[, r3 := FML(sprintf('IF(H%d>0,%s%d/H%d*100,"")', cr, L(cSOL), cr, cr))]
+x[, r4 := FML(sprintf('IF(H%d>0,%s%d/H%d*1000,"")', cr, L(cBAT), cr, cr))]
+x[, r5 := FML(sprintf('IF(G%d>0,%s%d/G%d*10000,"")', cr, L(cCHG), cr, cr))]
+x[, r6 := FML(sprintf('IF(%s%d>0,%s%d/%s%d,"")', L(cCHG), cr, b1, cr, L(cCHG), cr))]
+x[, r7 := FML(sprintf("IF(AND(%s%d>=%d,H%d>=%d),1,0)", lv1, cr, CX$min_light_vehicles, cr, CX$min_dwellings))]
+put(s, x, C0)
+nf(s, dims(C0, 4, CN), USD)
+nf(s, dims(C0, 5, CN, cFAST), NUM)
+nf(s, dims(C0, cR, CN, cR + 5), ONE)
+widths(s, c(7, 9, 26, 11, 10, 9, 11, 11, rep(10, 2 * NY), 10, 10, 10, 10, 9, 9, rep(11, 6), 9))
+wb$freeze_pane(sheet = s, first_active_row = C0, first_active_col = 4)
+wb$add_filter(sheet = s, rows = 4, cols = 1:(cR + 6))
+CSC <- C0 - 1 + range(which(cx$big))
+
+s <- "Solar_Battery_Month"
+title(s, "Rooftop solar and home batteries installed per month, by council area", sprintf(
+  "CER small-scale installation postcode data, shared out to council areas by Census dwellings. From %s (batteries from %s). The latest months are incomplete: certificates can be created up to 12 months after installation.",
+  ym_long(CX$series_from), ym_long(cdt[["battery_first_month"]])
+))
+head(s, 4, c("State", "LGA code", "Month", "Income group", "Solar systems", "Solar kW", "Home batteries", "Battery kWh"))
+sb <- sbm[, .(state, lga_code, mdate = ym_date(month), group = ctx$income_group[match(lga_code, ctx$lga_code)], solar_n, solar_kw, battery_n, battery_kwh)]
+put(s, sb, 5)
+SB1 <- 4 + nrow(sb)
+nf(s, dims(5, 3, SB1), MON)
+nf(s, dims(5, 5, SB1, 8), "#,##0.0")
+widths(s, c(7, 9, 9, 8, 11, 11, 11, 11))
+wb$freeze_pane(sheet = s, first_active_row = 5)
+
+s <- "Context_Groups"
+title(s, "All states — BEV fleet, solar, batteries and chargers by income group", paste(
+  "Council areas ranked within each state by median income and cut into fifths of the state's earners (the ACT is one area).",
+  "Totals are SUMIFS on LGA_Context; rates are pooled (group total ÷ group total). Australia pools each state's groups."
+))
+head(s, 4, c(
+  "State", "Income group", "Group no.", "Council areas", "People", "Dwellings", sprintf("Light vehicles, Jan %d", max(BY) - 1L), sprintf("Light vehicles, Jan %d", max(BY)),
+  sprintf("BEVs, Jan %d", max(BY) - 1L), sprintf("BEVs, Jan %d", max(BY)), "Solar systems", "Home batteries", "Public charging sites", "Fast sites",
+  "BEVs per 1,000 light vehicles", "BEVs added per 1,000 (latest year)", "Solar per 100 dwellings", "Batteries per 1,000 dwellings",
+  "Charging sites per 10,000 people", "BEVs per charging site"
+))
+lc <- function(col) sprintf("LGA_Context!$%s$%d:$%s$%d", col, C0, col, CN)
+src_cols <- c(G = "G", H = "H", lv0, lv1, b0, b1, L(cSOL), L(cBAT), L(cCHG), L(cFAST)) # People ... Fast sites
+CG <- list()
+cg <- list()
+r <- 5
+for (st_ in c("Australia", CTX_STATES)) {
+  CG[[st_]] <- r
+  for (g in c(GROUPS, NA)) {
+    cg[[length(cg) + 1]] <- data.table(st = st_, g = g, r = r)
+    r <- r + 1
+  }
+  r <- r + 1 # blank row between states
+}
+cg <- rbindlist(cg)
+crit <- paste0(
+  fifelse(cg$st != "Australia", sprintf(',%s,"%s"', lc("A"), cg$st), ""),
+  fifelse(!is.na(cg$g), sprintf(",%s,%d", lc("F"), cg$g), "")
+)
+rr <- cg$r
+x <- data.table(st = cg$st, grp = fifelse(is.na(cg$g), "All", GROUP_LABEL[pmax(cg$g, 1L)]), gno = cg$g)
+x[, areas := FML(sprintf('COUNTIFS(%s,"<>"%s)', lc("B"), crit))]
+# SUMIFS needs at least one criterion: the Australia "All" row is a plain SUM
+for (k in seq_along(src_cols)) set(x, j = paste0("s", k), value = FML(fifelse(nzchar(crit), sprintf("SUMIFS(%s%s)", lc(src_cols[[k]]), crit), sprintf("SUM(%s)", lc(src_cols[[k]])))))
+x[, q1 := FML(sprintf('IF(H%d>0,J%d/H%d*1000,"")', rr, rr, rr))]
+x[, q2 := FML(sprintf('IF(G%d>0,(J%d-I%d)/G%d*1000,"")', rr, rr, rr, rr))]
+x[, q3 := FML(sprintf('IF(F%d>0,K%d/F%d*100,"")', rr, rr, rr))]
+x[, q4 := FML(sprintf('IF(F%d>0,L%d/F%d*1000,"")', rr, rr, rr))]
+x[, q5 := FML(sprintf('IF(E%d>0,M%d/E%d*10000,"")', rr, rr, rr))]
+x[, q6 := FML(sprintf('IF(M%d>0,J%d/M%d,"")', rr, rr, rr))]
+# write each state's block (blank rows between blocks)
+for (st_ in unique(x$st)) put(s, x[st == st_], CG[[st_]])
+for (rw in cg[is.na(g), r]) bold(s, dims(rw, 1, rw, 20))
+r <- max(rr) + 2
+CGN <- r - 2
+nf(s, dims(5, 4, CGN, 14), NUM)
+nf(s, dims(5, 15, CGN, 20), ONE)
+# monthly installs per 1,000 dwellings, by income group (Australia)
+MR <- r + 1
+put(s, "Installed per month, per 1,000 dwellings — Australia by income group (latest months incomplete)", MR)
+bold(s, dims(MR), col = PRIMARY, size = 12)
+head(s, MR + 1, c("Month", paste("Batteries", GROUP_LABEL), paste("Solar", GROUP_LABEL)))
+months_ <- sort(unique(sb$mdate))
+mr <- rows_of(length(months_), MR + 2)
+putv(s, months_, MR + 2, 1)
+nf(s, dims(MR + 2, 1, max(mr)), MON)
+sbc <- function(col) sprintf("Solar_Battery_Month!$%s$5:$%s$%d", col, col, SB1)
+bat0 <- ym_date(cdt[["battery_first_month"]])
+for (g in GROUPS) {
+  dw <- sprintf("$F$%d", CG[["Australia"]] + g - 1)
+  putv(s, FML(sprintf('IF($A%d<DATE(%d,%d,1),"",SUMIFS(%s,%s,%d,%s,$A%d)/%s*1000)', mr, as.integer(format(bat0, "%Y")), as.integer(format(bat0, "%m")), sbc("G"), sbc("D"), g, sbc("C"), mr, dw)), MR + 2, 1 + g)
+  putv(s, FML(sprintf("SUMIFS(%s,%s,%d,%s,$A%d)/%s*1000", sbc("E"), sbc("D"), g, sbc("C"), mr, dw)), MR + 2, 1 + NG + g)
+}
+MRN <- max(mr)
+nf(s, dims(MR + 2, 2, MRN, 1 + 2 * NG), "0.00")
+widths(s, c(11, 14, 7, 9, rep(11, 16)))
+wb$freeze_pane(sheet = s, first_active_row = 5, first_active_col = 3)
+
 s <- "Charts"
 title(s, "Charts", "Native Excel charts linked to the tables — change an input and they update. Q1 = lowest-income fifth of areas (by earners), Q5 = highest.")
 rng <- function(c1, r1, r2, c2 = c1) sprintf("$%s$%d:$%s$%d", L(c1), r1, L(c2), r2)
@@ -1191,7 +1349,37 @@ sections <- list(
       y_fmt = PCT
     )
   )),
-  list("5. Top areas (full tables on the Top10 sheet)", list(top_chart(1), top_chart(3), top_chart(9), top_chart(5)))
+  list("5. Top areas (full tables on the Top10 sheet)", list(top_chart(1), top_chart(3), top_chart(9), top_chart(5))),
+  list("6. All states — BEV fleet, rooftop solar, home batteries and chargers (tables on Context_Groups)", local({
+    # one series per state (the ACT is a single area, so it has no income gradient); categories = Q1..Q5
+    cats <- rng(2, CG[["Australia"]], CG[["Australia"]] + NG - 1)
+    by_state <- function(title, col, fmt) {
+      chart_bar(title, "Context_Groups", cats, lapply(setdiff(names(CG), "ACT"), function(st_) {
+        list(name = st_, ref = rng(col, CG[[st_]], CG[[st_]] + NG - 1), colour = STATE_COL[[st_]])
+      }), y_fmt = fmt)
+    }
+    list(
+      by_state(sprintf("BEVs per 1,000 light vehicles by income group — fleet, Jan %d", max(BY)), 15, "0"),
+      by_state(sprintf("BEVs added per 1,000 light vehicles, Jan %d–Jan %d", max(BY) - 1L, max(BY)), 16, "0"),
+      by_state("Rooftop solar systems per 100 dwellings by income group", 17, "0"),
+      by_state(sprintf("Home batteries per 1,000 dwellings by income group, %s–%s", ym_long(cdt[["battery_first_month"]]), ym_long(cdt[["cer_last_month"]])), 18, "0"),
+      by_state("BEVs per public charging site by income group", 20, "0"),
+      chart_line("Home batteries installed per month, per 1,000 dwellings — Australia by income group", "Context_Groups", rng(1, MR + 2, MRN),
+        grp_series(2, MR + 2, MRN),
+        y_fmt = "0.0", y_title = "per 1,000"
+      ),
+      chart_scatter(sprintf("Council areas, all states — median income vs BEVs per 1,000 light vehicles (Jan %d)", max(BY)), "LGA_Context",
+        rng(4, CSC[1], CSC[2]), rng(cR, CSC[1], CSC[2]), "1F7AE0",
+        "Council median total income ($, 2022-23)", "BEV per 1,000",
+        y_fmt = "0"
+      ),
+      chart_scatter("Council areas, all states — home batteries vs BEVs (per 1,000 dwellings / light vehicles)", "LGA_Context",
+        rng(cR + 3, CSC[1], CSC[2]), rng(cR, CSC[1], CSC[2]), "00897B",
+        "Batteries per 1,000 dwellings", "BEV per 1,000",
+        x_fmt = "0", y_fmt = "0"
+      )
+    )
+  }))
 )
 ROWS_PER_CHART <- 21
 row <- 4
@@ -1286,8 +1474,20 @@ rows <- list(
     ),
     "Poorer areas grew faster in relative terms; richer areas still added more percentage points", NA
   ),
-  list("Petrol, diesel and hybrid new cars", c(sprintf("%s!N%d", fc, xN + NG), sprintf("%s!N%d", fc, xQ + NG), NA), "Change vs a year earlier", "+0%;-0%")
+  list("Petrol, diesel and hybrid new cars", c(sprintf("%s!N%d", fc, xN + NG), sprintf("%s!N%d", fc, xQ + NG), NA), "Change vs a year earlier", "+0%;-0%"),
+  list(sprintf("All states — BEV fleet (BITRE, Jan %d), solar and batteries (CER), public chargers (OpenStreetMap)", max(BY)), NULL),
+  local({
+    cgv <- function(st_, col, f) arrow(sprintf("Context_Groups!%s%d", L(col), CG[[st_]]), sprintf("Context_Groups!%s%d", L(col), CG[[st_]] + NG - 1), f)
+    mk <- function(lab, col, f, note) list(lab, c(cgv("NSW", col, f), cgv("QLD", col, f), cgv("VIC", col, f)), note, NA)
+    list(
+      mk("BEVs per 1,000 light vehicles, poorest → richest fifth", 15, "0.0", "Council areas, all states on Context_Groups (Australia and SA, WA, TAS, NT)"),
+      mk("Rooftop solar per 100 dwellings, poorest → richest", 17, "0", "Solar peaks in middle-income areas; the richest are apartment-heavy"),
+      mk("Home batteries per 1,000 dwellings, poorest → richest", 18, "0", sprintf("Batteries in the CER scheme since %s", ym_long(cdt[["battery_first_month"]]))),
+      mk("BEVs per public charging site, poorest → richest", 20, "0", "Rural highway fast chargers serve few residents; richer areas lean on home charging")
+    )
+  })
 )
+rows <- c(rows[-length(rows)], rows[[length(rows)]])
 i <- 5
 for (x in rows) {
   put(s, x[[1]], i, 1)
@@ -1336,7 +1536,9 @@ bold(s, dims(r0))
 head(s, r0 + 1, c("Dataset", "File", "URL"))
 url_files <- c(
   "NSW transactions" = "nsw/urls.txt", "NSW snapshot" = "nsw/snapshot_urls.txt", "NSW age snapshot" = "nsw/age/urls.txt",
-  "QLD transactions" = "qld/urls.txt", "VIC fleet snapshot" = "vic/urls.txt", "Income" = "income/urls.txt"
+  "QLD transactions" = "qld/urls.txt", "VIC fleet snapshot" = "vic/urls.txt", "Income" = "income/urls.txt",
+  "ABS mesh blocks (postcode, council, Census counts)" = "abs_mb/urls.txt", "BITRE fleet by garaging postcode" = "bitre/urls.txt",
+  "CER solar and batteries by postcode" = "cer/urls.txt"
 )
 files <- rbindlist(lapply(names(url_files), function(lab) {
   u <- trimws(readLines(file.path(RAW, url_files[[lab]]), warn = FALSE))
@@ -1345,14 +1547,14 @@ files <- rbindlist(lapply(names(url_files), function(lab) {
   data.table(dataset = lab, file = URLdecode(sub("\\?.*", "", basename(u))), url = u)
 }))
 files <- rbind(files, data.table(
-  dataset = c("Fuel prices", "Boundaries", "Boundaries", "Boundaries", "Suburb names"),
+  dataset = c("Fuel prices", "Boundaries", "Boundaries", "Boundaries", "Suburb names", "Charging stations"),
   file = c(
     "retail_monthly.csv, tgp_monthly.csv", "lga_boundaries.geojson", "vic_postcode_boundaries.geojson",
-    "australia_states.geojson", "vic_postcode_suburbs.csv"
+    "australia_states.geojson", "vic_postcode_suburbs.csv", sprintf("%s (Overpass query, snapshot %s)", basename(CFG$context$osm_file), cdt[["osm_date"]])
   ),
   url = c(
     sprintf("%s, %s (copies of the au_fuel_prices project output)", CFG$fuel$retail_file, CFG$fuel$tgp_file), CFG$map$lga_service,
-    CFG$map$poa_service, CFG$map$ste_service, CFG$map$sal_point_service
+    CFG$map$poa_service, CFG$map$ste_service, CFG$map$sal_point_service, CFG$context$overpass_urls[[1]]
   )
 ))
 put(s, files, r0 + 2)
@@ -1395,7 +1597,7 @@ s <- "Notes"
 title(s, "Definitions and caveats")
 head(s, 3, c("Type", "Item", "Detail"))
 put(s, fread(file.path(HERE, "R", "notes.csv")), 4)
-wb$add_cell_style(sheet = s, dims = "A4:C40", wrap_text = TRUE, vertical = "top")
+wb$add_cell_style(sheet = s, dims = sprintf("A4:C%d", 3 + nrow(fread(file.path(HERE, "R", "notes.csv")))), wrap_text = TRUE, vertical = "top")
 widths(s, c(11, 34, 130))
 
 # ---- finish -------------------------------------------------------------------

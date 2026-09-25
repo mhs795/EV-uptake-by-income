@@ -1,0 +1,5 @@
+2021 https://data.gov.au/data/dataset/292a071b-71f0-48c4-8617-c2ee0ca1ff2e/resource/ae26b0cc-f5cd-449b-9214-32b451f62b52/download/rva-2021-mvs-vehtype-streg-poagar-mtvpwr-rpc.csv
+2022 https://data.gov.au/data/dataset/c34b68b7-b482-48c4-86ad-a426e22dd761/resource/552778cd-5db9-4da2-b181-65cc3bf85a5f/download/rva-2022-mvs-vehtype-streg-poagar-mtvpwr-rpc.csv
+2023 https://data.gov.au/data/dataset/787053f6-97e1-4170-8e41-32a57277489a/resource/0f850e0e-7183-4a98-accd-b270c1345dd7/download/rva-2023-mvs-vehtype-streg-poagar-mtvpwr-rpc.csv
+2024 https://data.gov.au/data/dataset/767b84b8-6756-460a-96c9-9c073153485a/resource/451e8ae6-1b5c-4988-b4a4-ab48f3e9adfc/download/rva-2024-mvs-vehtype-streg-poagar-mtvpwr-rpc.csv
+2025 https://data.gov.au/data/dataset/f6e0a290-7d47-4b88-ac3b-34824b0ab334/resource/fc222132-0efa-4838-97f4-fffa1d40d4da/download/rva-2025-mvs-vehtype-streg-poagar-mtvpwr-rpc.csv

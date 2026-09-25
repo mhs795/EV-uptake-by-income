@@ -1,0 +1,4 @@
+solar_installations https://cer.gov.au/document/sgu-solar-installations-2011-to-present-and-totals
+solar_capacity https://cer.gov.au/document/sgu-solar-capacity-2011-to-present-and-totals
+battery_installations https://cer.gov.au/document/sgu-battery-installations-2011-to-present-and-totals
+battery_capacity https://cer.gov.au/document/sgu-battery-capacity-2011-to-present-and-totals

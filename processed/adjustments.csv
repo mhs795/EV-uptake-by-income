@@ -26,3 +26,18 @@ NSW fleet,Suppressed counts imputed,BEV and other-fuel cells valued by calibrati
 VIC fleet,Vehicle class and fuel filter,"Class ['2'] (motor vehicles; motorcycles excluded); blank fuel code excluded. BEV = code 'E'; code 'M' = hybrids (HEV+PHEV, not separable)",""
 VIC fleet,Recent-model proxy for new take-up,"VIC's monthly new-registration file has no location, so 'recent-model' vehicles (year of manufacture >= snapshot year - 1) in each quarterly snapshot stand in for recent new-vehicle take-up",""
 VIC fleet,Dropped postcodes with no ATO income,Postcodes absent from ATO Table 8 (too few taxpayers) or outside the VIC range,"14,967 postcode-quarters; 52,165 vehicles in latest quarter"
+ABS LGA income (all states),Dropped unincorporated areas,"No council; kept Unincorporated ACT, which covers the whole ACT",4 areas
+ABS LGA income (all states),Earner-weighted income groups in every state,"Same method as NSW and QLD: ranked within state, 5 groups of ~equal earners. The ACT is one area, so it sits in a single group",540 areas
+BITRE Road vehicles Australia,Light vehicles = passenger + light commercial,"Vehicle types ['Passenger vehicles', 'Light commercial vehicles']; BEV = motive power 'Battery/Fuel-cell electric' (fuel-cell cars are a handful). Counted at the garaging postcode",January 2021-2025
+BITRE Road vehicles Australia,Small counts randomly perturbed by BITRE,BITRE adds small random changes to small non-zero cells to protect privacy; errors are unbiased and wash out in sums,all postcode cells
+"BITRE fleet, Jan 2021",Postcodes with no ABS postal area left out,"PO box, large-volume and unknown postcodes have no mesh blocks, so no council area",212 postcodes; 0.1% of lv
+"BITRE fleet, Jan 2022",Postcodes with no ABS postal area left out,"PO box, large-volume and unknown postcodes have no mesh blocks, so no council area",213 postcodes; 0.1% of lv
+"BITRE fleet, Jan 2023",Postcodes with no ABS postal area left out,"PO box, large-volume and unknown postcodes have no mesh blocks, so no council area",210 postcodes; 0.1% of lv
+"BITRE fleet, Jan 2024",Postcodes with no ABS postal area left out,"PO box, large-volume and unknown postcodes have no mesh blocks, so no council area",203 postcodes; 0.1% of lv
+"BITRE fleet, Jan 2025",Postcodes with no ABS postal area left out,"PO box, large-volume and unknown postcodes have no mesh blocks, so no council area",188 postcodes; 0.1% of lv
+CER small-scale installations,Solar = every system with certificates since 2001,"Includes new systems, upgrades to existing ones and off-grid systems (CER definition), so counts can exceed homes with solar",to Aug 2026
+CER small-scale installations,Batteries only from July 2025,Batteries became eligible for certificates on 1 July 2025 (Cheaper Home Batteries). Earlier batteries are not in the postcode data,Jul 2025-Aug 2026
+CER small-scale installations,Latest months are incomplete,"Certificates can be created up to 12 months after installation, so recent months grow as later data arrive",last few months
+CER solar + batteries,Postcodes with no ABS postal area left out,"PO box, large-volume and unknown postcodes have no mesh blocks, so no council area",195 postcodes; 0.1% of solar_n
+OpenStreetMap charging stations,Dropped private sites,"access = ['private', 'no', 'permit', 'employees', 'residents']",20 of 1617 sites
+OpenStreetMap charging stations,"Volunteer-mapped: fast chargers well covered, small AC sites less so","Snapshot 2026-09-25. A site is 'fast' if it has a DC plug (['type2_combo', 'chademo', 'tesla_supercharger', 'tesla_supercharger_ccs', 'gb_dc', 'ccs1']) or any output of 50 kW or more","1,586 public sites, 851 fast"

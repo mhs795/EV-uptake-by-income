@@ -9,3 +9,4 @@ raw_data/**
 .Rproj.user/
 .~lock.*
 *.part
+processed/update_*.txt
