@@ -1,0 +1,150 @@
+# EV take-up by regional income — configuration.
+# Every threshold, label list and window used by the build scripts lives here.
+
+paths:
+  raw: raw_data
+  processed: processed
+  workbook: EV_uptake_by_income.xlsx
+  dashboard: EV_income_map.html
+
+period:
+  # First month of the "recent take-up" window for the new-registration analysis
+  start_month: "2023-01"
+  # Cross-section used for the LGA / postcode scatter and quintile tables
+  recent_window_months: 12
+
+income:
+  # LGA income: ABS Personal Income in Australia 2022-23 (ATO personal income tax
+  # + other admin data), Table 1.5, Local Government Area.
+  lga_file: income/abs_pia_table1.xlsx
+  lga_sheet: "Table 1.5"
+  lga_header_rows: [5, 6]
+  lga_year: "2022-23"
+  lga_measure: "Median ($)"
+  lga_weight: "Earners (persons)"
+  # Postcode income: ATO Taxation Statistics 2023-24, Individuals Table 8.
+  postcode_file: income/ts24individual08medianaveragetaxableincomestatepostcode.xlsx
+  postcode_sheet: "Table 8"
+  postcode_header_row: 1
+  postcode_year: "2023–24"          # en dash, as written in the ATO header
+  # Number of income groups; groups are cut so each holds an equal share of
+  # the state's earners (earner-weighted quintiles when 5).
+  n_groups: 5
+
+nsw:
+  transactions_glob: nsw/tfnsw_vehicle_registration_transactions_*.zip
+  snapshot_glob: nsw/snapshot/tfnsw_vehicle_registrations_snapshot_*.zip
+  sep: "|"
+  new_transaction: "Establish registration of new vehicle"
+  private_customer_types: [Private]
+  suppressed_token: "<=5"
+  # TfNSW renamed fuel types mid-2022 and again in 2026; all spellings listed
+  bev_labels: [EV, BATTERY ELECTRIC, ELECTRICITY]
+  phev_labels: [PHEV, PLUG-IN HYBRID ELECTRIC]
+  # Not motor vehicles (trailers/caravans) or fuel unknown: dropped from the denominator
+  exclude_fuel_labels: [Not Applicable, Missing/Unknown, Other/Unmapped]
+  # A month with more than this many private new-vehicle rows of fuel
+  # "Other/Unmapped" is flagged as a data-gap month (counts understated there;
+  # year-on-year comparisons avoid using it as a base)
+  unmapped_block_min_rows: 100
+  # Snapshot (stock) file
+  snapshot_bev_labels: [EV, BATTERY ELECTRIC, ELECTRICITY]
+  snapshot_phev_labels: [PHEV, PLUG-IN HYBRID ELECTRIC]
+  snapshot_exclude_power: [Not Applicable, Missing/Unknown, Other/Unmapped]
+  # Stock = light vehicles: passenger vehicles + light goods (utes/vans).
+  # Excludes trailers, motorcycles, plant, buses and medium/heavy trucks.
+  snapshot_vehicle_types: [Passenger Car, Off-road Passenger Vehicle, Forward-control Passenger Vehicle, Light Goods Vehicle]
+  # Snapshot months used for the stock series (quarter ends, to line up with
+  # VIC); the latest available month is always added
+  snapshot_months_of_year: [3, 6, 9, 12]
+  # TfNSW LGA name -> ABS LGA name where they differ
+  # (TfNSW used older labels before Apr 2023 for Dubbo and Cootamundra-Gundagai)
+  lga_aliases:
+    Nambucca Valley: Nambucca
+    Western Plains Regional: Dubbo Regional
+    Gundagai: Cootamundra-Gundagai Regional
+  # Suppression: the imputed value for a "<=5" cell is estimated from QLD
+  # unit records re-cut at NSW's grain (see build_data.py). Random seed for
+  # the synthetic gender x age split used in that estimate:
+  suppression_seed: 20260925
+  # QLD has no PHEV label, so the flow estimate for PHEV cells borrows BEV's
+  # (both are low-volume plug-in cells). Same for the stock calibration.
+  phev_suppression_from: bev
+  # Stock suppression calibration:
+  #  - BEV cells: choose k so the growth in the NSW BEV fleet between the first
+  #    and latest snapshot equals new BEV registrations (all customers) in between
+  #  - all other cells: choose k so the whole-register total in the detailed
+  #    snapshot equals the coarse "Age of Registered Vehicles" snapshot total
+  #    for the same month
+  age_snapshot_file: nsw/age/tfnsw_age_of_registered_vehicles_snapshot_2025.zip
+  age_calibration_month: "2025-12"
+  # value given to the few "<=5" cells in the coarse age file (midpoint of 1-5;
+  # moving it across 1..5 shifts the calibrated k by only about +/-0.1)
+  age_file_suppressed_value: 3
+
+qld:
+  glob: qld/qld_*.csv
+  new_transaction: "Registration New"
+  private_customer_types: [Individual]
+  bev_labels: [Electric]
+  # QLD "Petrol And Electric" mixes HEV and PHEV, so no PHEV series for QLD
+  phev_labels: []
+  # A "Registration New" counts as a new vehicle only if year of manufacture
+  # >= record year minus this (drops re-registrations of old vehicles)
+  max_new_vehicle_age_years: 1
+  # The latest month is kept only if the data reach within this many days of
+  # its end (the extract is taken mid-month)
+  month_complete_tolerance_days: 3
+  lga_suffix_regex: '\s*\((C|R|S|T|M|A)\)$'
+
+vic:
+  glob: vic/whole_fleet_vehicle_registration_snapshot_by_postcode_*.csv
+  # CD_CLASS_VEH: 2 = motor vehicles, 3 = motorcycles
+  vehicle_classes: ["2"]
+  bev_code: E
+  hybrid_code: M
+  exclude_fuel_codes: [""]
+  # "Recent" vehicles in a snapshot = year of manufacture >= snapshot year - this
+  recent_model_year_lag: 1
+  postcode_min: 3000
+  postcode_max: 3999
+
+fuel:
+  # Monthly fuel prices from the au_fuel_prices project (built from NSW FuelCheck,
+  # QLD Fuel Price Reporting and AIP terminal gate prices), cents per litre
+  retail_file: /home/martinstevenson/models/au_fuel_prices/work/retail_monthly.csv
+  tgp_file: /home/martinstevenson/models/au_fuel_prices/work/tgp_monthly.csv
+  retail_series: [NSW_ULP, NSW_Diesel, QLD_ULP, QLD_Diesel]
+  tgp_series: [TGP_petrol_national, TGP_diesel_national]
+  # Crisis onset = first month the onset series is at least this far above its
+  # trailing mean (2026 Middle East / Strait of Hormuz fuel crisis)
+  onset_series: TGP_petrol_national
+  onset_threshold: 0.25
+  onset_trailing_months: 12
+  # Search for the onset from this month (avoids flagging the 2022 spike)
+  onset_search_from: "2025-01"
+
+analysis:
+  # LGAs/postcodes need at least this many new private registrations in the
+  # recent window (or recent-model vehicles for VIC) to appear on the scatter
+  min_new_regs_scatter: 300
+  min_recent_vehicles_vic: 300
+  min_individuals_vic_postcode: 500
+  # Rows in each top/bottom table
+  top_n: 10
+
+map:
+  # ArcGIS generalisation tolerance in degrees for the dashboard boundaries
+  lga_offset_deg: 0.004
+  poa_offset_deg: 0.0015
+  coord_decimals: 4
+  lga_service: https://geo.abs.gov.au/arcgis/rest/services/ASGS2023/LGA/MapServer/0/query
+  poa_service: https://geo.abs.gov.au/arcgis/rest/services/ASGS2021/POA/MapServer/0/query
+  # Australia base layer (all states and territories), coarser generalisation
+  ste_service: https://geo.abs.gov.au/arcgis/rest/services/ASGS2021/STE/MapServer/0/query
+  ste_offset_deg: 0.02
+  sal_point_service: https://geo.abs.gov.au/arcgis/rest/services/ASGS2021/SAL/MapServer/2/query
+  # Suburb names shown per VIC postcode in tables and the map
+  suburb_names_per_postcode: 3
+  # Postcodes whose ABS locality point falls in a neighbouring postcode
+  postcode_name_overrides: {3000: Melbourne CBD}

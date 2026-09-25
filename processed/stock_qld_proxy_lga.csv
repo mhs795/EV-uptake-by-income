@@ -1,0 +1,2381 @@
+lga_name,month,bev_seen
+Brisbane,2022-01,66
+Cairns,2022-01,2
+Fraser Coast,2022-01,1
+Gladstone,2022-01,1
+Gold Coast,2022-01,39
+Ipswich,2022-01,13
+Livingstone,2022-01,1
+Logan,2022-01,9
+Mareeba,2022-01,1
+Moreton Bay,2022-01,9
+Noosa,2022-01,4
+Redland,2022-01,2
+Rockhampton,2022-01,1
+Sunshine Coast,2022-01,23
+Townsville,2022-01,9
+Whitsunday,2022-01,1
+Brisbane,2022-02,293
+Bundaberg,2022-02,2
+Cairns,2022-02,7
+Central Highlands,2022-02,2
+Douglas,2022-02,1
+Fraser Coast,2022-02,1
+Gladstone,2022-02,1
+Gold Coast,2022-02,161
+Gympie,2022-02,1
+Ipswich,2022-02,19
+Livingstone,2022-02,2
+Logan,2022-02,27
+Mackay,2022-02,2
+Mareeba,2022-02,3
+Moreton Bay,2022-02,26
+Noosa,2022-02,11
+Redland,2022-02,19
+Rockhampton,2022-02,4
+Scenic Rim,2022-02,3
+Somerset,2022-02,1
+Sunshine Coast,2022-02,49
+Toowoomba,2022-02,6
+Townsville,2022-02,23
+Western Downs,2022-02,1
+Whitsunday,2022-02,2
+Brisbane,2022-03,725
+Bundaberg,2022-03,6
+Cairns,2022-03,21
+Central Highlands,2022-03,2
+Douglas,2022-03,2
+Fraser Coast,2022-03,8
+Gladstone,2022-03,4
+Gold Coast,2022-03,327
+Gympie,2022-03,3
+Ipswich,2022-03,47
+Isaac,2022-03,1
+Livingstone,2022-03,4
+Lockyer Valley,2022-03,2
+Logan,2022-03,58
+Mackay,2022-03,5
+Maranoa,2022-03,1
+Mareeba,2022-03,4
+Moreton Bay,2022-03,101
+Noosa,2022-03,23
+Redland,2022-03,44
+Rockhampton,2022-03,7
+Scenic Rim,2022-03,9
+Somerset,2022-03,3
+South Burnett,2022-03,3
+Southern Downs,2022-03,1
+Sunshine Coast,2022-03,126
+Toowoomba,2022-03,15
+Townsville,2022-03,39
+Western Downs,2022-03,1
+Whitsunday,2022-03,2
+Brisbane,2022-04,829
+Bundaberg,2022-04,6
+Cairns,2022-04,28
+Cassowary Coast,2022-04,1
+Central Highlands,2022-04,3
+Douglas,2022-04,2
+Fraser Coast,2022-04,10
+Gladstone,2022-04,4
+Gold Coast,2022-04,363
+Gympie,2022-04,4
+Ipswich,2022-04,55
+Isaac,2022-04,1
+Livingstone,2022-04,4
+Lockyer Valley,2022-04,2
+Logan,2022-04,69
+Mackay,2022-04,6
+Maranoa,2022-04,1
+Mareeba,2022-04,4
+Moreton Bay,2022-04,114
+Noosa,2022-04,27
+Redland,2022-04,50
+Rockhampton,2022-04,9
+Scenic Rim,2022-04,12
+Somerset,2022-04,4
+South Burnett,2022-04,3
+Southern Downs,2022-04,1
+Sunshine Coast,2022-04,143
+Toowoomba,2022-04,20
+Townsville,2022-04,43
+Western Downs,2022-04,1
+Whitsunday,2022-04,2
+Brisbane,2022-05,978
+Bundaberg,2022-05,7
+Cairns,2022-05,34
+Cassowary Coast,2022-05,1
+Central Highlands,2022-05,3
+Douglas,2022-05,3
+Fraser Coast,2022-05,9
+Gladstone,2022-05,4
+Gold Coast,2022-05,400
+Gympie,2022-05,4
+Ipswich,2022-05,62
+Isaac,2022-05,1
+Livingstone,2022-05,4
+Lockyer Valley,2022-05,3
+Logan,2022-05,82
+Mackay,2022-05,13
+Maranoa,2022-05,1
+Mareeba,2022-05,4
+Moreton Bay,2022-05,129
+Noosa,2022-05,33
+Redland,2022-05,55
+Rockhampton,2022-05,9
+Scenic Rim,2022-05,16
+Somerset,2022-05,4
+South Burnett,2022-05,3
+Southern Downs,2022-05,2
+Sunshine Coast,2022-05,174
+Tablelands,2022-05,2
+Toowoomba,2022-05,25
+Townsville,2022-05,45
+Western Downs,2022-05,2
+Whitsunday,2022-05,2
+Brisbane,2022-06,1112
+Bundaberg,2022-06,9
+Cairns,2022-06,40
+Cassowary Coast,2022-06,1
+Central Highlands,2022-06,3
+Cook,2022-06,1
+Douglas,2022-06,3
+Fraser Coast,2022-06,11
+Gladstone,2022-06,4
+Gold Coast,2022-06,442
+Gympie,2022-06,4
+Ipswich,2022-06,68
+Isaac,2022-06,2
+Livingstone,2022-06,5
+Lockyer Valley,2022-06,4
+Logan,2022-06,91
+Mackay,2022-06,15
+Maranoa,2022-06,1
+Mareeba,2022-06,4
+Moreton Bay,2022-06,144
+Noosa,2022-06,42
+Redland,2022-06,64
+Rockhampton,2022-06,10
+Scenic Rim,2022-06,19
+Somerset,2022-06,5
+South Burnett,2022-06,3
+Southern Downs,2022-06,2
+Sunshine Coast,2022-06,193
+Tablelands,2022-06,2
+Toowoomba,2022-06,36
+Townsville,2022-06,49
+Western Downs,2022-06,2
+Whitsunday,2022-06,2
+Brisbane,2022-07,1217
+Bundaberg,2022-07,9
+Cairns,2022-07,42
+Cassowary Coast,2022-07,1
+Central Highlands,2022-07,3
+Cook,2022-07,1
+Douglas,2022-07,3
+Fraser Coast,2022-07,11
+Gladstone,2022-07,4
+Gold Coast,2022-07,460
+Gympie,2022-07,4
+Ipswich,2022-07,75
+Isaac,2022-07,2
+Livingstone,2022-07,5
+Lockyer Valley,2022-07,5
+Logan,2022-07,102
+Mackay,2022-07,15
+Maranoa,2022-07,1
+Mareeba,2022-07,7
+Moreton Bay,2022-07,165
+Noosa,2022-07,47
+Redland,2022-07,70
+Rockhampton,2022-07,14
+Scenic Rim,2022-07,23
+Somerset,2022-07,5
+South Burnett,2022-07,3
+Southern Downs,2022-07,2
+Sunshine Coast,2022-07,202
+Tablelands,2022-07,2
+Toowoomba,2022-07,37
+Townsville,2022-07,55
+Western Downs,2022-07,3
+Whitsunday,2022-07,4
+Brisbane,2022-08,1670
+Bundaberg,2022-08,12
+Cairns,2022-08,54
+Cassowary Coast,2022-08,3
+Central Highlands,2022-08,5
+Cook,2022-08,1
+Douglas,2022-08,6
+Fraser Coast,2022-08,12
+Gladstone,2022-08,6
+Gold Coast,2022-08,709
+Gympie,2022-08,6
+Ipswich,2022-08,108
+Isaac,2022-08,2
+Livingstone,2022-08,6
+Lockyer Valley,2022-08,8
+Logan,2022-08,139
+Mackay,2022-08,22
+Maranoa,2022-08,2
+Mareeba,2022-08,8
+Moreton Bay,2022-08,226
+Noosa,2022-08,62
+Redland,2022-08,100
+Rockhampton,2022-08,19
+Scenic Rim,2022-08,26
+Somerset,2022-08,5
+South Burnett,2022-08,4
+Southern Downs,2022-08,3
+Sunshine Coast,2022-08,268
+Tablelands,2022-08,2
+Toowoomba,2022-08,51
+Townsville,2022-08,70
+Western Downs,2022-08,5
+Whitsunday,2022-08,4
+Banana,2022-09,1
+Brisbane,2022-09,2338
+Bundaberg,2022-09,19
+Cairns,2022-09,67
+Cassowary Coast,2022-09,3
+Central Highlands,2022-09,8
+Cook,2022-09,1
+Douglas,2022-09,9
+Fraser Coast,2022-09,21
+Gladstone,2022-09,11
+Gold Coast,2022-09,1017
+Gympie,2022-09,11
+Ipswich,2022-09,147
+Isaac,2022-09,4
+Livingstone,2022-09,8
+Lockyer Valley,2022-09,13
+Logan,2022-09,219
+Mackay,2022-09,27
+Maranoa,2022-09,2
+Mareeba,2022-09,9
+Moreton Bay,2022-09,317
+Noosa,2022-09,83
+North Burnett,2022-09,1
+Redland,2022-09,131
+Rockhampton,2022-09,22
+Scenic Rim,2022-09,33
+Somerset,2022-09,6
+South Burnett,2022-09,6
+Southern Downs,2022-09,7
+Sunshine Coast,2022-09,365
+Tablelands,2022-09,2
+Toowoomba,2022-09,72
+Townsville,2022-09,89
+Western Downs,2022-09,13
+Whitsunday,2022-09,4
+Banana,2022-10,1
+Brisbane,2022-10,2694
+Bundaberg,2022-10,23
+Cairns,2022-10,80
+Cassowary Coast,2022-10,3
+Central Highlands,2022-10,9
+Cook,2022-10,1
+Douglas,2022-10,9
+Fraser Coast,2022-10,33
+Gladstone,2022-10,11
+Gold Coast,2022-10,1136
+Gympie,2022-10,13
+Hinchinbrook,2022-10,1
+Ipswich,2022-10,171
+Isaac,2022-10,4
+Livingstone,2022-10,9
+Lockyer Valley,2022-10,13
+Logan,2022-10,257
+Mackay,2022-10,31
+Maranoa,2022-10,2
+Mareeba,2022-10,9
+Moreton Bay,2022-10,375
+Noosa,2022-10,98
+North Burnett,2022-10,1
+Redland,2022-10,152
+Rockhampton,2022-10,23
+Scenic Rim,2022-10,40
+Somerset,2022-10,8
+South Burnett,2022-10,6
+Southern Downs,2022-10,9
+Sunshine Coast,2022-10,418
+Tablelands,2022-10,4
+Toowoomba,2022-10,83
+Townsville,2022-10,112
+Western Downs,2022-10,13
+Whitsunday,2022-10,4
+Banana,2022-11,1
+Brisbane,2022-11,2976
+Bundaberg,2022-11,26
+Cairns,2022-11,89
+Cassowary Coast,2022-11,3
+Central Highlands,2022-11,9
+Cook,2022-11,1
+Douglas,2022-11,10
+Fraser Coast,2022-11,35
+Gladstone,2022-11,13
+Gold Coast,2022-11,1254
+Gympie,2022-11,15
+Hinchinbrook,2022-11,1
+Ipswich,2022-11,186
+Isaac,2022-11,4
+Livingstone,2022-11,9
+Lockyer Valley,2022-11,15
+Logan,2022-11,296
+Mackay,2022-11,35
+Maranoa,2022-11,2
+Mareeba,2022-11,9
+Moreton Bay,2022-11,415
+Noosa,2022-11,113
+North Burnett,2022-11,1
+Redland,2022-11,161
+Rockhampton,2022-11,24
+Scenic Rim,2022-11,46
+Somerset,2022-11,9
+South Burnett,2022-11,8
+Southern Downs,2022-11,9
+Sunshine Coast,2022-11,464
+Tablelands,2022-11,5
+Toowoomba,2022-11,95
+Townsville,2022-11,124
+Western Downs,2022-11,14
+Whitsunday,2022-11,6
+Banana,2022-12,1
+Brisbane,2022-12,3321
+Bundaberg,2022-12,29
+Burdekin,2022-12,2
+Cairns,2022-12,104
+Cassowary Coast,2022-12,4
+Central Highlands,2022-12,10
+Cook,2022-12,1
+Douglas,2022-12,10
+Fraser Coast,2022-12,43
+Gladstone,2022-12,15
+Gold Coast,2022-12,1510
+Gympie,2022-12,20
+Hinchinbrook,2022-12,1
+Ipswich,2022-12,221
+Isaac,2022-12,4
+Livingstone,2022-12,9
+Lockyer Valley,2022-12,18
+Logan,2022-12,343
+Mackay,2022-12,36
+Maranoa,2022-12,2
+Mareeba,2022-12,9
+Moreton Bay,2022-12,475
+Noosa,2022-12,131
+North Burnett,2022-12,1
+Redland,2022-12,184
+Rockhampton,2022-12,28
+Scenic Rim,2022-12,52
+Somerset,2022-12,13
+South Burnett,2022-12,9
+Southern Downs,2022-12,10
+Sunshine Coast,2022-12,531
+Tablelands,2022-12,6
+Toowoomba,2022-12,105
+Townsville,2022-12,138
+Western Downs,2022-12,15
+Whitsunday,2022-12,9
+Banana,2023-01,2
+Brisbane,2023-01,4041
+Bundaberg,2023-01,37
+Burdekin,2023-01,3
+Cairns,2023-01,124
+Cassowary Coast,2023-01,6
+Central Highlands,2023-01,11
+Cook,2023-01,1
+Douglas,2023-01,12
+Etheridge,2023-01,1
+Fraser Coast,2023-01,51
+Gladstone,2023-01,17
+Gold Coast,2023-01,1724
+Goondiwindi,2023-01,1
+Gympie,2023-01,29
+Hinchinbrook,2023-01,2
+Ipswich,2023-01,270
+Isaac,2023-01,4
+Livingstone,2023-01,12
+Lockyer Valley,2023-01,20
+Logan,2023-01,415
+Mackay,2023-01,45
+Maranoa,2023-01,2
+Mareeba,2023-01,10
+Moreton Bay,2023-01,603
+Mount Isa,2023-01,1
+Noosa,2023-01,151
+North Burnett,2023-01,1
+Redland,2023-01,226
+Rockhampton,2023-01,32
+Scenic Rim,2023-01,58
+Somerset,2023-01,15
+South Burnett,2023-01,9
+Southern Downs,2023-01,11
+Sunshine Coast,2023-01,658
+Tablelands,2023-01,11
+Toowoomba,2023-01,123
+Townsville,2023-01,157
+Western Downs,2023-01,15
+Whitsunday,2023-01,14
+Brisbane,2023-02,4641
+Bundaberg,2023-02,47
+Burdekin,2023-02,3
+Cairns,2023-02,148
+Cassowary Coast,2023-02,8
+Central Highlands,2023-02,11
+Cook,2023-02,1
+Douglas,2023-02,13
+Etheridge,2023-02,1
+Fraser Coast,2023-02,61
+Gladstone,2023-02,19
+Gold Coast,2023-02,1875
+Goondiwindi,2023-02,2
+Gympie,2023-02,29
+Hinchinbrook,2023-02,2
+Ipswich,2023-02,317
+Isaac,2023-02,4
+Livingstone,2023-02,15
+Lockyer Valley,2023-02,24
+Logan,2023-02,465
+Mackay,2023-02,54
+Maranoa,2023-02,2
+Mareeba,2023-02,11
+Moreton Bay,2023-02,675
+Mount Isa,2023-02,1
+Noosa,2023-02,167
+North Burnett,2023-02,1
+Redland,2023-02,272
+Rockhampton,2023-02,36
+Scenic Rim,2023-02,70
+Somerset,2023-02,16
+South Burnett,2023-02,14
+Southern Downs,2023-02,11
+Sunshine Coast,2023-02,747
+Tablelands,2023-02,12
+Toowoomba,2023-02,138
+Townsville,2023-02,170
+Western Downs,2023-02,15
+Whitsunday,2023-02,16
+Brisbane,2023-03,5351
+Bundaberg,2023-03,54
+Burdekin,2023-03,3
+Cairns,2023-03,184
+Cassowary Coast,2023-03,11
+Central Highlands,2023-03,13
+Cook,2023-03,1
+Douglas,2023-03,17
+Etheridge,2023-03,1
+Fraser Coast,2023-03,67
+Gladstone,2023-03,21
+Gold Coast,2023-03,2116
+Goondiwindi,2023-03,2
+Gympie,2023-03,36
+Hinchinbrook,2023-03,2
+Ipswich,2023-03,361
+Isaac,2023-03,5
+Livingstone,2023-03,21
+Lockyer Valley,2023-03,30
+Logan,2023-03,512
+Mackay,2023-03,58
+Maranoa,2023-03,3
+Mareeba,2023-03,13
+Moreton Bay,2023-03,779
+Mount Isa,2023-03,1
+Noosa,2023-03,182
+North Burnett,2023-03,1
+Redland,2023-03,318
+Rockhampton,2023-03,45
+Scenic Rim,2023-03,71
+Somerset,2023-03,19
+South Burnett,2023-03,15
+Southern Downs,2023-03,14
+Sunshine Coast,2023-03,840
+Tablelands,2023-03,15
+Toowoomba,2023-03,167
+Townsville,2023-03,191
+Western Downs,2023-03,15
+Whitsunday,2023-03,18
+Banana,2023-04,1
+Brisbane,2023-04,6147
+Bundaberg,2023-04,56
+Burdekin,2023-04,3
+Cairns,2023-04,204
+Cassowary Coast,2023-04,13
+Central Highlands,2023-04,13
+Cook,2023-04,1
+Douglas,2023-04,17
+Etheridge,2023-04,1
+Fraser Coast,2023-04,74
+Gladstone,2023-04,27
+Gold Coast,2023-04,2369
+Goondiwindi,2023-04,2
+Gympie,2023-04,39
+Hinchinbrook,2023-04,2
+Ipswich,2023-04,412
+Isaac,2023-04,6
+Livingstone,2023-04,25
+Lockyer Valley,2023-04,32
+Logan,2023-04,595
+Mackay,2023-04,62
+Maranoa,2023-04,3
+Mareeba,2023-04,14
+Moreton Bay,2023-04,897
+Mount Isa,2023-04,1
+Noosa,2023-04,198
+North Burnett,2023-04,1
+Redland,2023-04,353
+Rockhampton,2023-04,52
+Scenic Rim,2023-04,77
+Somerset,2023-04,20
+South Burnett,2023-04,21
+Southern Downs,2023-04,19
+Sunshine Coast,2023-04,935
+Tablelands,2023-04,18
+Toowoomba,2023-04,191
+Townsville,2023-04,209
+Western Downs,2023-04,16
+Whitsunday,2023-04,19
+Banana,2023-05,1
+Brisbane,2023-05,6772
+Bundaberg,2023-05,60
+Burdekin,2023-05,3
+Cairns,2023-05,218
+Cassowary Coast,2023-05,14
+Central Highlands,2023-05,13
+Cook,2023-05,1
+Douglas,2023-05,17
+Etheridge,2023-05,1
+Fraser Coast,2023-05,82
+Gladstone,2023-05,28
+Gold Coast,2023-05,2566
+Goondiwindi,2023-05,3
+Gympie,2023-05,41
+Hinchinbrook,2023-05,2
+Ipswich,2023-05,466
+Isaac,2023-05,6
+Livingstone,2023-05,27
+Lockyer Valley,2023-05,35
+Logan,2023-05,660
+Mackay,2023-05,68
+Maranoa,2023-05,3
+Mareeba,2023-05,17
+Moreton Bay,2023-05,999
+Mount Isa,2023-05,1
+Noosa,2023-05,220
+North Burnett,2023-05,1
+Redland,2023-05,386
+Rockhampton,2023-05,55
+Scenic Rim,2023-05,87
+Somerset,2023-05,20
+South Burnett,2023-05,23
+Southern Downs,2023-05,22
+Sunshine Coast,2023-05,1014
+Tablelands,2023-05,20
+Toowoomba,2023-05,214
+Townsville,2023-05,230
+Western Downs,2023-05,16
+Whitsunday,2023-05,19
+Banana,2023-06,1
+Brisbane,2023-06,7883
+Bundaberg,2023-06,69
+Burdekin,2023-06,3
+Cairns,2023-06,244
+Cassowary Coast,2023-06,14
+Central Highlands,2023-06,16
+Cook,2023-06,1
+Douglas,2023-06,20
+Etheridge,2023-06,1
+Fraser Coast,2023-06,95
+Gladstone,2023-06,37
+Gold Coast,2023-06,2918
+Goondiwindi,2023-06,3
+Gympie,2023-06,47
+Hinchinbrook,2023-06,2
+Ipswich,2023-06,542
+Isaac,2023-06,6
+Livingstone,2023-06,27
+Lockyer Valley,2023-06,37
+Logan,2023-06,779
+Mackay,2023-06,75
+Maranoa,2023-06,3
+Mareeba,2023-06,18
+Moreton Bay,2023-06,1158
+Mount Isa,2023-06,2
+Noosa,2023-06,251
+North Burnett,2023-06,1
+Redland,2023-06,438
+Rockhampton,2023-06,61
+Scenic Rim,2023-06,102
+Somerset,2023-06,21
+South Burnett,2023-06,25
+Southern Downs,2023-06,24
+Sunshine Coast,2023-06,1159
+Tablelands,2023-06,22
+Toowoomba,2023-06,252
+Townsville,2023-06,248
+Western Downs,2023-06,18
+Whitsunday,2023-06,19
+Banana,2023-07,1
+Brisbane,2023-07,8556
+Bundaberg,2023-07,73
+Burdekin,2023-07,4
+Cairns,2023-07,270
+Cassowary Coast,2023-07,17
+Central Highlands,2023-07,17
+Cook,2023-07,1
+Douglas,2023-07,20
+Etheridge,2023-07,1
+Fraser Coast,2023-07,102
+Gladstone,2023-07,39
+Gold Coast,2023-07,3112
+Goondiwindi,2023-07,3
+Gympie,2023-07,50
+Hinchinbrook,2023-07,2
+Ipswich,2023-07,596
+Isaac,2023-07,7
+Livingstone,2023-07,29
+Lockyer Valley,2023-07,40
+Logan,2023-07,840
+Mackay,2023-07,83
+Maranoa,2023-07,3
+Mareeba,2023-07,20
+Moreton Bay,2023-07,1247
+Mount Isa,2023-07,2
+Noosa,2023-07,263
+North Burnett,2023-07,1
+Redland,2023-07,468
+Rockhampton,2023-07,71
+Scenic Rim,2023-07,107
+Somerset,2023-07,21
+South Burnett,2023-07,28
+Southern Downs,2023-07,27
+Sunshine Coast,2023-07,1229
+Tablelands,2023-07,23
+Toowoomba,2023-07,274
+Townsville,2023-07,269
+Western Downs,2023-07,21
+Whitsunday,2023-07,20
+Banana,2023-08,1
+Brisbane,2023-08,9749
+Bundaberg,2023-08,89
+Burdekin,2023-08,5
+Cairns,2023-08,301
+Cassowary Coast,2023-08,18
+Central Highlands,2023-08,19
+Cook,2023-08,1
+Douglas,2023-08,22
+Etheridge,2023-08,1
+Fraser Coast,2023-08,116
+Gladstone,2023-08,44
+Gold Coast,2023-08,3475
+Goondiwindi,2023-08,3
+Gympie,2023-08,54
+Hinchinbrook,2023-08,2
+Ipswich,2023-08,683
+Isaac,2023-08,8
+Livingstone,2023-08,33
+Lockyer Valley,2023-08,49
+Logan,2023-08,945
+Mackay,2023-08,95
+Maranoa,2023-08,3
+Mareeba,2023-08,23
+Moreton Bay,2023-08,1413
+Mount Isa,2023-08,4
+Noosa,2023-08,288
+North Burnett,2023-08,1
+Redland,2023-08,532
+Rockhampton,2023-08,82
+Scenic Rim,2023-08,119
+Somerset,2023-08,24
+South Burnett,2023-08,28
+Southern Downs,2023-08,31
+Sunshine Coast,2023-08,1357
+Tablelands,2023-08,27
+Toowoomba,2023-08,310
+Townsville,2023-08,317
+Western Downs,2023-08,23
+Whitsunday,2023-08,20
+Banana,2023-09,1
+Brisbane,2023-09,10576
+Bundaberg,2023-09,101
+Burdekin,2023-09,6
+Cairns,2023-09,333
+Cassowary Coast,2023-09,19
+Central Highlands,2023-09,18
+Cook,2023-09,1
+Douglas,2023-09,24
+Etheridge,2023-09,1
+Fraser Coast,2023-09,131
+Gladstone,2023-09,45
+Gold Coast,2023-09,3773
+Goondiwindi,2023-09,3
+Gympie,2023-09,61
+Hinchinbrook,2023-09,2
+Ipswich,2023-09,761
+Isaac,2023-09,8
+Livingstone,2023-09,35
+Lockyer Valley,2023-09,55
+Logan,2023-09,1069
+Mackay,2023-09,102
+Maranoa,2023-09,3
+Mareeba,2023-09,24
+Moreton Bay,2023-09,1555
+Mount Isa,2023-09,4
+Noosa,2023-09,307
+North Burnett,2023-09,1
+Redland,2023-09,591
+Rockhampton,2023-09,95
+Scenic Rim,2023-09,125
+Somerset,2023-09,24
+South Burnett,2023-09,30
+Southern Downs,2023-09,33
+Sunshine Coast,2023-09,1464
+Tablelands,2023-09,30
+Toowoomba,2023-09,326
+Townsville,2023-09,342
+Western Downs,2023-09,23
+Whitsunday,2023-09,22
+Banana,2023-10,1
+Brisbane,2023-10,11151
+Bundaberg,2023-10,108
+Burdekin,2023-10,7
+Cairns,2023-10,360
+Cassowary Coast,2023-10,20
+Central Highlands,2023-10,18
+Cook,2023-10,1
+Douglas,2023-10,26
+Etheridge,2023-10,1
+Fraser Coast,2023-10,140
+Gladstone,2023-10,48
+Gold Coast,2023-10,3888
+Goondiwindi,2023-10,3
+Gympie,2023-10,68
+Hinchinbrook,2023-10,3
+Ipswich,2023-10,811
+Isaac,2023-10,8
+Livingstone,2023-10,37
+Lockyer Valley,2023-10,60
+Logan,2023-10,1154
+Mackay,2023-10,109
+Maranoa,2023-10,3
+Mareeba,2023-10,24
+Moreton Bay,2023-10,1666
+Mount Isa,2023-10,5
+Noosa,2023-10,331
+North Burnett,2023-10,1
+Redland,2023-10,623
+Rockhampton,2023-10,104
+Scenic Rim,2023-10,131
+Somerset,2023-10,28
+South Burnett,2023-10,33
+Southern Downs,2023-10,37
+Sunshine Coast,2023-10,1527
+Tablelands,2023-10,32
+Toowoomba,2023-10,338
+Townsville,2023-10,371
+Western Downs,2023-10,23
+Whitsunday,2023-10,24
+Banana,2023-11,4
+Brisbane,2023-11,12253
+Bundaberg,2023-11,111
+Burdekin,2023-11,7
+Cairns,2023-11,398
+Cassowary Coast,2023-11,24
+Central Highlands,2023-11,21
+Cook,2023-11,1
+Douglas,2023-11,29
+Etheridge,2023-11,1
+Fraser Coast,2023-11,154
+Gladstone,2023-11,55
+Gold Coast,2023-11,4272
+Goondiwindi,2023-11,3
+Gympie,2023-11,75
+Hinchinbrook,2023-11,3
+Ipswich,2023-11,899
+Isaac,2023-11,8
+Livingstone,2023-11,42
+Lockyer Valley,2023-11,67
+Logan,2023-11,1265
+Mackay,2023-11,121
+Maranoa,2023-11,3
+Mareeba,2023-11,25
+Moreton Bay,2023-11,1834
+Mount Isa,2023-11,5
+Noosa,2023-11,373
+North Burnett,2023-11,2
+Redland,2023-11,696
+Rockhampton,2023-11,115
+Scenic Rim,2023-11,147
+Somerset,2023-11,33
+South Burnett,2023-11,35
+Southern Downs,2023-11,41
+Sunshine Coast,2023-11,1649
+Tablelands,2023-11,33
+Toowoomba,2023-11,364
+Townsville,2023-11,399
+Western Downs,2023-11,26
+Whitsunday,2023-11,24
+Banana,2023-12,4
+Brisbane,2023-12,12967
+Bundaberg,2023-12,121
+Burdekin,2023-12,8
+Cairns,2023-12,419
+Cassowary Coast,2023-12,27
+Central Highlands,2023-12,22
+Charters Towers,2023-12,2
+Cook,2023-12,1
+Douglas,2023-12,31
+Etheridge,2023-12,1
+Flinders,2023-12,1
+Fraser Coast,2023-12,158
+Gladstone,2023-12,60
+Gold Coast,2023-12,4488
+Goondiwindi,2023-12,3
+Gympie,2023-12,78
+Hinchinbrook,2023-12,3
+Ipswich,2023-12,961
+Isaac,2023-12,8
+Livingstone,2023-12,47
+Lockyer Valley,2023-12,71
+Logan,2023-12,1359
+Mackay,2023-12,127
+Maranoa,2023-12,3
+Mareeba,2023-12,26
+Moreton Bay,2023-12,1950
+Mount Isa,2023-12,5
+Murweh,2023-12,1
+Noosa,2023-12,384
+North Burnett,2023-12,2
+Redland,2023-12,748
+Rockhampton,2023-12,127
+Scenic Rim,2023-12,151
+Somerset,2023-12,35
+South Burnett,2023-12,36
+Southern Downs,2023-12,42
+Sunshine Coast,2023-12,1755
+Tablelands,2023-12,33
+Toowoomba,2023-12,374
+Townsville,2023-12,427
+Western Downs,2023-12,26
+Whitsunday,2023-12,24
+Balonne,2024-01,1
+Banana,2024-01,4
+Brisbane,2024-01,13625
+Bundaberg,2024-01,131
+Burdekin,2024-01,8
+Cairns,2024-01,453
+Cassowary Coast,2024-01,29
+Central Highlands,2024-01,22
+Charters Towers,2024-01,2
+Cook,2024-01,1
+Douglas,2024-01,31
+Etheridge,2024-01,1
+Flinders,2024-01,1
+Fraser Coast,2024-01,172
+Gladstone,2024-01,66
+Gold Coast,2024-01,4683
+Goondiwindi,2024-01,3
+Gympie,2024-01,84
+Hinchinbrook,2024-01,4
+Ipswich,2024-01,1030
+Isaac,2024-01,9
+Livingstone,2024-01,54
+Lockyer Valley,2024-01,77
+Logan,2024-01,1415
+Mackay,2024-01,137
+Maranoa,2024-01,3
+Mareeba,2024-01,27
+Moreton Bay,2024-01,2073
+Mount Isa,2024-01,6
+Murweh,2024-01,1
+Noosa,2024-01,402
+North Burnett,2024-01,2
+Redland,2024-01,769
+Rockhampton,2024-01,135
+Scenic Rim,2024-01,157
+Somerset,2024-01,37
+South Burnett,2024-01,37
+Southern Downs,2024-01,43
+Sunshine Coast,2024-01,1852
+Tablelands,2024-01,34
+Toowoomba,2024-01,396
+Townsville,2024-01,463
+Western Downs,2024-01,25
+Whitsunday,2024-01,25
+Balonne,2024-02,1
+Banana,2024-02,6
+Brisbane,2024-02,14559
+Bundaberg,2024-02,147
+Burdekin,2024-02,8
+Cairns,2024-02,470
+Cassowary Coast,2024-02,31
+Central Highlands,2024-02,23
+Charters Towers,2024-02,3
+Cook,2024-02,1
+Douglas,2024-02,32
+Etheridge,2024-02,1
+Flinders,2024-02,1
+Fraser Coast,2024-02,182
+Gladstone,2024-02,72
+Gold Coast,2024-02,4998
+Goondiwindi,2024-02,4
+Gympie,2024-02,89
+Hinchinbrook,2024-02,5
+Ipswich,2024-02,1115
+Isaac,2024-02,11
+Livingstone,2024-02,59
+Lockyer Valley,2024-02,85
+Logan,2024-02,1518
+Mackay,2024-02,145
+Maranoa,2024-02,4
+Mareeba,2024-02,29
+Moreton Bay,2024-02,2217
+Mount Isa,2024-02,7
+Murweh,2024-02,1
+Noosa,2024-02,421
+North Burnett,2024-02,2
+Redland,2024-02,829
+Rockhampton,2024-02,151
+Scenic Rim,2024-02,168
+Somerset,2024-02,44
+South Burnett,2024-02,39
+Southern Downs,2024-02,46
+Sunshine Coast,2024-02,1966
+Tablelands,2024-02,37
+Toowoomba,2024-02,422
+Townsville,2024-02,498
+Western Downs,2024-02,27
+Whitsunday,2024-02,29
+Balonne,2024-03,1
+Banana,2024-03,6
+Brisbane,2024-03,15554
+Bundaberg,2024-03,161
+Burdekin,2024-03,9
+Cairns,2024-03,493
+Cassowary Coast,2024-03,34
+Central Highlands,2024-03,26
+Charters Towers,2024-03,3
+Cook,2024-03,1
+Douglas,2024-03,36
+Etheridge,2024-03,1
+Flinders,2024-03,1
+Fraser Coast,2024-03,195
+Gladstone,2024-03,82
+Gold Coast,2024-03,5350
+Goondiwindi,2024-03,4
+Gympie,2024-03,96
+Hinchinbrook,2024-03,5
+Ipswich,2024-03,1218
+Isaac,2024-03,12
+Livingstone,2024-03,66
+Lockyer Valley,2024-03,90
+Logan,2024-03,1628
+Mackay,2024-03,160
+Maranoa,2024-03,4
+Mareeba,2024-03,30
+Moreton Bay,2024-03,2372
+Mount Isa,2024-03,7
+Murweh,2024-03,1
+Noosa,2024-03,441
+North Burnett,2024-03,3
+Redland,2024-03,890
+Rockhampton,2024-03,157
+Scenic Rim,2024-03,174
+Somerset,2024-03,46
+South Burnett,2024-03,43
+Southern Downs,2024-03,50
+Sunshine Coast,2024-03,2086
+Tablelands,2024-03,42
+Toowoomba,2024-03,456
+Townsville,2024-03,559
+Western Downs,2024-03,28
+Whitsunday,2024-03,36
+Balonne,2024-04,1
+Banana,2024-04,6
+Brisbane,2024-04,16204
+Bundaberg,2024-04,172
+Burdekin,2024-04,10
+Cairns,2024-04,516
+Cassowary Coast,2024-04,36
+Central Highlands,2024-04,27
+Charters Towers,2024-04,3
+Cook,2024-04,1
+Douglas,2024-04,37
+Etheridge,2024-04,1
+Flinders,2024-04,1
+Fraser Coast,2024-04,206
+Gladstone,2024-04,82
+Gold Coast,2024-04,5526
+Goondiwindi,2024-04,4
+Gympie,2024-04,99
+Hinchinbrook,2024-04,5
+Ipswich,2024-04,1272
+Isaac,2024-04,14
+Livingstone,2024-04,71
+Lockyer Valley,2024-04,99
+Logan,2024-04,1711
+Mackay,2024-04,165
+Maranoa,2024-04,4
+Mareeba,2024-04,34
+Moreton Bay,2024-04,2515
+Mount Isa,2024-04,7
+Murweh,2024-04,1
+Noosa,2024-04,457
+North Burnett,2024-04,3
+Redland,2024-04,918
+Rockhampton,2024-04,176
+Scenic Rim,2024-04,182
+Somerset,2024-04,45
+South Burnett,2024-04,45
+Southern Downs,2024-04,50
+Sunshine Coast,2024-04,2171
+Tablelands,2024-04,44
+Toowoomba,2024-04,475
+Townsville,2024-04,599
+Western Downs,2024-04,29
+Whitsunday,2024-04,40
+Balonne,2024-05,1
+Banana,2024-05,6
+Brisbane,2024-05,17257
+Bundaberg,2024-05,180
+Burdekin,2024-05,12
+Cairns,2024-05,546
+Cassowary Coast,2024-05,39
+Central Highlands,2024-05,27
+Charters Towers,2024-05,6
+Cook,2024-05,1
+Douglas,2024-05,39
+Etheridge,2024-05,1
+Flinders,2024-05,1
+Fraser Coast,2024-05,225
+Gladstone,2024-05,88
+Gold Coast,2024-05,5815
+Goondiwindi,2024-05,5
+Gympie,2024-05,103
+Hinchinbrook,2024-05,5
+Ipswich,2024-05,1369
+Isaac,2024-05,14
+Livingstone,2024-05,77
+Lockyer Valley,2024-05,104
+Logan,2024-05,1831
+Mackay,2024-05,175
+Maranoa,2024-05,8
+Mareeba,2024-05,35
+Moreton Bay,2024-05,2709
+Mount Isa,2024-05,7
+Murweh,2024-05,1
+Noosa,2024-05,481
+North Burnett,2024-05,3
+Redland,2024-05,983
+Rockhampton,2024-05,194
+Scenic Rim,2024-05,191
+Somerset,2024-05,48
+South Burnett,2024-05,45
+Southern Downs,2024-05,54
+Sunshine Coast,2024-05,2310
+Tablelands,2024-05,51
+Toowoomba,2024-05,527
+Townsville,2024-05,641
+Western Downs,2024-05,30
+Whitsunday,2024-05,43
+Balonne,2024-06,1
+Banana,2024-06,6
+Brisbane,2024-06,18264
+Bundaberg,2024-06,189
+Burdekin,2024-06,12
+Cairns,2024-06,580
+Cassowary Coast,2024-06,39
+Central Highlands,2024-06,31
+Charters Towers,2024-06,9
+Cook,2024-06,1
+Douglas,2024-06,39
+Etheridge,2024-06,1
+Flinders,2024-06,1
+Fraser Coast,2024-06,235
+Gladstone,2024-06,93
+Gold Coast,2024-06,6131
+Goondiwindi,2024-06,5
+Gympie,2024-06,110
+Hinchinbrook,2024-06,6
+Ipswich,2024-06,1473
+Isaac,2024-06,14
+Livingstone,2024-06,79
+Lockyer Valley,2024-06,109
+Logan,2024-06,1969
+Mackay,2024-06,189
+Maranoa,2024-06,11
+Mareeba,2024-06,37
+Moreton Bay,2024-06,2871
+Mount Isa,2024-06,7
+Murweh,2024-06,1
+Noosa,2024-06,507
+North Burnett,2024-06,5
+Redland,2024-06,1050
+Rockhampton,2024-06,204
+Scenic Rim,2024-06,203
+Somerset,2024-06,54
+South Burnett,2024-06,47
+Southern Downs,2024-06,60
+Sunshine Coast,2024-06,2438
+Tablelands,2024-06,55
+Toowoomba,2024-06,559
+Townsville,2024-06,676
+Western Downs,2024-06,36
+Whitsunday,2024-06,46
+Balonne,2024-07,1
+Banana,2024-07,6
+Brisbane,2024-07,19114
+Bundaberg,2024-07,202
+Burdekin,2024-07,12
+Cairns,2024-07,616
+Cassowary Coast,2024-07,39
+Central Highlands,2024-07,32
+Charters Towers,2024-07,9
+Cook,2024-07,1
+Douglas,2024-07,40
+Etheridge,2024-07,1
+Flinders,2024-07,1
+Fraser Coast,2024-07,248
+Gladstone,2024-07,93
+Gold Coast,2024-07,6333
+Goondiwindi,2024-07,5
+Gympie,2024-07,114
+Hinchinbrook,2024-07,6
+Ipswich,2024-07,1556
+Isaac,2024-07,14
+Livingstone,2024-07,86
+Lockyer Valley,2024-07,119
+Logan,2024-07,2037
+Mackay,2024-07,208
+Maranoa,2024-07,11
+Mareeba,2024-07,41
+Moreton Bay,2024-07,3013
+Mount Isa,2024-07,7
+Murweh,2024-07,1
+Noosa,2024-07,530
+North Burnett,2024-07,5
+Redland,2024-07,1098
+Rockhampton,2024-07,214
+Scenic Rim,2024-07,214
+Somerset,2024-07,60
+South Burnett,2024-07,48
+Southern Downs,2024-07,62
+Sunshine Coast,2024-07,2534
+Tablelands,2024-07,58
+Toowoomba,2024-07,583
+Townsville,2024-07,710
+Western Downs,2024-07,36
+Whitsunday,2024-07,52
+Balonne,2024-08,1
+Banana,2024-08,6
+Brisbane,2024-08,19845
+Bundaberg,2024-08,205
+Burdekin,2024-08,14
+Cairns,2024-08,645
+Cassowary Coast,2024-08,40
+Central Highlands,2024-08,31
+Charters Towers,2024-08,9
+Cook,2024-08,1
+Douglas,2024-08,40
+Etheridge,2024-08,1
+Flinders,2024-08,1
+Fraser Coast,2024-08,261
+Gladstone,2024-08,100
+Gold Coast,2024-08,6515
+Goondiwindi,2024-08,5
+Gympie,2024-08,115
+Hinchinbrook,2024-08,6
+Ipswich,2024-08,1625
+Isaac,2024-08,15
+Livingstone,2024-08,89
+Lockyer Valley,2024-08,124
+Logan,2024-08,2129
+Mackay,2024-08,215
+Maranoa,2024-08,12
+Mareeba,2024-08,43
+Moreton Bay,2024-08,3150
+Mount Isa,2024-08,7
+Murweh,2024-08,1
+Noosa,2024-08,548
+North Burnett,2024-08,5
+Redland,2024-08,1153
+Rockhampton,2024-08,220
+Scenic Rim,2024-08,218
+Somerset,2024-08,66
+South Burnett,2024-08,49
+Southern Downs,2024-08,63
+Sunshine Coast,2024-08,2613
+Tablelands,2024-08,59
+Toowoomba,2024-08,596
+Townsville,2024-08,746
+Western Downs,2024-08,37
+Whitsunday,2024-08,52
+Balonne,2024-09,1
+Banana,2024-09,7
+Brisbane,2024-09,20434
+Bundaberg,2024-09,208
+Burdekin,2024-09,16
+Cairns,2024-09,666
+Cassowary Coast,2024-09,41
+Central Highlands,2024-09,32
+Charters Towers,2024-09,10
+Cook,2024-09,1
+Douglas,2024-09,42
+Etheridge,2024-09,1
+Flinders,2024-09,1
+Fraser Coast,2024-09,275
+Gladstone,2024-09,106
+Gold Coast,2024-09,6686
+Goondiwindi,2024-09,6
+Gympie,2024-09,117
+Hinchinbrook,2024-09,7
+Ipswich,2024-09,1681
+Isaac,2024-09,16
+Livingstone,2024-09,92
+Lockyer Valley,2024-09,130
+Logan,2024-09,2204
+Mackay,2024-09,220
+Maranoa,2024-09,13
+Mareeba,2024-09,46
+Moreton Bay,2024-09,3248
+Mount Isa,2024-09,7
+Murweh,2024-09,1
+Noosa,2024-09,566
+North Burnett,2024-09,7
+Redland,2024-09,1193
+Rockhampton,2024-09,231
+Scenic Rim,2024-09,228
+Somerset,2024-09,68
+South Burnett,2024-09,52
+Southern Downs,2024-09,63
+Sunshine Coast,2024-09,2690
+Tablelands,2024-09,61
+Toowoomba,2024-09,607
+Townsville,2024-09,787
+Western Downs,2024-09,36
+Whitsunday,2024-09,54
+Balonne,2024-10,1
+Banana,2024-10,7
+Brisbane,2024-10,21076
+Bundaberg,2024-10,214
+Burdekin,2024-10,16
+Cairns,2024-10,681
+Cassowary Coast,2024-10,46
+Central Highlands,2024-10,33
+Charters Towers,2024-10,10
+Cook,2024-10,1
+Douglas,2024-10,43
+Etheridge,2024-10,1
+Flinders,2024-10,1
+Fraser Coast,2024-10,290
+Gladstone,2024-10,108
+Gold Coast,2024-10,6912
+Goondiwindi,2024-10,6
+Gympie,2024-10,122
+Hinchinbrook,2024-10,8
+Ipswich,2024-10,1732
+Isaac,2024-10,16
+Livingstone,2024-10,98
+Lockyer Valley,2024-10,135
+Logan,2024-10,2310
+Mackay,2024-10,230
+Maranoa,2024-10,16
+Mareeba,2024-10,47
+Moreton Bay,2024-10,3399
+Mount Isa,2024-10,7
+Murweh,2024-10,1
+Noosa,2024-10,591
+North Burnett,2024-10,7
+Redland,2024-10,1237
+Rockhampton,2024-10,243
+Scenic Rim,2024-10,238
+Somerset,2024-10,72
+South Burnett,2024-10,54
+Southern Downs,2024-10,70
+Sunshine Coast,2024-10,2805
+Tablelands,2024-10,64
+Toowoomba,2024-10,632
+Townsville,2024-10,821
+Western Downs,2024-10,41
+Whitsunday,2024-10,57
+Balonne,2024-11,1
+Banana,2024-11,7
+Barcoo,2024-11,1
+Brisbane,2024-11,21710
+Bundaberg,2024-11,216
+Burdekin,2024-11,16
+Cairns,2024-11,702
+Cassowary Coast,2024-11,47
+Central Highlands,2024-11,35
+Charters Towers,2024-11,10
+Cook,2024-11,1
+Douglas,2024-11,45
+Etheridge,2024-11,1
+Flinders,2024-11,1
+Fraser Coast,2024-11,301
+Gladstone,2024-11,110
+Gold Coast,2024-11,7129
+Goondiwindi,2024-11,8
+Gympie,2024-11,125
+Hinchinbrook,2024-11,8
+Ipswich,2024-11,1797
+Isaac,2024-11,16
+Livingstone,2024-11,100
+Lockyer Valley,2024-11,137
+Logan,2024-11,2383
+Mackay,2024-11,236
+Maranoa,2024-11,21
+Mareeba,2024-11,51
+Moreton Bay,2024-11,3509
+Mount Isa,2024-11,7
+Murweh,2024-11,1
+Noosa,2024-11,600
+North Burnett,2024-11,7
+Redland,2024-11,1294
+Rockhampton,2024-11,247
+Scenic Rim,2024-11,249
+Somerset,2024-11,75
+South Burnett,2024-11,54
+Southern Downs,2024-11,73
+Sunshine Coast,2024-11,2897
+Tablelands,2024-11,67
+Toowoomba,2024-11,657
+Townsville,2024-11,867
+Western Downs,2024-11,41
+Whitsunday,2024-11,60
+Balonne,2024-12,1
+Banana,2024-12,7
+Barcoo,2024-12,1
+Brisbane,2024-12,22491
+Bundaberg,2024-12,225
+Burdekin,2024-12,16
+Cairns,2024-12,730
+Cassowary Coast,2024-12,50
+Central Highlands,2024-12,37
+Charters Towers,2024-12,10
+Cook,2024-12,1
+Douglas,2024-12,45
+Etheridge,2024-12,1
+Flinders,2024-12,1
+Fraser Coast,2024-12,306
+Gladstone,2024-12,117
+Gold Coast,2024-12,7368
+Goondiwindi,2024-12,8
+Gympie,2024-12,124
+Hinchinbrook,2024-12,8
+Ipswich,2024-12,1857
+Isaac,2024-12,16
+Livingstone,2024-12,105
+Lockyer Valley,2024-12,143
+Logan,2024-12,2474
+Mackay,2024-12,248
+Maranoa,2024-12,26
+Mareeba,2024-12,51
+Moreton Bay,2024-12,3645
+Mount Isa,2024-12,7
+Murweh,2024-12,1
+Noosa,2024-12,621
+North Burnett,2024-12,8
+Redland,2024-12,1347
+Rockhampton,2024-12,253
+Scenic Rim,2024-12,254
+Somerset,2024-12,78
+South Burnett,2024-12,54
+Southern Downs,2024-12,77
+Sunshine Coast,2024-12,2995
+Tablelands,2024-12,68
+Toowoomba,2024-12,676
+Townsville,2024-12,910
+Western Downs,2024-12,41
+Whitsunday,2024-12,63
+Balonne,2025-01,2
+Banana,2025-01,7
+Barcoo,2025-01,1
+Brisbane,2025-01,22930
+Bundaberg,2025-01,231
+Burdekin,2025-01,20
+Cairns,2025-01,749
+Cassowary Coast,2025-01,50
+Central Highlands,2025-01,37
+Charters Towers,2025-01,11
+Cook,2025-01,1
+Douglas,2025-01,48
+Etheridge,2025-01,1
+Flinders,2025-01,1
+Fraser Coast,2025-01,316
+Gladstone,2025-01,119
+Gold Coast,2025-01,7506
+Goondiwindi,2025-01,8
+Gympie,2025-01,127
+Hinchinbrook,2025-01,8
+Ipswich,2025-01,1895
+Isaac,2025-01,16
+Livingstone,2025-01,108
+Lockyer Valley,2025-01,144
+Logan,2025-01,2538
+Mackay,2025-01,255
+Maranoa,2025-01,29
+Mareeba,2025-01,51
+Moreton Bay,2025-01,3753
+Mount Isa,2025-01,7
+Murweh,2025-01,1
+Noosa,2025-01,638
+North Burnett,2025-01,8
+Redland,2025-01,1377
+Rockhampton,2025-01,255
+Scenic Rim,2025-01,255
+Somerset,2025-01,80
+South Burnett,2025-01,56
+Southern Downs,2025-01,82
+Sunshine Coast,2025-01,3064
+Tablelands,2025-01,71
+Toowoomba,2025-01,693
+Townsville,2025-01,931
+Western Downs,2025-01,41
+Whitsunday,2025-01,64
+Balonne,2025-02,2
+Banana,2025-02,7
+Barcoo,2025-02,1
+Brisbane,2025-02,23491
+Bundaberg,2025-02,235
+Burdekin,2025-02,22
+Cairns,2025-02,765
+Cassowary Coast,2025-02,51
+Central Highlands,2025-02,37
+Charters Towers,2025-02,11
+Cook,2025-02,1
+Douglas,2025-02,50
+Etheridge,2025-02,1
+Flinders,2025-02,1
+Fraser Coast,2025-02,325
+Gladstone,2025-02,122
+Gold Coast,2025-02,7703
+Goondiwindi,2025-02,8
+Gympie,2025-02,128
+Hinchinbrook,2025-02,8
+Ipswich,2025-02,1963
+Isaac,2025-02,16
+Livingstone,2025-02,110
+Lockyer Valley,2025-02,149
+Logan,2025-02,2604
+Mackay,2025-02,261
+Maranoa,2025-02,32
+Mareeba,2025-02,53
+Moreton Bay,2025-02,3851
+Mount Isa,2025-02,7
+Murweh,2025-02,1
+Noosa,2025-02,655
+North Burnett,2025-02,8
+Redland,2025-02,1412
+Rockhampton,2025-02,260
+Scenic Rim,2025-02,262
+Somerset,2025-02,81
+South Burnett,2025-02,58
+Southern Downs,2025-02,84
+Sunshine Coast,2025-02,3133
+Tablelands,2025-02,76
+Toowoomba,2025-02,706
+Townsville,2025-02,947
+Western Downs,2025-02,41
+Whitsunday,2025-02,66
+Balonne,2025-03,2
+Banana,2025-03,7
+Barcoo,2025-03,1
+Brisbane,2025-03,24216
+Bundaberg,2025-03,239
+Burdekin,2025-03,22
+Cairns,2025-03,796
+Cassowary Coast,2025-03,55
+Central Highlands,2025-03,37
+Charters Towers,2025-03,11
+Cook,2025-03,1
+Douglas,2025-03,50
+Etheridge,2025-03,1
+Flinders,2025-03,1
+Fraser Coast,2025-03,340
+Gladstone,2025-03,127
+Gold Coast,2025-03,7919
+Goondiwindi,2025-03,9
+Gympie,2025-03,136
+Hinchinbrook,2025-03,8
+Ipswich,2025-03,2048
+Isaac,2025-03,16
+Livingstone,2025-03,115
+Lockyer Valley,2025-03,154
+Logan,2025-03,2692
+Mackay,2025-03,271
+Maranoa,2025-03,35
+Mareeba,2025-03,53
+Moreton Bay,2025-03,3988
+Mount Isa,2025-03,7
+Noosa,2025-03,674
+North Burnett,2025-03,9
+Redland,2025-03,1459
+Rockhampton,2025-03,269
+Scenic Rim,2025-03,264
+Somerset,2025-03,83
+South Burnett,2025-03,59
+Southern Downs,2025-03,85
+Sunshine Coast,2025-03,3239
+Tablelands,2025-03,80
+Toowoomba,2025-03,720
+Townsville,2025-03,978
+Western Downs,2025-03,43
+Whitsunday,2025-03,70
+Balonne,2025-04,2
+Banana,2025-04,7
+Barcoo,2025-04,1
+Brisbane,2025-04,24840
+Bundaberg,2025-04,246
+Burdekin,2025-04,23
+Cairns,2025-04,824
+Cassowary Coast,2025-04,57
+Central Highlands,2025-04,37
+Charters Towers,2025-04,12
+Cook,2025-04,1
+Douglas,2025-04,50
+Etheridge,2025-04,1
+Flinders,2025-04,1
+Fraser Coast,2025-04,347
+Gladstone,2025-04,129
+Gold Coast,2025-04,8093
+Goondiwindi,2025-04,9
+Gympie,2025-04,139
+Hinchinbrook,2025-04,9
+Ipswich,2025-04,2112
+Isaac,2025-04,17
+Livingstone,2025-04,117
+Lockyer Valley,2025-04,157
+Logan,2025-04,2786
+Longreach,2025-04,1
+Mackay,2025-04,284
+Maranoa,2025-04,35
+Mareeba,2025-04,54
+Moreton Bay,2025-04,4097
+Mount Isa,2025-04,7
+Noosa,2025-04,692
+North Burnett,2025-04,9
+Redland,2025-04,1506
+Rockhampton,2025-04,273
+Scenic Rim,2025-04,273
+Somerset,2025-04,85
+South Burnett,2025-04,62
+Southern Downs,2025-04,87
+Sunshine Coast,2025-04,3312
+Tablelands,2025-04,82
+Toowoomba,2025-04,746
+Townsville,2025-04,1015
+Western Downs,2025-04,44
+Whitsunday,2025-04,71
+Balonne,2025-05,2
+Banana,2025-05,8
+Barcoo,2025-05,1
+Brisbane,2025-05,25863
+Bundaberg,2025-05,264
+Burdekin,2025-05,23
+Cairns,2025-05,862
+Cassowary Coast,2025-05,62
+Central Highlands,2025-05,39
+Charters Towers,2025-05,12
+Cook,2025-05,1
+Douglas,2025-05,51
+Etheridge,2025-05,1
+Flinders,2025-05,2
+Fraser Coast,2025-05,366
+Gladstone,2025-05,133
+Gold Coast,2025-05,8428
+Goondiwindi,2025-05,8
+Gympie,2025-05,140
+Hinchinbrook,2025-05,9
+Ipswich,2025-05,2193
+Isaac,2025-05,18
+Livingstone,2025-05,119
+Lockyer Valley,2025-05,164
+Logan,2025-05,2922
+Longreach,2025-05,1
+Mackay,2025-05,304
+Maranoa,2025-05,36
+Mareeba,2025-05,56
+Moreton Bay,2025-05,4303
+Mount Isa,2025-05,8
+Noosa,2025-05,719
+North Burnett,2025-05,9
+Redland,2025-05,1567
+Rockhampton,2025-05,284
+Scenic Rim,2025-05,276
+Somerset,2025-05,90
+South Burnett,2025-05,64
+Southern Downs,2025-05,88
+Sunshine Coast,2025-05,3467
+Tablelands,2025-05,82
+Toowoomba,2025-05,777
+Townsville,2025-05,1077
+Western Downs,2025-05,44
+Whitsunday,2025-05,72
+Balonne,2025-06,2
+Banana,2025-06,9
+Barcoo,2025-06,1
+Brisbane,2025-06,27075
+Bundaberg,2025-06,276
+Burdekin,2025-06,23
+Cairns,2025-06,905
+Cassowary Coast,2025-06,64
+Central Highlands,2025-06,41
+Charters Towers,2025-06,14
+Cook,2025-06,1
+Douglas,2025-06,51
+Etheridge,2025-06,1
+Flinders,2025-06,2
+Fraser Coast,2025-06,390
+Gladstone,2025-06,137
+Gold Coast,2025-06,8815
+Goondiwindi,2025-06,8
+Gympie,2025-06,146
+Hinchinbrook,2025-06,10
+Ipswich,2025-06,2296
+Isaac,2025-06,18
+Livingstone,2025-06,126
+Lockyer Valley,2025-06,174
+Logan,2025-06,3069
+Longreach,2025-06,2
+Mackay,2025-06,318
+Maranoa,2025-06,37
+Mareeba,2025-06,58
+Moreton Bay,2025-06,4578
+Mount Isa,2025-06,10
+Noosa,2025-06,746
+North Burnett,2025-06,9
+Pormpuraaw,2025-06,1
+Redland,2025-06,1645
+Rockhampton,2025-06,298
+Scenic Rim,2025-06,292
+Somerset,2025-06,92
+South Burnett,2025-06,66
+Southern Downs,2025-06,93
+Sunshine Coast,2025-06,3626
+Tablelands,2025-06,85
+Toowoomba,2025-06,808
+Townsville,2025-06,1127
+Western Downs,2025-06,45
+Whitsunday,2025-06,73
+Balonne,2025-07,2
+Banana,2025-07,9
+Barcoo,2025-07,1
+Brisbane,2025-07,27822
+Bundaberg,2025-07,284
+Burdekin,2025-07,23
+Cairns,2025-07,949
+Cassowary Coast,2025-07,65
+Central Highlands,2025-07,41
+Charters Towers,2025-07,14
+Cook,2025-07,1
+Douglas,2025-07,52
+Etheridge,2025-07,1
+Flinders,2025-07,2
+Fraser Coast,2025-07,404
+Gladstone,2025-07,144
+Gold Coast,2025-07,9053
+Goondiwindi,2025-07,8
+Gympie,2025-07,152
+Hinchinbrook,2025-07,11
+Ipswich,2025-07,2371
+Isaac,2025-07,18
+Livingstone,2025-07,132
+Lockyer Valley,2025-07,179
+Logan,2025-07,3182
+Longreach,2025-07,2
+Mackay,2025-07,327
+Maranoa,2025-07,37
+Mareeba,2025-07,59
+Moreton Bay,2025-07,4732
+Mount Isa,2025-07,10
+Noosa,2025-07,769
+North Burnett,2025-07,9
+Pormpuraaw,2025-07,1
+Redland,2025-07,1697
+Rockhampton,2025-07,309
+Scenic Rim,2025-07,300
+Somerset,2025-07,95
+South Burnett,2025-07,68
+Southern Downs,2025-07,93
+Sunshine Coast,2025-07,3732
+Tablelands,2025-07,87
+Toowoomba,2025-07,833
+Townsville,2025-07,1177
+Weipa,2025-07,1
+Western Downs,2025-07,46
+Whitsunday,2025-07,77
+Balonne,2025-08,2
+Banana,2025-08,10
+Barcoo,2025-08,1
+Brisbane,2025-08,28641
+Bundaberg,2025-08,295
+Burdekin,2025-08,24
+Cairns,2025-08,978
+Cassowary Coast,2025-08,64
+Central Highlands,2025-08,41
+Charters Towers,2025-08,14
+Cook,2025-08,1
+Douglas,2025-08,53
+Etheridge,2025-08,1
+Flinders,2025-08,2
+Fraser Coast,2025-08,417
+Gladstone,2025-08,152
+Gold Coast,2025-08,9323
+Goondiwindi,2025-08,8
+Gympie,2025-08,160
+Hinchinbrook,2025-08,11
+Ipswich,2025-08,2449
+Isaac,2025-08,18
+Livingstone,2025-08,134
+Lockyer Valley,2025-08,182
+Logan,2025-08,3301
+Longreach,2025-08,2
+Mackay,2025-08,339
+Maranoa,2025-08,37
+Mareeba,2025-08,63
+Moreton Bay,2025-08,4902
+Mount Isa,2025-08,10
+Noosa,2025-08,789
+North Burnett,2025-08,9
+Pormpuraaw,2025-08,1
+Redland,2025-08,1764
+Rockhampton,2025-08,315
+Scenic Rim,2025-08,300
+Somerset,2025-08,100
+South Burnett,2025-08,69
+Southern Downs,2025-08,97
+Sunshine Coast,2025-08,3858
+Tablelands,2025-08,89
+Toowoomba,2025-08,877
+Townsville,2025-08,1216
+Weipa,2025-08,1
+Western Downs,2025-08,47
+Whitsunday,2025-08,79
+Balonne,2025-09,2
+Banana,2025-09,12
+Barcoo,2025-09,1
+Brisbane,2025-09,29556
+Bundaberg,2025-09,314
+Burdekin,2025-09,24
+Cairns,2025-09,1016
+Cassowary Coast,2025-09,65
+Central Highlands,2025-09,43
+Charters Towers,2025-09,15
+Cook,2025-09,1
+Douglas,2025-09,54
+Etheridge,2025-09,1
+Flinders,2025-09,2
+Fraser Coast,2025-09,449
+Gladstone,2025-09,159
+Gold Coast,2025-09,9634
+Goondiwindi,2025-09,8
+Gympie,2025-09,164
+Hinchinbrook,2025-09,12
+Ipswich,2025-09,2542
+Isaac,2025-09,20
+Livingstone,2025-09,139
+Lockyer Valley,2025-09,189
+Logan,2025-09,3428
+Longreach,2025-09,2
+Mackay,2025-09,353
+Maranoa,2025-09,38
+Mareeba,2025-09,66
+Moreton Bay,2025-09,5120
+Mount Isa,2025-09,10
+Noosa,2025-09,807
+North Burnett,2025-09,10
+Pormpuraaw,2025-09,1
+Redland,2025-09,1840
+Rockhampton,2025-09,325
+Scenic Rim,2025-09,306
+Somerset,2025-09,100
+South Burnett,2025-09,71
+Southern Downs,2025-09,100
+Sunshine Coast,2025-09,4029
+Tablelands,2025-09,94
+Toowoomba,2025-09,909
+Townsville,2025-09,1268
+Weipa,2025-09,1
+Western Downs,2025-09,52
+Whitsunday,2025-09,84
+Balonne,2025-10,2
+Banana,2025-10,12
+Barcoo,2025-10,1
+Brisbane,2025-10,30225
+Bundaberg,2025-10,326
+Burdekin,2025-10,26
+Cairns,2025-10,1052
+Cassowary Coast,2025-10,68
+Central Highlands,2025-10,44
+Charters Towers,2025-10,15
+Cook,2025-10,2
+Douglas,2025-10,54
+Etheridge,2025-10,1
+Flinders,2025-10,2
+Fraser Coast,2025-10,458
+Gladstone,2025-10,166
+Gold Coast,2025-10,9877
+Goondiwindi,2025-10,8
+Gympie,2025-10,166
+Hinchinbrook,2025-10,13
+Ipswich,2025-10,2615
+Isaac,2025-10,21
+Livingstone,2025-10,142
+Lockyer Valley,2025-10,197
+Logan,2025-10,3518
+Longreach,2025-10,2
+Mackay,2025-10,362
+Maranoa,2025-10,37
+Mareeba,2025-10,70
+Moreton Bay,2025-10,5274
+Mount Isa,2025-10,11
+Noosa,2025-10,829
+North Burnett,2025-10,11
+Pormpuraaw,2025-10,1
+Redland,2025-10,1889
+Rockhampton,2025-10,338
+Scenic Rim,2025-10,309
+Somerset,2025-10,102
+South Burnett,2025-10,71
+Southern Downs,2025-10,102
+Sunshine Coast,2025-10,4160
+Tablelands,2025-10,98
+Toowoomba,2025-10,940
+Townsville,2025-10,1295
+Weipa,2025-10,1
+Western Downs,2025-10,54
+Whitsunday,2025-10,85
+Balonne,2025-11,2
+Banana,2025-11,12
+Barcoo,2025-11,1
+Brisbane,2025-11,30885
+Bundaberg,2025-11,329
+Burdekin,2025-11,26
+Cairns,2025-11,1105
+Cassowary Coast,2025-11,71
+Central Highlands,2025-11,44
+Charters Towers,2025-11,15
+Cook,2025-11,2
+Douglas,2025-11,55
+Etheridge,2025-11,1
+Flinders,2025-11,2
+Fraser Coast,2025-11,471
+Gladstone,2025-11,176
+Gold Coast,2025-11,10171
+Goondiwindi,2025-11,7
+Gympie,2025-11,168
+Hinchinbrook,2025-11,13
+Ipswich,2025-11,2692
+Isaac,2025-11,22
+Livingstone,2025-11,150
+Lockyer Valley,2025-11,202
+Logan,2025-11,3629
+Longreach,2025-11,2
+Mackay,2025-11,375
+Maranoa,2025-11,35
+Mareeba,2025-11,73
+Moreton Bay,2025-11,5420
+Mount Isa,2025-11,13
+Noosa,2025-11,836
+North Burnett,2025-11,12
+Pormpuraaw,2025-11,1
+Redland,2025-11,1951
+Rockhampton,2025-11,343
+Scenic Rim,2025-11,316
+Somerset,2025-11,108
+South Burnett,2025-11,71
+Southern Downs,2025-11,104
+Sunshine Coast,2025-11,4290
+Tablelands,2025-11,100
+Toowoomba,2025-11,962
+Torres,2025-11,1
+Townsville,2025-11,1335
+Weipa,2025-11,1
+Western Downs,2025-11,53
+Whitsunday,2025-11,88
+Balonne,2025-12,2
+Banana,2025-12,12
+Barcoo,2025-12,1
+Brisbane,2025-12,31824
+Bundaberg,2025-12,341
+Burdekin,2025-12,26
+Cairns,2025-12,1157
+Cassowary Coast,2025-12,73
+Central Highlands,2025-12,46
+Charters Towers,2025-12,15
+Cook,2025-12,2
+Doomadgee,2025-12,1
+Douglas,2025-12,55
+Etheridge,2025-12,1
+Flinders,2025-12,2
+Fraser Coast,2025-12,480
+Gladstone,2025-12,185
+Gold Coast,2025-12,10434
+Goondiwindi,2025-12,8
+Gympie,2025-12,176
+Hinchinbrook,2025-12,14
+Ipswich,2025-12,2806
+Isaac,2025-12,23
+Livingstone,2025-12,152
+Lockyer Valley,2025-12,210
+Logan,2025-12,3783
+Longreach,2025-12,2
+Mackay,2025-12,393
+Maranoa,2025-12,35
+Mareeba,2025-12,74
+Moreton Bay,2025-12,5545
+Mount Isa,2025-12,13
+Noosa,2025-12,861
+North Burnett,2025-12,12
+Pormpuraaw,2025-12,1
+Redland,2025-12,2008
+Rockhampton,2025-12,349
+Scenic Rim,2025-12,324
+Somerset,2025-12,110
+South Burnett,2025-12,71
+Southern Downs,2025-12,105
+Sunshine Coast,2025-12,4414
+Tablelands,2025-12,104
+Toowoomba,2025-12,989
+Torres,2025-12,2
+Townsville,2025-12,1382
+Weipa,2025-12,2
+Western Downs,2025-12,60
+Whitsunday,2025-12,94
+Winton,2025-12,1
+Balonne,2026-01,2
+Banana,2026-01,13
+Barcoo,2026-01,1
+Brisbane,2026-01,32451
+Bundaberg,2026-01,346
+Burdekin,2026-01,27
+Cairns,2026-01,1195
+Cassowary Coast,2026-01,74
+Central Highlands,2026-01,46
+Charters Towers,2026-01,20
+Cook,2026-01,2
+Doomadgee,2026-01,1
+Douglas,2026-01,56
+Etheridge,2026-01,1
+Flinders,2026-01,2
+Fraser Coast,2026-01,490
+Gladstone,2026-01,193
+Gold Coast,2026-01,10651
+Goondiwindi,2026-01,9
+Gympie,2026-01,177
+Hinchinbrook,2026-01,14
+Ipswich,2026-01,2884
+Isaac,2026-01,23
+Livingstone,2026-01,158
+Lockyer Valley,2026-01,218
+Logan,2026-01,3868
+Longreach,2026-01,2
+Mackay,2026-01,399
+Maranoa,2026-01,36
+Mareeba,2026-01,75
+Moreton Bay,2026-01,5724
+Mount Isa,2026-01,13
+Noosa,2026-01,879
+North Burnett,2026-01,12
+Pormpuraaw,2026-01,1
+Redland,2026-01,2069
+Rockhampton,2026-01,356
+Scenic Rim,2026-01,331
+Somerset,2026-01,113
+South Burnett,2026-01,72
+Southern Downs,2026-01,111
+Sunshine Coast,2026-01,4529
+Tablelands,2026-01,105
+Toowoomba,2026-01,1019
+Torres,2026-01,2
+Townsville,2026-01,1427
+Weipa,2026-01,3
+Western Downs,2026-01,65
+Whitsunday,2026-01,97
+Winton,2026-01,1
+Balonne,2026-02,2
+Banana,2026-02,13
+Barcoo,2026-02,1
+Brisbane,2026-02,33544
+Bundaberg,2026-02,367
+Burdekin,2026-02,27
+Cairns,2026-02,1242
+Cassowary Coast,2026-02,76
+Central Highlands,2026-02,48
+Charters Towers,2026-02,20
+Cloncurry,2026-02,1
+Cook,2026-02,2
+Doomadgee,2026-02,1
+Douglas,2026-02,58
+Etheridge,2026-02,1
+Flinders,2026-02,2
+Fraser Coast,2026-02,510
+Gladstone,2026-02,206
+Gold Coast,2026-02,11045
+Goondiwindi,2026-02,9
+Gympie,2026-02,186
+Hinchinbrook,2026-02,16
+Ipswich,2026-02,2983
+Isaac,2026-02,23
+Livingstone,2026-02,162
+Lockyer Valley,2026-02,223
+Logan,2026-02,3998
+Longreach,2026-02,2
+Mackay,2026-02,410
+Maranoa,2026-02,37
+Mareeba,2026-02,76
+McKinlay,2026-02,1
+Moreton Bay,2026-02,5945
+Mount Isa,2026-02,13
+Noosa,2026-02,900
+North Burnett,2026-02,12
+Pormpuraaw,2026-02,1
+Redland,2026-02,2200
+Rockhampton,2026-02,374
+Scenic Rim,2026-02,341
+Somerset,2026-02,121
+South Burnett,2026-02,76
+Southern Downs,2026-02,114
+Sunshine Coast,2026-02,4686
+Tablelands,2026-02,110
+Toowoomba,2026-02,1050
+Torres,2026-02,3
+Townsville,2026-02,1478
+Weipa,2026-02,3
+Western Downs,2026-02,67
+Whitsunday,2026-02,99
+Winton,2026-02,1
+Balonne,2026-03,3
+Banana,2026-03,16
+Barcaldine,2026-03,1
+Barcoo,2026-03,1
+Brisbane,2026-03,34864
+Bundaberg,2026-03,394
+Burdekin,2026-03,28
+Burke,2026-03,1
+Cairns,2026-03,1310
+Cassowary Coast,2026-03,80
+Central Highlands,2026-03,49
+Charters Towers,2026-03,21
+Cloncurry,2026-03,1
+Cook,2026-03,2
+Doomadgee,2026-03,1
+Douglas,2026-03,61
+Etheridge,2026-03,1
+Flinders,2026-03,2
+Fraser Coast,2026-03,549
+Gladstone,2026-03,220
+Gold Coast,2026-03,11515
+Goondiwindi,2026-03,9
+Gympie,2026-03,204
+Hinchinbrook,2026-03,19
+Ipswich,2026-03,3163
+Isaac,2026-03,27
+Livingstone,2026-03,180
+Lockyer Valley,2026-03,249
+Logan,2026-03,4234
+Longreach,2026-03,2
+Mackay,2026-03,435
+Maranoa,2026-03,37
+Mareeba,2026-03,84
+McKinlay,2026-03,1
+Moreton Bay,2026-03,6312
+Mount Isa,2026-03,15
+Noosa,2026-03,958
+North Burnett,2026-03,12
+Pormpuraaw,2026-03,1
+Redland,2026-03,2277
+Rockhampton,2026-03,389
+Scenic Rim,2026-03,369
+Somerset,2026-03,134
+South Burnett,2026-03,80
+Southern Downs,2026-03,122
+Sunshine Coast,2026-03,4953
+Tablelands,2026-03,120
+Toowoomba,2026-03,1117
+Torres,2026-03,4
+Townsville,2026-03,1552
+Weipa,2026-03,3
+Western Downs,2026-03,71
+Whitsunday,2026-03,105
+Winton,2026-03,1
+Balonne,2026-04,3
+Banana,2026-04,17
+Barcaldine,2026-04,1
+Barcoo,2026-04,1
+Brisbane,2026-04,36103
+Bundaberg,2026-04,415
+Burdekin,2026-04,32
+Burke,2026-04,1
+Cairns,2026-04,1393
+Cassowary Coast,2026-04,85
+Central Highlands,2026-04,52
+Charters Towers,2026-04,22
+Cloncurry,2026-04,1
+Cook,2026-04,2
+Doomadgee,2026-04,1
+Douglas,2026-04,65
+Etheridge,2026-04,1
+Flinders,2026-04,2
+Fraser Coast,2026-04,590
+Gladstone,2026-04,242
+Gold Coast,2026-04,11961
+Goondiwindi,2026-04,9
+Gympie,2026-04,230
+Hinchinbrook,2026-04,21
+Ipswich,2026-04,3336
+Isaac,2026-04,31
+Livingstone,2026-04,194
+Lockyer Valley,2026-04,264
+Logan,2026-04,4480
+Longreach,2026-04,3
+Mackay,2026-04,465
+Maranoa,2026-04,37
+Mareeba,2026-04,91
+McKinlay,2026-04,1
+Moreton Bay,2026-04,6659
+Mount Isa,2026-04,18
+Murweh,2026-04,1
+Noosa,2026-04,999
+North Burnett,2026-04,12
+Pormpuraaw,2026-04,1
+Redland,2026-04,2403
+Rockhampton,2026-04,402
+Scenic Rim,2026-04,405
+Somerset,2026-04,154
+South Burnett,2026-04,86
+Southern Downs,2026-04,135
+Sunshine Coast,2026-04,5247
+Tablelands,2026-04,129
+Toowoomba,2026-04,1195
+Torres,2026-04,4
+Townsville,2026-04,1639
+Weipa,2026-04,3
+Western Downs,2026-04,78
+Whitsunday,2026-04,111
+Winton,2026-04,1
+Balonne,2026-05,3
+Banana,2026-05,19
+Barcaldine,2026-05,1
+Barcoo,2026-05,1
+Brisbane,2026-05,37689
+Bundaberg,2026-05,460
+Burdekin,2026-05,34
+Burke,2026-05,1
+Cairns,2026-05,1474
+Cassowary Coast,2026-05,96
+Central Highlands,2026-05,56
+Charters Towers,2026-05,23
+Cherbourg,2026-05,1
+Cloncurry,2026-05,1
+Cook,2026-05,2
+Doomadgee,2026-05,1
+Douglas,2026-05,70
+Etheridge,2026-05,1
+Flinders,2026-05,2
+Fraser Coast,2026-05,664
+Gladstone,2026-05,273
+Gold Coast,2026-05,12650
+Goondiwindi,2026-05,10
+Gympie,2026-05,248
+Hinchinbrook,2026-05,23
+Ipswich,2026-05,3552
+Isaac,2026-05,32
+Livingstone,2026-05,213
+Lockyer Valley,2026-05,288
+Logan,2026-05,4815
+Longreach,2026-05,3
+Mackay,2026-05,494
+Maranoa,2026-05,37
+Mareeba,2026-05,99
+McKinlay,2026-05,1
+Moreton Bay,2026-05,7061
+Mount Isa,2026-05,18
+Murweh,2026-05,1
+Noosa,2026-05,1062
+North Burnett,2026-05,13
+Pormpuraaw,2026-05,1
+Redland,2026-05,2570
+Rockhampton,2026-05,428
+Scenic Rim,2026-05,426
+Somerset,2026-05,171
+South Burnett,2026-05,97
+Southern Downs,2026-05,145
+Sunshine Coast,2026-05,5573
+Tablelands,2026-05,134
+Toowoomba,2026-05,1272
+Torres,2026-05,4
+Townsville,2026-05,1732
+Weipa,2026-05,3
+Western Downs,2026-05,85
+Whitsunday,2026-05,115
+Winton,2026-05,2
+Balonne,2026-06,3
+Banana,2026-06,22
+Barcaldine,2026-06,1
+Barcoo,2026-06,1
+Brisbane,2026-06,40148
+Bundaberg,2026-06,510
+Burdekin,2026-06,34
+Burke,2026-06,1
+Cairns,2026-06,1597
+Cassowary Coast,2026-06,102
+Central Highlands,2026-06,58
+Charters Towers,2026-06,25
+Cherbourg,2026-06,1
+Cloncurry,2026-06,2
+Cook,2026-06,2
+Doomadgee,2026-06,2
+Douglas,2026-06,74
+Etheridge,2026-06,2
+Flinders,2026-06,3
+Fraser Coast,2026-06,734
+Gladstone,2026-06,303
+Gold Coast,2026-06,13568
+Goondiwindi,2026-06,13
+Gympie,2026-06,278
+Hinchinbrook,2026-06,23
+Ipswich,2026-06,3863
+Isaac,2026-06,33
+Livingstone,2026-06,238
+Lockyer Valley,2026-06,323
+Logan,2026-06,5217
+Longreach,2026-06,3
+Mackay,2026-06,561
+Maranoa,2026-06,38
+Mareeba,2026-06,107
+McKinlay,2026-06,1
+Moreton Bay,2026-06,7777
+Mount Isa,2026-06,23
+Murweh,2026-06,1
+Noosa,2026-06,1133
+North Burnett,2026-06,15
+Pormpuraaw,2026-06,1
+Redland,2026-06,2769
+Rockhampton,2026-06,462
+Scenic Rim,2026-06,471
+Somerset,2026-06,186
+South Burnett,2026-06,103
+Southern Downs,2026-06,167
+Sunshine Coast,2026-06,6064
+Tablelands,2026-06,146
+Toowoomba,2026-06,1407
+Torres,2026-06,4
+Townsville,2026-06,1884
+Weipa,2026-06,3
+Western Downs,2026-06,92
+Whitsunday,2026-06,128
+Winton,2026-06,2
+Balonne,2026-07,4
+Banana,2026-07,22
+Barcaldine,2026-07,1
+Barcoo,2026-07,1
+Brisbane,2026-07,42112
+Bundaberg,2026-07,543
+Burdekin,2026-07,34
+Burke,2026-07,1
+Cairns,2026-07,1699
+Cassowary Coast,2026-07,108
+Central Highlands,2026-07,60
+Charters Towers,2026-07,29
+Cherbourg,2026-07,1
+Cloncurry,2026-07,2
+Cook,2026-07,2
+Doomadgee,2026-07,2
+Douglas,2026-07,80
+Etheridge,2026-07,2
+Flinders,2026-07,3
+Fraser Coast,2026-07,784
+Gladstone,2026-07,321
+Gold Coast,2026-07,14256
+Goondiwindi,2026-07,14
+Gympie,2026-07,301
+Hinchinbrook,2026-07,24
+Ipswich,2026-07,4099
+Isaac,2026-07,37
+Livingstone,2026-07,256
+Lockyer Valley,2026-07,341
+Logan,2026-07,5507
+Longreach,2026-07,3
+Mackay,2026-07,592
+Maranoa,2026-07,39
+Mareeba,2026-07,115
+McKinlay,2026-07,1
+Moreton Bay,2026-07,8199
+Mount Isa,2026-07,24
+Murweh,2026-07,1
+Noosa,2026-07,1193
+North Burnett,2026-07,16
+Pormpuraaw,2026-07,1
+Redland,2026-07,2912
+Rockhampton,2026-07,500
+Scenic Rim,2026-07,497
+Somerset,2026-07,200
+South Burnett,2026-07,110
+Southern Downs,2026-07,176
+Sunshine Coast,2026-07,6433
+Tablelands,2026-07,152
+Toowoomba,2026-07,1488
+Torres,2026-07,4
+Townsville,2026-07,1995
+Weipa,2026-07,3
+Western Downs,2026-07,92
+Whitsunday,2026-07,131
+Winton,2026-07,2
+Balonne,2026-08,4
+Banana,2026-08,25
+Barcaldine,2026-08,1
+Barcoo,2026-08,1
+Brisbane,2026-08,44300
+Bundaberg,2026-08,581
+Burdekin,2026-08,38
+Burke,2026-08,1
+Cairns,2026-08,1786
+Cassowary Coast,2026-08,116
+Central Highlands,2026-08,66
+Charters Towers,2026-08,31
+Cherbourg,2026-08,1
+Cloncurry,2026-08,2
+Cook,2026-08,2
+Doomadgee,2026-08,2
+Douglas,2026-08,83
+Etheridge,2026-08,2
+Flinders,2026-08,3
+Fraser Coast,2026-08,841
+Gladstone,2026-08,350
+Gold Coast,2026-08,14989
+Goondiwindi,2026-08,15
+Gympie,2026-08,309
+Hinchinbrook,2026-08,28
+Ipswich,2026-08,4352
+Isaac,2026-08,40
+Livingstone,2026-08,281
+Lockyer Valley,2026-08,369
+Logan,2026-08,5846
+Longreach,2026-08,3
+Mackay,2026-08,641
+Maranoa,2026-08,33
+Mareeba,2026-08,125
+McKinlay,2026-08,1
+Moreton Bay,2026-08,8709
+Mount Isa,2026-08,25
+Murweh,2026-08,1
+Noosa,2026-08,1255
+North Burnett,2026-08,17
+Paroo,2026-08,1
+Pormpuraaw,2026-08,1
+Redland,2026-08,3112
+Rockhampton,2026-08,537
+Scenic Rim,2026-08,529
+Somerset,2026-08,212
+South Burnett,2026-08,120
+Southern Downs,2026-08,188
+Sunshine Coast,2026-08,6769
+Tablelands,2026-08,162
+Toowoomba,2026-08,1562
+Torres,2026-08,5
+Townsville,2026-08,2118
+Weipa,2026-08,3
+Western Downs,2026-08,95
+Whitsunday,2026-08,137
+Winton,2026-08,3

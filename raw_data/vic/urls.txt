@@ -1,0 +1,13 @@
+https://opendata.transport.vic.gov.au/dataset/54e52c3b-6016-4166-a241-c253e26b8f62/resource/dcfa1362-db0d-48ba-8eab-55ad17efe14a/download/whole_fleet_vehicle_registration_snapshot_by_postcode_q4_2024.csv
+https://opendata.transport.vic.gov.au/dataset/54e52c3b-6016-4166-a241-c253e26b8f62/resource/44ccae2a-f98f-46a6-bc4f-f0a4edf0bcbc/download/whole_fleet_vehicle_registration_snapshot_by_postcode_q3_2024.csv
+https://opendata.transport.vic.gov.au/dataset/54e52c3b-6016-4166-a241-c253e26b8f62/resource/41304dc8-3899-469a-a548-22b3e68eb7db/download/whole_fleet_vehicle_registration_snapshot_by_postcode_q2_2024.csv
+https://opendata.transport.vic.gov.au/dataset/54e52c3b-6016-4166-a241-c253e26b8f62/resource/77270429-f6fe-4406-be94-7ea134504f8c/download/whole_fleet_vehicle_registration_snapshot_by_postcode_q1_2024.csv
+https://opendata.transport.vic.gov.au/dataset/54e52c3b-6016-4166-a241-c253e26b8f62/resource/c8f8b574-c322-4513-a195-59fc5d95a4dc/download/whole_fleet_vehicle_registration_snapshot_by_postcode_q4_2023.csv
+https://opendata.transport.vic.gov.au/dataset/54e52c3b-6016-4166-a241-c253e26b8f62/resource/356fbd55-cbb4-44fd-86c6-65473b3d19ec/download/whole_fleet_vehicle_registration_snapshot_by_postcode_q3_2023.csv
+https://opendata.transport.vic.gov.au/dataset/54e52c3b-6016-4166-a241-c253e26b8f62/resource/64031cbd-5d0f-4045-98ca-ac186791c3ab/download/whole_fleet_vehicle_registration_snapshot_by_postcode_q2_2023.csv
+https://opendata.transport.vic.gov.au/dataset/54e52c3b-6016-4166-a241-c253e26b8f62/resource/02e4e432-17ee-4c06-9700-12ba9396976e/download/whole_fleet_vehicle_registration_snapshot_by_postcode_q1_2025.csv
+https://opendata.transport.vic.gov.au/dataset/54e52c3b-6016-4166-a241-c253e26b8f62/resource/f3b630bf-03dc-48c4-9bb9-d6aa35695104/download/whole_fleet_vehicle_registration_snapshot_by_postcode_q2_2025.csv
+https://opendata.transport.vic.gov.au/dataset/54e52c3b-6016-4166-a241-c253e26b8f62/resource/e926891d-a567-4afd-a339-3f5d6e89a50c/download/whole_fleet_vehicle_registration_snapshot_by_postcode_q3_2025.csv
+https://opendata.transport.vic.gov.au/dataset/54e52c3b-6016-4166-a241-c253e26b8f62/resource/c9b6c9f7-5318-4a3c-b11c-f942f6626fce/download/whole_fleet_vehicle_registration_snapshot_by_postcode_q4_2025.csv
+https://opendata.transport.vic.gov.au/dataset/54e52c3b-6016-4166-a241-c253e26b8f62/resource/1272c696-e5de-47f8-9bf3-2cb432f23fd4/download/whole_fleet_vehicle_registration_snapshot_by_postcode_q1_2026.csv
+https://opendata.transport.vic.gov.au/dataset/54e52c3b-6016-4166-a241-c253e26b8f62/resource/c58f677e-9d64-4c01-838b-7ad758938c84/download/whole_fleet_vehicle_registration_snapshot_by_postcode_q2_2026.csv

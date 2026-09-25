@@ -1,0 +1,5 @@
+https://opendata.transport.nsw.gov.au/data/dataset/2342b8e4-d4fc-4549-82de-b36380ea46f2/resource/7b921fc0-1d59-4452-9ac0-2998fee02abf/download/tfnsw_vehicle_registration_transactions_2026.zip
+https://opendata.transport.nsw.gov.au/data/dataset/2342b8e4-d4fc-4549-82de-b36380ea46f2/resource/2b41df60-d92a-444f-bf90-e2aab3bb10cb/download/tfnsw_vehicle_registration_transactions_2025.zip
+https://opendata.transport.nsw.gov.au/data/dataset/2342b8e4-d4fc-4549-82de-b36380ea46f2/resource/3dcf251f-150b-4e43-aa66-696221fbde97/download/tfnsw_vehicle_registration_transactions_2024.zip
+https://opendata.transport.nsw.gov.au/data/dataset/2342b8e4-d4fc-4549-82de-b36380ea46f2/resource/94f104c4-6937-4aaa-aab5-7a8d14d71ef9/download/tfnsw_vehicle_registration_transactions_2023.zip
+https://opendata.transport.nsw.gov.au/data/dataset/2342b8e4-d4fc-4549-82de-b36380ea46f2/resource/3a6b0a1c-2b47-4d22-b608-6c9be2a5b35d/download/tfnsw_vehicle_registration_transactions_2022.zip

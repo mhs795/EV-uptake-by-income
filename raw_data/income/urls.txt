@@ -1,0 +1,3 @@
+https://www.abs.gov.au/statistics/labour/earnings-and-working-conditions/personal-income-australia/2022-23/Table%201%20-%20Total%20income%2C%20earners%20and%20summary%20statistics%20by%20geography%2C%202018-19%20to%202022-23.xlsx
+https://data.gov.au/data/dataset/faea4485-f407-457d-97f8-3f0822ccd654/resource/4db4ef74-bd3e-47d0-a56e-29659f812c8a/download/ts24individual08medianaveragetaxableincomestatepostcode.xlsx
+https://data.gov.au/data/dataset/faea4485-f407-457d-97f8-3f0822ccd654/resource/9d8577b7-a096-4758-9b3b-0649f3b83de7/download/ts24individual06taxablestatusstatesa4postcode.xlsx

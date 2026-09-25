@@ -1,0 +1,28 @@
+dataset,adjustment,detail,affected
+ABS LGA income,Dropped unincorporated areas,No council area to match registrations to,1 areas
+ABS LGA income,Earner-weighted income groups,LGAs ranked by median total income 2022-23 and cut into 5 groups each holding ~1/5 of the state's earners (within state),206 LGAs
+ATO postcode income,Kept VIC postcodes only,State = VIC and postcode 3000-3999 (drops PO-box-only codes outside the range); ATO omits postcodes with too few individuals,594 postcodes
+ATO postcode income,Earner-weighted income groups,Postcodes ranked by median taxable income 2023–24 and cut into 5 groups weighted by individuals,594 postcodes
+Fuel prices,Crisis onset detected from prices,First month from 2025-01 where TGP_petrol_national is >= 25% above its trailing 12-month mean,onset 2026-03
+NSW new registrations,Kept new-vehicle registrations only,Transaction type 'Establish registration of new vehicle'; transfers and second-hand re-registrations dropped,"1,278,780 of 6,712,343 rows kept"
+NSW new registrations,Private customers only,"Customer type in ['Private']; Business, Dealer (demonstrators) and Government dropped","319,244 rows dropped"
+NSW new registrations,Dropped rows with no usable fuel type,"Fuel type in ['Not Applicable', 'Missing/Unknown', 'Other/Unmapped'] (trailers/caravans and unmapped rows). A block of 'Other/Unmapped' rows (manufacturer also unmapped) appears in 2022-08, 2023-02, 2023-03, 2023-04, 2023-05, 2023-06, 2023-12, 2024-02, 2024-03, 2024-04, 2024-05; assumed spread across fuels like mapped rows","95,345 rows dropped"
+NSW new registrations,Harmonised fuel labels,"TfNSW changed labels twice. BEV = ['EV', 'BATTERY ELECTRIC', 'ELECTRICITY']; PHEV = ['PHEV', 'PLUG-IN HYBRID ELECTRIC']; everything else = other",
+NSW new registrations,LGA names mapped to ABS,"Aliases {'Nambucca Valley': 'Nambucca', 'Western Plains Regional': 'Dubbo Regional', 'Gundagai': 'Cootamundra-Gundagai Regional'}","2,800 rows relabelled"
+NSW new registrations,Dropped rows with no matchable LGA,"Labels: ['Missing/Unknown', 'Unincorp. Other Territories', 'Unincorporated NSW']","7,616 rows dropped"
+NSW new registrations,Suppressed counts imputed,Counts of 5 or fewer are published as '<=5'; each such cell is valued at an estimated mean (see Suppression sheet; editable on Inputs),"856,250 of 856,575 rows (100.0%) suppressed"
+QLD registrations,Dropped exact duplicate records,Identical on every field read,"9 of 4,676,943 rows"
+QLD registrations,LGA names mapped to ABS,"Stripped council-type suffix, e.g. 'Brisbane (C)' -> 'Brisbane'",all rows
+QLD registrations,Fuel groups,BEV = ['Electric']. 'Petrol And Electric' mixes HEV and PHEV so it stays in 'other',
+QLD registrations,Kept 'Registration New' only,Transfers dropped,"1,987,304 of 4,676,934 rows kept"
+QLD registrations,Private customers only,Customer type ['Individual']; Organisation dropped,"498,975 rows dropped"
+QLD registrations,Dropped re-registrations of older vehicles,'Registration New' also covers used vehicles coming back on the register; kept only year of manufacture >= registration year - 1,"901,918 rows dropped"
+QLD registrations,Dropped incomplete latest month,Extract ends 04 Sep 2026; months after 2026-08 are partial,"1,446 rows"
+Both states,Analysis window,"New-registration analysis starts 2023-01 (NSW data begin Jul 2022, QLD Jan 2022)",
+QLD fleet (proxy),Built a BEV stock proxy from transactions,QLD publishes no current fleet-by-fuel data by region. Each BEV appearing in any new or transfer record since 2022-01 is placed at the LGA of its latest record up to each month. Misses pre-2022 BEVs never transferred; keeps BEVs later written off or moved interstate,"102,355 distinct BEVs"
+NSW fleet,Light vehicles only,"Vehicle types ['Passenger Car', 'Off-road Passenger Vehicle', 'Forward-control Passenger Vehicle', 'Light Goods Vehicle']; trailers, motorcycles, plant, buses and medium/heavy trucks excluded; motive power ['Not Applicable', 'Missing/Unknown', 'Other/Unmapped'] excluded",
+NSW fleet,Quarter-end snapshots,"Months [3, 6, 9, 12] plus the latest; 51 snapshot files read",17 snapshot months
+NSW fleet,Suppressed counts imputed,BEV and other-fuel cells valued by calibration (see Suppression sheet),
+VIC fleet,Vehicle class and fuel filter,"Class ['2'] (motor vehicles; motorcycles excluded); blank fuel code excluded. BEV = code 'E'; code 'M' = hybrids (HEV+PHEV, not separable)",
+VIC fleet,Recent-model proxy for new take-up,"VIC's monthly new-registration file has no location, so 'recent-model' vehicles (year of manufacture >= snapshot year - 1) in each quarterly snapshot stand in for recent new-vehicle take-up",
+VIC fleet,Dropped postcodes with no ATO income,Postcodes absent from ATO Table 8 (too few taxpayers) or outside the VIC range,"14,967 postcode-quarters; 52,165 vehicles in latest quarter"

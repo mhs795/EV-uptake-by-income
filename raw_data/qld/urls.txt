@@ -1,0 +1,10 @@
+2026_1 https://www.data.qld.gov.au/dataset/f70d8de3-c284-41af-887e-be885381dd46/resource/f91b225c-f5ac-4a17-9d54-2142ae3fd229/download/data_01c6e00d-0206-f6ec-0000-7e910e736186_0196_0_1.csv
+2026_2 https://www.data.qld.gov.au/dataset/f70d8de3-c284-41af-887e-be885381dd46/resource/929c91ce-b341-4733-b8f7-e1dbb85de6d7/download/data_01c6e00d-0206-f6ec-0000-7e910e736186_0196_0_0.csv
+2025_1 https://www.data.qld.gov.au/dataset/f70d8de3-c284-41af-887e-be885381dd46/resource/27ffbbdb-92d8-414b-805d-658bb8882d06/download/data_01c6e00d-0206-f6ec-0000-7e910e736186_0196_0_0.csv
+2025_2 https://www.data.qld.gov.au/dataset/f70d8de3-c284-41af-887e-be885381dd46/resource/30b78613-243d-46ef-8855-3bac0ac8214c/download/data_01c6e00d-0206-f6ec-0000-7e910e736186_0196_0_1.csv
+2024_1 https://www.data.qld.gov.au/dataset/f70d8de3-c284-41af-887e-be885381dd46/resource/3087c6bb-2651-4bda-b840-2fcd4c46129a/download/data_01c6e00d-0206-f6ec-0000-7e910e736186_0196_4_0.csv
+2024_2 https://www.data.qld.gov.au/dataset/f70d8de3-c284-41af-887e-be885381dd46/resource/40ceea28-4d6b-49f9-8a71-2a1aa610b403/download/data_01c6e00d-0206-f6ec-0000-7e910e736186_0196_4_1.csv
+2023_1 https://www.data.qld.gov.au/dataset/f70d8de3-c284-41af-887e-be885381dd46/resource/f3a0e405-da8a-4848-9187-859b0fa56a9b/download/data_01c6e00d-0206-f6ec-0000-7e910e736186_0196_4_0.csv
+2023_2 https://www.data.qld.gov.au/dataset/f70d8de3-c284-41af-887e-be885381dd46/resource/7695e788-443c-42f4-bbda-8eddc1dedb49/download/data_01c6e00d-0206-f6ec-0000-7e910e736186_0196_4_1.csv
+2022_1 https://www.data.qld.gov.au/dataset/f70d8de3-c284-41af-887e-be885381dd46/resource/b2d00070-e972-4a87-b8ec-5de0e974f74e/download/data_01c6e00d-0206-f6ec-0000-7e910e736186_0196_6_0.csv
+2022_2 https://www.data.qld.gov.au/dataset/f70d8de3-c284-41af-887e-be885381dd46/resource/da7c2705-c212-4108-98a3-d8e547ec64c7/download/data_01c6e00d-0206-f6ec-0000-7e910e736186_0196_6_1.csv
