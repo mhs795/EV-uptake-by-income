@@ -43,6 +43,7 @@ pct <- function(x) na_or(x, function(v) sprintf("%.1f%%", 100 * v))
 pp <- function(x) na_or(x, function(v) sprintf("%+.1f pp", v))
 mult <- function(x) na_or(x, function(v) sprintf("%.2f×", v))
 num1 <- function(x) na_or(x, function(v) sprintf("%.1f", v))
+num2 <- function(x) na_or(x, function(v) sprintf("%.2f", v))
 int <- function(x) na_or(x, function(v) formatC(round(v), format = "d", big.mark = ","))
 usd <- function(x) na_or(x, function(v) paste0("$", formatC(round(v), format = "d", big.mark = ",")))
 mon <- function(ym) format(as.Date(paste0(ym, "-01")), "%b %y")
@@ -177,6 +178,11 @@ table.md td.neg { color: #C62828; } table.md td.pos { color: #1565C0; }
 .toolbar .tb-metric .selectize-control { min-width: 380px; }
 .toolbar .selectize-control.single .selectize-input { padding-right: 32px !important; }   /* room for the dropdown arrow */
 .toolbar .tb-state .selectize-control { min-width: 150px; }
+details.grp-state summary { cursor: pointer; font-weight: 600; font-size: 13px; padding: 8px 0; border-bottom: 1px solid var(--md-divider); }
+details.grp-state[open] summary { color: var(--md-primary); }
+.card-select { margin-bottom: 8px; } .card-select .selectize-input { font-size: 13px; border-radius: 8px; border-color: var(--md-divider); min-height: 34px; padding-right: 32px !important; }
+.section-head { font-size: 15px; font-weight: 700; margin: 10px 0 2px; }
+.section-note { color: var(--md-text-med); font-size: 12px; margin: 0 0 10px; }
 .toolbar .tb-hint { font-size: 12px; color: var(--md-text-med); margin-left: auto; align-self: center; max-width: 340px; line-height: 1.4; }
 .seg { display: inline-flex; border: 1px solid var(--md-divider); border-radius: 8px; overflow: hidden; height: 36px; }
 .seg button { border: 0; background: transparent; color: var(--md-text-med); padding: 0 14px; font-size: 13px; font-weight: 600; white-space: nowrap; }
@@ -352,29 +358,39 @@ ui <- page(
       nav_panel("Solar, batteries & chargers",
         value = "energy",
         div(
-          class = "toolbar",
-          state_seg("en_st"),
-          div(class = "tb-metric", selectInput("en_x", "Compare the BEV fleet with", setNames(names(EN_X), vapply(EN_X, `[[`, "", "label")))),
+          class = "toolbar", state_seg("en_st"),
           span(
-            class = "tb-hint", style = "max-width:520px",
-            sprintf("Every council area in Australia, grouped into fifths of each state's earners. Fleet: BITRE, 31 Jan %d. Solar and batteries: CER to %s. Chargers: OpenStreetMap, %s.", D$context$y1, mon(D$context$cer_last), D$context$osm_date)
+            class = "tb-hint", style = "max-width:560px",
+            sprintf("Council areas grouped into fifths of each state's earners. Solar and batteries: Clean Energy Regulator, to %s. Chargers: OpenStreetMap, %s. Postcode data are shared out to council areas by Census dwellings or people.", mon(D$context$cer_last), D$context$osm_date)
           )
         ),
         div(
           class = "grid-even",
-          card(sprintf("BEVs per 1,000 light vehicles by income group — Jan %d", D$context$y1), "Registered fleet at the garaging postcode. Other states publish no monthly new registrations by area, so this is a fleet measure.", plotlyOutput("en_bev", height = 260)),
-          card(sprintf("BEVs added per 1,000 light vehicles, Jan %d–Jan %d", D$context$y0, D$context$y1), "Change in the BEV fleet over the latest year: new BEVs less the few scrapped or moved away.", plotlyOutput("en_add", height = 260)),
-          card("Rooftop solar systems per 100 dwellings", "Every system with certificates since 2001, including upgrades, so a home can count twice. Pooled: group total ÷ group dwellings.", plotlyOutput("en_solar", height = 260)),
-          card(sprintf("Home batteries per 1,000 dwellings, %s–%s", mon(D$context$battery_first), mon(D$context$cer_last)), "Batteries entered the CER scheme on 1 July 2025 (Cheaper Home Batteries); earlier ones are not in the data.", plotlyOutput("en_bat", height = 260)),
-          card("Public charging sites per 10,000 people", "OpenStreetMap sites open to the public. Rural highway fast chargers serve travellers, not residents, so low-income rural areas score high.", plotlyOutput("en_chg", height = 260)),
-          card("BEVs per public charging site", "BEV fleet ÷ public sites in the group. Most BEV owners charge at home, so this is about coverage, not queues.", plotlyOutput("en_per_site", height = 260)),
-          card("Home batteries installed per month, per 1,000 dwellings — Australia by income group", "CER, by installation month. The latest months are incomplete (certificates can be created up to a year later). Shaded: fuel crisis.", plotlyOutput("en_bat_month", height = 260)),
-          card("Rooftop solar installed per month, per 1,000 dwellings — Australia by income group", "Same source and caveat. Shaded: fuel crisis.", plotlyOutput("en_solar_month", height = 260)),
-          card(textOutput("en_sc_title", inline = TRUE), "Each dot is a council area (small areas hidden), sized by population. Hover for the name.", plotlyOutput("en_scatter", height = 320)),
+          card(textOutput("en_solar_title", inline = TRUE), "Every system with certificates since 2001, including upgrades, so a home can count twice. Group total ÷ group dwellings.", plotlyOutput("en_solar", height = 260)),
+          card(textOutput("en_bat_title", inline = TRUE), "Batteries entered the CER scheme on 1 July 2025 (Cheaper Home Batteries); earlier ones are not in the data.", plotlyOutput("en_bat", height = 260)),
+          card(textOutput("en_solar_month_title", inline = TRUE), "By installation month. The latest months are incomplete: certificates can be created up to a year after installation. Shaded: fuel crisis.", plotlyOutput("en_solar_month", height = 260)),
+          card(textOutput("en_bat_month_title", inline = TRUE), "Same source and caveat. Shaded: fuel crisis.", plotlyOutput("en_bat_month", height = 260)),
+          card(textOutput("en_chg_title", inline = TRUE), "OpenStreetMap sites open to the public. Rural highway fast chargers serve travellers, not residents, so low-income rural areas score high.", plotlyOutput("en_chg", height = 260)),
+          card(textOutput("en_fast_title", inline = TRUE), "Sites with a DC charger of at least 50 kW.", plotlyOutput("en_fast", height = 260))
+        ),
+        h2(class = "section-head", "Alongside BEV uptake"),
+        p(class = "note section-note", sprintf("How these line up with the BEV fleet (BITRE, 31 Jan %d) across council areas. BEV take-up itself is on the Income groups, Map and Rankings tabs.", D$context$y1)),
+        div(
+          class = "grid-even",
           div(
-            class = "card2", h2("How each measure moves with the BEV fleet, across council areas"),
-            p(class = "note", "Spearman rank correlation with BEVs per 1,000 light vehicles, across council areas. In brackets: after taking out area income (ranks adjusted for income rank). Blue = more BEVs where there is more of it; red = fewer."),
-            uiOutput("en_corr")
+            class = "card2", h2(textOutput("en_sc_title", inline = TRUE)),
+            p(class = "note", "Each dot is a council area (small areas hidden), sized by population. Hover for the name."),
+            div(class = "card-select", selectInput("en_x", NULL, width = "380px", setNames(names(EN_X), vapply(EN_X, `[[`, "", "label")))),
+            plotlyOutput("en_scatter", height = 320)
+          ),
+          div(
+            class = "stack",
+            div(
+              class = "card2", h2("How each measure moves with the BEV fleet, across council areas"),
+              p(class = "note", "Spearman rank correlation with BEVs per 1,000 light vehicles. In brackets: after taking out area income (ranks adjusted for income rank). Blue = more BEVs where there is more of it; red = fewer."),
+              uiOutput("en_corr")
+            ),
+            card("BEVs per public charging site", "BEV fleet ÷ public sites in the group. Most BEV owners charge at home, so this is about coverage, not queues.", plotlyOutput("en_per_site", height = 240))
           )
         )
       ),
@@ -386,11 +402,9 @@ ui <- page(
         ),
         div(
           class = "grid-even",
-          card(textOutput("grp_title", inline = TRUE), "Weighted totals for each group, not averages of areas. Method below.", plotlyOutput("grp_bars", height = 280)),
-          card(
-            "Fleet: BEVs per 1,000 vehicles by income group",
-            sprintf("Latest snapshot. NSW light vehicles (%s); VIC all vehicles (%s). QLD publishes no regional fleet data.", mon(D$fleet_dates$NSW), qmon(D$fleet_dates$VIC)),
-            plotlyOutput("fleet_bars", height = 280)
+          div(
+            class = "card2", style = "grid-column: 1 / -1;", h2(textOutput("grp_title", inline = TRUE)),
+            p(class = "note", textOutput("grp_note", inline = TRUE)), plotlyOutput("grp_bars", height = 320)
           ),
           div(class = "card2 findings", style = "grid-column: 1 / -1;", h2("How the income groups are built"), uiOutput("grp_method"))
         )
@@ -612,17 +626,17 @@ server <- function(input, output, session) {
   # ---- Overview
   output$kpi_row <- renderUI({
     K <- D$kpi
-    G <- D$groups
     card <- function(l, v, s) div(class = "md-kpi-card", div(class = "md-kpi-label", l), div(class = "md-kpi-value", v), span(class = "md-kpi-sub", s))
-    g5 <- G[state == "NSW" & group == NG, share]
-    g1 <- G[state == "NSW" & group == 1, share]
+    A <- D$context$groups[state == "AUS"]
+    a <- function(q, k) A[group == q][[k]]
     div(
       class = "md-kpi-row",
+      card("BEVs in the fleet, Australia", int(sum(D$aus$bev1)), sprintf("%s per 1,000 light vehicles · BITRE, 31 Jan %d", num1(sum(D$aus$bev1) / sum(D$aus$lv1) * 1000), D$context$y1)),
+      card("Richest vs poorest areas", sprintf("%.1f×", a(NG, "bitre_per1000") / a(1, "bitre_per1000")), sprintf("BEVs per 1,000 light vehicles, Q5 vs Q1 · %s vs %s", num1(a(NG, "bitre_per1000")), num1(a(1, "bitre_per1000")))),
       card(sprintf("New BEVs, %s", RW), int(K$NSW$bev + K$QLD$bev), sprintf("NSW %s · QLD %s", int(K$NSW$bev), int(K$QLD$bev))),
-      card("BEV share of new cars", pct(K$NSW$share), sprintf("NSW · QLD %s", pct(K$QLD$share))),
-      card("Richest vs poorest areas", sprintf("%.1f×", g5 / g1), "NSW BEV share, Q5 vs Q1"),
-      card("BEVs in the fleet", int(K$NSW$fleet + K$VIC$fleet), sprintf("NSW %s · VIC %s", int(K$NSW$fleet), int(K$VIC$fleet))),
-      card("Fuel crisis BEV share", sprintf("%s → %s", pct(K$NSW$share_p), pct(K$NSW$share_c)), sprintf("NSW, %s vs a year earlier", crisis_label))
+      card("BEV share of new cars", sprintf("%s · %s", pct(K$NSW$share), pct(K$QLD$share)), sprintf("NSW · QLD, %s", RW)),
+      card("Fuel crisis BEV share", sprintf("%s → %s", pct(K$NSW$share_p), pct(K$NSW$share_c)), sprintf("NSW, %s vs a year earlier (QLD %s → %s)", crisis_label, pct(K$QLD$share_p), pct(K$QLD$share_c))),
+      card("Home batteries", int(sum(D$aus$battery_n)), sprintf("%s–%s · %s per 1,000 dwellings", mon(D$context$battery_first), mon(D$context$cer_last), num1(sum(D$aus$battery_n) / sum(D$aus$dwellings) * 1000)))
     )
   })
   output$findings <- renderUI({
@@ -665,7 +679,7 @@ server <- function(input, output, session) {
         c(
           "Every state shows the same gradient in the BEV fleet. ",
           sprintf(
-            "Across all %d council areas in Australia, the richest fifth had %s BEVs per 1,000 light vehicles in January %d vs %s in the poorest (%.1f×), and added %s vs %s per 1,000 over the latest year. Only NSW and QLD publish new registrations by area; for the other states this is BITRE's fleet count (Solar, batteries & chargers tab).",
+            "Across all %d council areas in Australia, the richest fifth had %s BEVs per 1,000 light vehicles in January %d vs %s in the poorest (%.1f×), and added %s vs %s per 1,000 over the latest year. Only NSW and QLD publish new registrations by area; for the other states this is BITRE's fleet count (Income groups tab, All states).",
             nrow(D$aus), num1(a(NG, "bitre_per1000")), D$context$y1, num1(a(1, "bitre_per1000")), a(NG, "bitre_per1000") / a(1, "bitre_per1000"),
             num1(a(NG, "bitre_add1000")), num1(a(1, "bitre_add1000"))
           )
@@ -964,12 +978,23 @@ server <- function(input, output, session) {
         p(class = "note", style = "margin-top:6px", if (gv$geo() == "aus") M$lumpy_lga[[st]] else M$lumpy[[st]])
       )
     }
-    tagList(steps, lapply(if (gv$st() == "ALL") D$context$states else gv$st(), tbl))
+    if (gv$st() != "ALL") {
+      return(tagList(steps, tbl(gv$st())))
+    }
+    # all states: one collapsed section per state
+    tagList(steps, h2(style = "margin-top:14px", "Make-up of each state's groups"), lapply(D$context$states, function(s) {
+      tags$details(class = "grp-state", tags$summary(s), tbl(s))
+    }))
   })
-  output$fleet_bars <- renderPlotly(bars(list(
-    list(name = "NSW (per 1,000 light vehicles)", colour = COL$nsw, vals = D$groups[state == "NSW"][order(group), per1000veh]),
-    list(name = "VIC (per 1,000 vehicles)", colour = COL$vic, vals = D$groups[state == "VIC"][order(group), per1000veh])
-  ), ",.0f", num1))
+  output$grp_note <- renderText(paste(
+    "Weighted totals for each group, not averages of areas. Method below.",
+    switch(gv$geo(),
+      aus = sprintf("Council areas; fleet from BITRE (31 Jan %d). Other states publish no new registrations by area.", D$context$y1),
+      lga = sprintf("%s council areas, new registrations %s.", gv$st(), RW),
+      "VIC postcodes, quarterly fleet snapshots."
+    ),
+    if (gv$st() == "ALL") "The ACT is left out of the chart: it is a single area, so one group." else ""
+  ))
 
   # ---- Fuel crisis tab
   output$fuel <- renderPlotly({
@@ -1134,17 +1159,25 @@ server <- function(input, output, session) {
       list(name = if (s == "AUS") "Australia" else s, colour = STATE_COL[[s]], vals = g[[key]])
     }), axis_of(fmt), fmt)
   }
-  output$en_bev <- renderPlotly(en_bars("bitre_per1000", num1))
-  output$en_add <- renderPlotly(en_bars("bitre_add1000", num1))
+  en_where <- reactive(if (en_st() == "ALL") "each state and Australia" else en_st())
+  output$en_solar_title <- renderText(sprintf("Rooftop solar systems per 100 dwellings by income group — %s", en_where()))
+  output$en_bat_title <- renderText(sprintf("Home batteries per 1,000 dwellings by income group, %s–%s — %s", mon(D$context$battery_first), mon(D$context$cer_last), en_where()))
+  output$en_chg_title <- renderText(sprintf("Public charging sites per 10,000 people by income group — %s", en_where()))
+  output$en_fast_title <- renderText(sprintf("Fast (DC) charging sites per 10,000 people by income group — %s", en_where()))
+  en_one <- reactive(if (en_st() == "ALL") "Australia" else en_st())
+  output$en_solar_month_title <- renderText(sprintf("Rooftop solar installed per month, per 1,000 dwellings — %s by income group", en_one()))
+  output$en_bat_month_title <- renderText(sprintf("Home batteries installed per month, per 1,000 dwellings — %s by income group", en_one()))
   output$en_solar <- renderPlotly(en_bars("solar_per100", num1))
   output$en_bat <- renderPlotly(en_bars("bat_per1000", num1))
   output$en_chg <- renderPlotly(en_bars("chg_per10k", num1))
+  output$en_fast <- renderPlotly(en_bars("fast_per10k", num2))
   output$en_per_site <- renderPlotly(en_bars("bev_per_site", num1))
   en_month <- function(key, from) {
-    m <- D$context$month[month >= from]
+    m <- D$context$month[state == (if (en_st() == "ALL") "AUS" else en_st()) & month >= from]
     p <- plot_ly()
     for (g in seq_len(NG)) {
       d <- m[group == g]
+      if (!nrow(d)) next
       p <- p |> add_lines(x = mdate(d$month), y = d[[key]], name = QLAB[g], line = list(color = GROUP_COL[g], width = 2))
     }
     p |>
@@ -1175,7 +1208,7 @@ server <- function(input, output, session) {
   })
   output$en_corr <- renderUI({
     C <- D$context$corr
-    sts <- intersect(c("AUS", D$context$states), C$state)
+    sts <- intersect(c("AUS", if (en_st() == "ALL") D$context$states else en_st()), C$state)
     cell <- function(r, ri) {
       tags$td(class = paste("num", if (!is.na(r) && abs(r) >= 0.2) (if (r > 0) "pos" else "neg")), if (is.na(ri)) sprintf("%+.2f", r) else sprintf("%+.2f (%+.2f)", r, ri))
     }

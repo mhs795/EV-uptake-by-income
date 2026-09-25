@@ -227,10 +227,14 @@ aus_groups <- rbind(
   rbindlist(lapply(AUS_STATES, function(s) aus_group(AUS[state == s])[, state := s])),
   aus_group(AUS)[, state := "AUS"]
 )
-# monthly solar and battery installations per 1,000 dwellings, by income group (Australia)
+# monthly solar and battery installations per 1,000 dwellings, by income group
 sbm <- fread(file.path(OUT, "solar_battery_lga_month.csv"), colClasses = list(character = "lga_code"))
 sbm[AUS, `:=`(group = i.group, dwellings = i.dwellings), on = c(lga_code = "id")]
-aus_month <- sbm[!is.na(group), .(solar_n = sum(solar_n), battery_n = sum(battery_n), dwellings = sum(dwellings)), keyby = .(group, month)]
+# each state's own income groups, and Australia pooled (state "AUS")
+aus_month <- rbind(
+  sbm[!is.na(group), .(solar_n = sum(solar_n), battery_n = sum(battery_n), dwellings = sum(dwellings)), keyby = .(state, group, month)],
+  sbm[!is.na(group), .(state = "AUS", solar_n = sum(solar_n), battery_n = sum(battery_n), dwellings = sum(dwellings)), keyby = .(group, month)]
+)
 aus_month[, `:=`(solar_1000 = solar_n / dwellings * 1000, battery_1000 = battery_n / dwellings * 1000)]
 aus_month_total <- sbm[, .(solar_n = sum(solar_n), battery_n = sum(battery_n)), keyby = month]
 
