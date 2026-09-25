@@ -67,7 +67,7 @@ theme_plot <- function(p, yfmt = NULL, ytitle = NULL, legend = TRUE, xtitle = NU
                  tickformat = yfmt, title = list(text = ytitle, font = list(size = 11, color = COL$med))),
     legend = list(orientation = "h", x = 0, y = -0.18, font = list(size = 11, color = COL$med)), showlegend = legend,
     hoverlabel = list(bgcolor = "#FFFFFF", bordercolor = COL$divider, font = list(family = "Inter", size = 12, color = COL$text))) |>
-    config(displayModeBar = FALSE)
+    config(displayModeBar = FALSE, responsive = TRUE)
 }
 crisis_band <- function(x0, x1) list(type = "rect", xref = "x", yref = "paper", x0 = x0, x1 = x1, y0 = 0, y1 = 1,
                                      fillcolor = COL$band, line = list(width = 0), layer = "below")
@@ -122,11 +122,12 @@ html, body { background: var(--md-bg) !important; color: var(--md-text); font-fa
 .md-kpi-label { font-size: 10px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: var(--md-text-low); margin-bottom: 3px; }
 .md-kpi-value { font-size: 22px; font-weight: 700; line-height: 1.2; }
 .md-kpi-sub { display: block; font-size: 12px; font-weight: 600; color: var(--md-text-low); margin-top: 2px; }
-.card2 { background: var(--md-surface); border: 1px solid var(--md-divider); border-radius: 12px; padding: 16px 18px; min-width: 0; margin-bottom: 14px; }
+.card2 { background: var(--md-surface); border: 1px solid var(--md-divider); border-radius: 12px; padding: 16px 18px; min-width: 0; margin-bottom: 14px; overflow: hidden; }
+.card2 .html-widget { max-width: 100%; }
 .card2 h2 { font-size: 14px; margin: 0 0 2px; font-weight: 600; }
 .card2 .note { color: var(--md-text-med); font-size: 12px; margin: 0 0 10px; }
 .grid-2 { display: grid; grid-template-columns: minmax(0,1.45fr) minmax(0,1fr); gap: 14px; align-items: start; }
-.grid-even { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 14px; align-items: start; }
+.grid-even { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 14px; align-items: stretch; }   /* side-by-side cards share a height */
 .grid-even > .card2, .grid-2 > .card2 { margin-bottom: 0; }
 .stack { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .stack > .card2 { margin-bottom: 0; }
@@ -156,6 +157,16 @@ table.md tbody tr.on { background: var(--md-primary-dim); box-shadow: inset 3px 
 
 # Segmented buttons: <div class='seg' data-input='x'><button data-value='a'>…  → input$x
 seg_js <- "
+// Keep every Plotly chart the width of its card: re-fit when a card changes size, and when a tab
+// opens (charts drawn while their tab was hidden start at Plotly's default width)
+function fitPlots(root) {
+  $(root || document).find('.js-plotly-plot').each(function() { if (this.offsetParent !== null && window.Plotly) Plotly.Plots.resize(this); });
+}
+if (window.ResizeObserver) {
+  const ro = new ResizeObserver(entries => entries.forEach(e => fitPlots(e.target)));
+  $(document).on('shiny:value', function(ev) { setTimeout(() => $('.card2').each(function() { ro.observe(this); }), 0); });
+}
+$(document).on('shown.bs.tab', function() { setTimeout(() => { fitPlots(); window.dispatchEvent(new Event('resize')); }, 50); });
 $(document).on('click', '.seg button', function() {
   $(this).addClass('on').siblings().removeClass('on');
   Shiny.setInputValue($(this).parent().data('input'), $(this).data('value'));
