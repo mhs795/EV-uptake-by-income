@@ -1,4 +1,4 @@
-# EV × Income — Shiny dashboard.
+# EV × Income — Shiny dashboard. Tabs are self-contained (own controls, own selection).
 # Design and palette follow the GARY gas-market-model dashboard (shared flat
 # light Material theme). Data come from processed/dashboard.rds, built by
 # R/dashboard_data.R. Launch with:  Rscript run_dashboard.R
@@ -73,175 +73,242 @@ crisis_band <- function(x0, x1) list(type = "rect", xref = "x", yref = "paper", 
 mdate <- function(ym) as.Date(paste0(ym, "-01"))
 qdate <- function(q) as.Date(sprintf("%s-%02d-01", substr(q, 1, 4), as.integer(substr(q, 6, 6)) * 3L))
 
+
 # ---- UI ----------------------------------------------------------------------------
+# Every tab is self-contained: its own controls sit in a toolbar at the top of the tab,
+# and clicking an area (map, scatter or table row) only changes that tab.
 css <- "
 :root { --md-bg:#F5F6F8; --md-surface:#FFFFFF; --md-primary:#1F7AE0; --md-primary-dim:rgba(31,122,224,0.08); --md-hover:rgba(31,122,224,0.05);
   --md-text:#1A1D21; --md-text-med:#6B7280; --md-text-low:#9AA5B1; --md-divider:#E3E6EA; --font:'Inter','Segoe UI',Roboto,system-ui,sans-serif; }
 html, body { background: var(--md-bg) !important; color: var(--md-text); font-family: var(--font) !important; font-size: 14px; -webkit-font-smoothing: antialiased; }
-.app { display: flex; min-height: 100vh; }
-.md-sidebar { width: 280px; flex-shrink: 0; background: var(--md-surface); border-right: 1px solid var(--md-divider); position: sticky; top: 0; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; }
-.md-sidebar-brand { padding: 18px 20px 16px; border-bottom: 1px solid var(--md-divider); display: flex; align-items: center; gap: 12px; }
-.md-sidebar-brand-icon { width: 34px; height: 34px; background: var(--md-primary-dim); border: 1px solid var(--md-divider); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--md-primary); }
-.md-sidebar-brand-text { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; line-height: 1.2; }
-.md-sidebar-brand-sub { font-size: 12px; color: var(--md-text-med); }
-.md-sidebar-body { padding: 16px 20px; flex: 1; }
-.md-section-label { font-size: 11px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: var(--md-text-low); margin: 0 0 10px; }
-.md-divider { border: none; border-top: 1px solid var(--md-divider); margin: 16px 0; opacity: 1; }
-.md-input-hint { font-size: 11px; color: var(--md-text-med); margin: 4px 0 12px; line-height: 1.4; }
-.md-sidebar label.control-label { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; font-weight: 600; color: var(--md-text-med); margin-bottom: 5px; }
-.md-sidebar .form-select, .md-sidebar .selectize-input { font-size: 13px; border-radius: 8px; border-color: var(--md-divider); }
-.seg { display: flex; border: 1px solid var(--md-divider); border-radius: 8px; overflow: hidden; margin-bottom: 14px; }
-.seg button { flex: 1; border: 0; background: transparent; color: var(--md-text-med); padding: 8px 6px; font-size: 13px; font-weight: 600; }
-.seg button:hover { background: var(--md-hover); }
-.seg button.on { background: var(--md-primary-dim); color: var(--md-primary); }
-.md-btn { display: block; width: 100%; padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; border: 1px solid var(--md-divider);
-  background: transparent; color: var(--md-text); text-align: center; margin-bottom: 8px; text-decoration: none; }
+.md-header { background: var(--md-surface); padding: 12px 22px; border-bottom: 1px solid var(--md-divider); display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.md-brand-icon { width: 34px; height: 34px; background: var(--md-primary-dim); border: 1px solid var(--md-divider); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--md-primary); flex-shrink: 0; }
+.md-header-title { font-size: 16px; font-weight: 700; letter-spacing: -.2px; }
+.md-header-sub { font-size: 12px; color: var(--md-text-med); margin-top: 1px; }
+.md-header-right { margin-left: auto; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.md-chip { font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 14px; background: var(--md-primary-dim); color: var(--md-primary); border: 1px solid var(--md-divider); white-space: nowrap; }
+.md-chip.warn { background: rgba(245,124,0,.08); color: #B45309; }
+.md-btn { display: inline-block; padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; border: 1px solid var(--md-divider);
+  background: transparent; color: var(--md-text); text-align: center; text-decoration: none; }
 .md-btn:hover { background: var(--md-hover); color: var(--md-text); }
 .md-btn-filled { background: var(--md-primary); color: #fff; border-color: var(--md-primary); }
-.md-btn-filled:hover { background: var(--md-primary); color: #fff; opacity: .9; }
-.md-sidebar-foot { padding: 12px 20px 18px; font-size: 11px; color: var(--md-text-low); border-top: 1px solid var(--md-divider); line-height: 1.5; }
-.md-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.md-header { background: var(--md-surface); padding: 14px 22px; border-bottom: 1px solid var(--md-divider); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.md-header-title { font-size: 16px; font-weight: 700; letter-spacing: -.2px; }
-.md-header-sub { font-size: 12px; color: var(--md-text-med); margin-top: 2px; }
-.md-chip { font-size: 11px; font-weight: 600; padding: 5px 14px; border-radius: 14px; background: var(--md-primary-dim); color: var(--md-primary); border: 1px solid var(--md-divider); white-space: nowrap; }
-.md-chip.warn { background: rgba(245,124,0,.08); color: #B45309; }
-.md-content { padding: 18px 22px; }
-.md-kpi-row { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
-.md-kpi-card { flex: 1; background: var(--md-surface); border: 1px solid var(--md-divider); border-radius: 10px; padding: 12px 16px; min-width: 160px; }
+.md-btn-filled:hover, .md-btn-filled.show { background: var(--md-primary); color: #fff; opacity: .9; }
+.dropdown-menu { font-size: 13px; border-color: var(--md-divider); border-radius: 10px; padding: 6px; box-shadow: 0 6px 24px rgba(0,0,0,.08); }
+.dropdown-item { border-radius: 6px; padding: 7px 12px; }
+.dropdown-item small { display: block; color: var(--md-text-med); }
+.md-content { padding: 0 22px 22px; }
+.nav-underline { border-bottom: 1px solid var(--md-divider); gap: 0; margin-bottom: 14px; }
+.nav-underline .nav-link { color: var(--md-text-med); font-size: 13px; font-weight: 600; padding: 12px 14px; border-bottom-width: 2px; }
+.nav-underline .nav-link:hover { color: var(--md-primary); }
+.nav-underline .nav-link.active { color: var(--md-primary); border-bottom-color: var(--md-primary); }
+.toolbar { display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap; background: var(--md-surface); border: 1px solid var(--md-divider);
+  border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; }
+.toolbar .form-group { margin-bottom: 0; }
+.toolbar .shiny-input-container { width: auto !important; }
+.toolbar label.control-label, .tb-label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .6px; font-weight: 600; color: var(--md-text-low); margin-bottom: 4px; }
+.toolbar .form-select, .toolbar .selectize-input { font-size: 13px; border-radius: 8px; border-color: var(--md-divider); min-height: 36px; }
+.toolbar .tb-metric .selectize-control { min-width: 380px; }
+.toolbar .tb-hint { font-size: 12px; color: var(--md-text-med); margin-left: auto; align-self: center; max-width: 340px; line-height: 1.4; }
+.seg { display: inline-flex; border: 1px solid var(--md-divider); border-radius: 8px; overflow: hidden; height: 36px; }
+.seg button { border: 0; background: transparent; color: var(--md-text-med); padding: 0 14px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.seg button + button { border-left: 1px solid var(--md-divider); }
+.seg button:hover { background: var(--md-hover); }
+.seg button.on { background: var(--md-primary-dim); color: var(--md-primary); }
+.md-kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 14px; }
+.md-kpi-card { background: var(--md-surface); border: 1px solid var(--md-divider); border-radius: 10px; padding: 12px 16px; }
 .md-kpi-label { font-size: 10px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: var(--md-text-low); margin-bottom: 3px; }
 .md-kpi-value { font-size: 22px; font-weight: 700; line-height: 1.2; }
 .md-kpi-sub { display: block; font-size: 12px; font-weight: 600; color: var(--md-text-low); margin-top: 2px; }
-.nav-underline { border-bottom: 1px solid var(--md-divider); gap: 0; margin-bottom: 16px; }
-.nav-underline .nav-link { color: var(--md-text-med); font-size: 13px; font-weight: 600; padding: 10px 14px; border-bottom-width: 2px; }
-.nav-underline .nav-link:hover { color: var(--md-primary); }
-.nav-underline .nav-link.active { color: var(--md-primary); border-bottom-color: var(--md-primary); }
 .card2 { background: var(--md-surface); border: 1px solid var(--md-divider); border-radius: 12px; padding: 16px 18px; min-width: 0; margin-bottom: 14px; }
 .card2 h2 { font-size: 14px; margin: 0 0 2px; font-weight: 600; }
 .card2 .note { color: var(--md-text-med); font-size: 12px; margin: 0 0 10px; }
-.grid-2 { display: grid; grid-template-columns: minmax(0,1.45fr) minmax(0,1fr); gap: 14px; }
-.grid-even { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 14px; }
+.grid-2 { display: grid; grid-template-columns: minmax(0,1.45fr) minmax(0,1fr); gap: 14px; align-items: start; }
+.grid-even { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 14px; align-items: start; }
+.grid-even > .card2, .grid-2 > .card2 { margin-bottom: 0; }
+.stack { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.stack > .card2 { margin-bottom: 0; }
 .leaflet-container { background: #EEF2F6 !important; border-radius: 8px; font-family: var(--font); }
-.sel-name { font-size: 17px; font-weight: 700; }
+.sel-name { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
 .sel-meta { color: var(--md-text-med); font-size: 12px; }
+.sel-clear { font-size: 12px; font-weight: 600; color: var(--md-primary); cursor: pointer; margin-left: auto; }
 .kpis { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; margin: 10px 0 6px; }
 .kpi { background: #F5F6F8; border: 1px solid var(--md-divider); border-radius: 8px; padding: 8px 10px; }
 .kpi b { display: block; font-size: 17px; font-weight: 700; }
 .kpi span { font-size: 11px; color: var(--md-text-med); }
 table.md { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
 table.md th { text-align: left; color: var(--md-text-low); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; border-bottom: 1px solid var(--md-divider); padding: 6px; }
-table.md td { padding: 6px; border-bottom: 1px solid var(--md-divider); }
+table.md td { padding: 7px 6px; border-bottom: 1px solid var(--md-divider); }
 table.md .num { text-align: right; }
-table.md tbody tr { cursor: pointer; }
-table.md tbody tr:hover { background: var(--md-hover); }
-.findings ul { color: var(--md-text-med); line-height: 1.55; padding-left: 18px; }
+table.md.pick tbody tr { cursor: pointer; }
+table.md.pick tbody tr:hover { background: var(--md-hover); }
+table.md tbody tr.on { background: var(--md-primary-dim); box-shadow: inset 3px 0 0 var(--md-primary); }
+.findings ul { color: var(--md-text-med); line-height: 1.55; padding-left: 18px; margin-bottom: 0; }
+.findings li + li { margin-top: 6px; }
 .findings b { color: var(--md-text); }
+.sources { font-size: 12px; color: var(--md-text-med); line-height: 1.5; }
 .legend-row { display:flex; flex-wrap:wrap; font-size:11px; color: var(--md-text-med); margin-top:8px; }
 .legend-row .sw { width: 70px; } .legend-row .sw i { display:block; height:10px; } .legend-row .sw span { display:block; padding-top:2px; white-space:nowrap; }
-@media (max-width: 1100px) { .app { flex-direction: column; } .md-sidebar { width: 100%; height: auto; position: static; }
-  .grid-2, .grid-even { grid-template-columns: 1fr; } }
+@media (max-width: 1100px) { .grid-2, .grid-even { grid-template-columns: 1fr; } .toolbar .tb-metric .selectize-control { min-width: 0; } .toolbar .tb-hint { margin-left: 0; } }
 "
 
+# Segmented buttons: <div class='seg' data-input='x'><button data-value='a'>…  → input$x
 seg_js <- "
 $(document).on('click', '.seg button', function() {
-  $('.seg button').removeClass('on'); $(this).addClass('on');
-  Shiny.setInputValue('geo', $(this).data('geo'));
+  $(this).addClass('on').siblings().removeClass('on');
+  Shiny.setInputValue($(this).parent().data('input'), $(this).data('value'));
 });
-Shiny.addCustomMessageHandler('pick', function(id) { Shiny.setInputValue('pick', id, {priority: 'event'}); });
 "
+seg <- function(id, choices, label = NULL)
+  div(if (!is.null(label)) span(class = "tb-label", label),
+      div(class = "seg", `data-input` = id, lapply(seq_along(choices), function(i)
+        tags$button(class = if (i == 1) "on", `data-value` = unname(choices[i]), names(choices)[i]))))
+geo_seg <- function(id) seg(id, c("NSW + QLD" = "lga", "VIC" = "vic"), "Geography")
+state_sel <- function(id, geo_id) conditionalPanel(sprintf("input.%s != 'vic'", geo_id),
+                                                   selectInput(id, "State", c("NSW + QLD" = "ALL", "NSW", "QLD"), width = "160px"))
+metric_choices <- function(g, drop = NULL) { m <- METRICS[[g]][setdiff(names(METRICS[[g]]), drop)]; setNames(names(m), vapply(m, `[[`, "", "label")) }
+metric_sel <- function(id, label, drop = NULL) div(class = "tb-metric", selectInput(id, label, metric_choices("lga", drop)))
 
 card <- function(title, note = NULL, ...) div(class = "card2", h2(title), if (!is.null(note)) p(class = "note", note), ...)
+# area detail: name + KPIs + trend line, used on the Map and Rankings tabs
+detail_ui <- function(id) div(class = "card2", uiOutput(paste0(id, "_head")), h2(textOutput(paste0(id, "_line_title"), inline = TRUE), style = "margin-top:10px"),
+                              p(class = "note", textOutput(paste0(id, "_line_note"), inline = TRUE)), plotlyOutput(paste0(id, "_line"), height = 230))
+
+dl_item <- function(id, label, sub) tags$li(downloadLink(id, class = "dropdown-item", label, tags$small(sub)))
 
 ui <- page(
   theme = bs_theme(version = 5, primary = COL$primary, bg = "#F5F6F8", fg = COL$text,
                    base_font = font_collection("Inter", "Segoe UI", "Roboto", "system-ui", "sans-serif")),
   tags$head(tags$link(rel = "stylesheet", href = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"),
             tags$style(HTML(css)), tags$script(HTML(seg_js)), tags$title("EV × Income")),
-  div(class = "app",
-    tags$aside(class = "md-sidebar",
-      div(class = "md-sidebar-brand",
-          div(class = "md-sidebar-brand-icon", HTML('<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg>')),
-          div(div(class = "md-sidebar-brand-text", "EV × Income"), div(class = "md-sidebar-brand-sub", "BEV take-up by area income"))),
-      div(class = "md-sidebar-body",
-          p(class = "md-section-label", "View"),
-          tags$label(class = "control-label", "Geography"),
-          div(class = "seg", tags$button(class = "on", `data-geo` = "lga", "NSW + QLD"), tags$button(`data-geo` = "vic", "VIC")),
-          selectInput("metric", "Map metric", choices = NULL, width = "100%"),
-          conditionalPanel("input.geo != 'vic'", selectInput("st", "State", c("NSW + QLD" = "ALL", "NSW", "QLD"), width = "100%")),
-          actionButton("reset", "Reset view", class = "md-btn"),
-          p(class = "md-input-hint", "NSW and QLD are by council area (LGA); VIC by postcode, named by its suburbs. Click any area, dot or table row."),
-          hr(class = "md-divider"),
-          p(class = "md-section-label", "Download to Excel"),
-          downloadButton("dl_workbook", "Full workbook", class = "md-btn md-btn-filled", icon = NULL),
-          downloadButton("dl_areas", "All areas in this view", class = "md-btn", icon = NULL),
-          downloadButton("dl_top", "Top & bottom 10", class = "md-btn", icon = NULL),
-          downloadButton("dl_groups", "Income-group summary", class = "md-btn", icon = NULL),
-          downloadButton("dl_series", "Monthly series + fuel prices", class = "md-btn", icon = NULL)),
-      div(class = "md-sidebar-foot",
-          "Public data: TfNSW, QLD TMR, VIC DTP registrations; ABS Personal Income 2022-23 (ATO-based); ATO Taxation Statistics 2023-24; ",
-          "NSW FuelCheck, QLD fuel prices, AIP; ABS boundaries. Sources, adjustments and method: see the workbook.")),
-    div(class = "md-main",
-      div(class = "md-header",
-          div(div(class = "md-header-title", "EV uptake by regional income — NSW, QLD, VIC"),
-              div(class = "md-header-sub", "Battery-electric vehicles in state registration data against ATO/ABS median income by area")),
-          div(style = "display:flex;gap:8px;flex-wrap:wrap",
-              span(class = "md-chip", sprintf("Recent window: %s", RW)),
-              span(class = "md-chip warn", sprintf("Fuel crisis: %s", crisis_label)))),
-      div(class = "md-content",
+  div(class = "md-header",
+      div(class = "md-brand-icon", HTML('<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg>')),
+      div(div(class = "md-header-title", "EV uptake by regional income — NSW, QLD, VIC"),
+          div(class = "md-header-sub", "Battery-electric vehicles in state registration data against ATO/ABS median income by area")),
+      div(class = "md-header-right",
+          span(class = "md-chip", sprintf("Recent window: %s", RW)),
+          span(class = "md-chip warn", sprintf("Fuel crisis: %s", crisis_label)),
+          div(class = "dropdown",
+              tags$button(class = "md-btn md-btn-filled dropdown-toggle", type = "button", `data-bs-toggle` = "dropdown", "Download"),
+              tags$ul(class = "dropdown-menu dropdown-menu-end",
+                      dl_item("dl_workbook", "Full workbook", "Every table, chart, source and adjustment"),
+                      dl_item("dl_areas", "All areas", "NSW + QLD councils and VIC postcodes"),
+                      dl_item("dl_top", "Top & bottom 10s", "Every metric, both geographies"),
+                      dl_item("dl_groups", "Income-group summary", "Totals by income group, and how groups are built"),
+                      dl_item("dl_series", "Monthly series + fuel prices", "Per-area trends and state totals"))))),
+  div(class = "md-content",
+    navset_underline(id = "tab",
+      nav_panel("Overview", value = "overview",
         uiOutput("kpi_row"),
-        navset_underline(id = "tab",
-          nav_panel("Map", value = "map", div(class = "grid-2",
+        div(class = "card2 findings", h2("What the data show"), uiOutput("findings")),
+        div(class = "card2 sources", h2("Data"),
+            "Public data: TfNSW, QLD TMR and VIC DTP vehicle registrations; ABS Personal Income 2022-23 (ATO-based); ATO Taxation Statistics 2023-24; ",
+            "NSW FuelCheck, QLD fuel prices, AIP; ABS boundaries. NSW and QLD are by council area (LGA); VIC by postcode, named by its suburbs. ",
+            "Sources, data adjustments and method are in the full workbook (Download, top right).")),
+
+      nav_panel("Map", value = "map",
+        div(class = "toolbar", geo_seg("map_geo"), state_sel("map_st", "map_geo"), metric_sel("map_metric", "Colour areas by"),
+            actionButton("map_reset", "Reset view", class = "md-btn"),
+            span(class = "tb-hint", "Click an area on the map or a dot on the scatter to see its trend.")),
+        div(class = "grid-2",
             div(class = "card2", h2(textOutput("map_title", inline = TRUE)), p(class = "note", textOutput("map_note", inline = TRUE)),
                 leafletOutput("map", height = 600), uiOutput("legend")),
-            div(div(class = "card2", uiOutput("sel_head"), h2(textOutput("line_title", inline = TRUE), style = "margin-top:8px"),
-                    p(class = "note", textOutput("line_note", inline = TRUE)), plotlyOutput("sel_line", height = 230)),
+            div(class = "stack", detail_ui("map_sel"),
                 div(class = "card2", h2(textOutput("sc_title", inline = TRUE)),
                     p(class = "note", "Each dot is an area (small areas hidden). Dashed line: least-squares fit per state."),
                     plotlyOutput("scatter", height = 290))))),
-          nav_panel("Income groups", value = "income", div(class = "grid-even",
-            card(textOutput("grp_title", inline = TRUE), "Income groups each hold about a fifth of the state's earners (Q1 = lowest-income areas). Weighted totals, not averages of areas. Method below.",
-                 plotlyOutput("grp_bars", height = 280)),
-            card("Fleet: BEVs per 1,000 vehicles by income group",
-                 sprintf("Latest snapshot. NSW light vehicles (%s); VIC all vehicles (%s). QLD publishes no regional fleet data.", mon(D$fleet_dates$NSW), qmon(D$fleet_dates$VIC)),
-                 plotlyOutput("fleet_bars", height = 280)),
-            div(class = "card2 findings", style = "grid-column: 1 / -1;", h2("How the income groups are built"),
-                p(class = "note", "Follows the sidebar: NSW and QLD council areas, or VIC postcodes."), uiOutput("grp_method")))),
-          nav_panel("Fuel crisis", value = "crisis", div(class = "grid-even",
-            card("Pump prices and the 2026 fuel crisis", "Monthly average retail price, c/L. Shaded: crisis months (onset detected from terminal gate prices).", plotlyOutput("fuel", height = 260)),
-            card("BEV share of new private registrations — all areas", "Same months as the price chart.", plotlyOutput("share_all", height = 260)),
-            card("NSW — BEV share by income group: crisis vs a year earlier", textOutput("crisis_note_nsw"), plotlyOutput("crisis_nsw", height = 260)),
-            card("QLD — BEV share by income group: crisis vs a year earlier", textOutput("crisis_note_qld"), plotlyOutput("crisis_qld", height = 260)))),
-          nav_panel("Raw numbers", value = "raw", div(class = "grid-even",
-            card("NSW — new private registrations per month", textOutput("raw_note"), plotlyOutput("raw_nsw", height = 260)),
-            card("QLD — new private registrations per month", "BEV vs other fuels (count).", plotlyOutput("raw_qld", height = 260)),
-            card(sprintf("New BEVs registered by income group — %s (count)", RW), "NSW and QLD new private registrations.", plotlyOutput("raw_groups", height = 260)),
-            card("New BEVs by income group — crisis months vs a year earlier (count)", sprintf("%s vs %s–%s.", crisis_label, mon(D$crisis$py_start), mon(D$crisis$py_end)),
-                 plotlyOutput("raw_crisis", height = 260)))),
-          nav_panel("Top 10", value = "top", div(class = "grid-even",
-            div(class = "card2", h2(textOutput("tbl_title", inline = TRUE)),
-                radioButtons("ord", NULL, c("Top 10" = "top", "Bottom 10" = "bottom"), inline = TRUE), uiOutput("tbl"),
-                p(class = "note", style = "margin-top:10px", "Ranks the map metric chosen in the sidebar. Click a row to see it on the map.")),
-            div(class = "card2", h2(textOutput("tbl2_title", inline = TRUE)), p(class = "note", "Raw count, same geography."), uiOutput("tbl2")))),
-          nav_panel("Findings", value = "about", div(class = "card2 findings", h2("What the data show"), uiOutput("findings"))))))))
+
+      nav_panel("Income groups", value = "income",
+        div(class = "toolbar", geo_seg("grp_geo"), metric_sel("grp_metric", "Measure", drop = c("income", "add_c")),
+            span(class = "tb-hint", "Areas are grouped into fifths of each state's earners, from the lowest-income areas (Q1) to the highest (Q5).")),
+        div(class = "grid-even",
+          card(textOutput("grp_title", inline = TRUE), "Weighted totals for each group, not averages of areas. Method below.", plotlyOutput("grp_bars", height = 280)),
+          card("Fleet: BEVs per 1,000 vehicles by income group",
+               sprintf("Latest snapshot. NSW light vehicles (%s); VIC all vehicles (%s). QLD publishes no regional fleet data.", mon(D$fleet_dates$NSW), qmon(D$fleet_dates$VIC)),
+               plotlyOutput("fleet_bars", height = 280)),
+          div(class = "card2 findings", style = "grid-column: 1 / -1;", h2("How the income groups are built"), uiOutput("grp_method")))),
+
+      nav_panel("Fuel crisis", value = "crisis", div(class = "grid-even",
+        card("Pump prices and the 2026 fuel crisis", "Monthly average retail price, c/L. Shaded: crisis months (onset detected from terminal gate prices).", plotlyOutput("fuel", height = 260)),
+        card("BEV share of new private registrations — all areas", "Same months as the price chart.", plotlyOutput("share_all", height = 260)),
+        card("NSW — BEV share by income group: crisis vs a year earlier", textOutput("crisis_note_nsw"), plotlyOutput("crisis_nsw", height = 260)),
+        card("QLD — BEV share by income group: crisis vs a year earlier", textOutput("crisis_note_qld"), plotlyOutput("crisis_qld", height = 260)))),
+
+      nav_panel("Registrations", value = "raw", div(class = "grid-even",
+        card("NSW — new private registrations per month", textOutput("raw_note"), plotlyOutput("raw_nsw", height = 260)),
+        card("QLD — new private registrations per month", "BEV vs other fuels (count).", plotlyOutput("raw_qld", height = 260)),
+        card(sprintf("New BEVs registered by income group — %s (count)", RW), "NSW and QLD new private registrations.", plotlyOutput("raw_groups", height = 260)),
+        card("New BEVs by income group — crisis months vs a year earlier (count)", sprintf("%s vs %s–%s.", crisis_label, mon(D$crisis$py_start), mon(D$crisis$py_end)),
+             plotlyOutput("raw_crisis", height = 260)))),
+
+      nav_panel("Rankings", value = "rank",
+        div(class = "toolbar", geo_seg("rank_geo"), state_sel("rank_st", "rank_geo"), metric_sel("rank_metric", "Rank by"),
+            seg("rank_ord", c("Highest 10" = "top", "Lowest 10" = "bottom"), "Show"),
+            span(class = "tb-hint", "Click a row to see that area's trend alongside.")),
+        div(class = "grid-even",
+            div(class = "card2", h2(textOutput("rank_title", inline = TRUE)), p(class = "note", textOutput("rank_note", inline = TRUE)), uiOutput("rank_tbl")),
+            detail_ui("rank_sel"))))))
 
 # ---- server -------------------------------------------------------------------------
 server <- function(input, output, session) {
-  geo <- reactive(if (is.null(input$geo)) "lga" else input$geo)
-  sel <- reactiveVal(NULL)
-  observe({
-    m <- METRICS[[geo()]]
-    updateSelectInput(session, "metric", choices = setNames(names(m), vapply(m, `[[`, "", "label")),
-                      selected = if (isolate(input$metric) %in% names(m)) isolate(input$metric) else names(m)[1])
-  })
-  metric <- reactive({ m <- METRICS[[geo()]]; k <- if (input$metric %in% names(m)) input$metric else names(m)[1]; c(key = k, m[[k]]) })
-  areas <- reactive({
-    if (geo() == "vic") return(D$vic)
-    if (input$st == "ALL") D$lga else D$lga[state == input$st]
-  })
-  val <- function(a) a[[metric()$key]]
-  eligible <- reactive({ a <- areas(); a[(metric()$key %in% c("income") | elig) & !is.na(val(a))] })
+  # ---- per-tab view: geography, state filter, metric
+  view <- function(prefix, drop = NULL) {
+    geo <- reactive(input[[paste0(prefix, "_geo")]] %||% "lga")
+    st <- reactive(if (geo() == "vic") "VIC" else input[[paste0(prefix, "_st")]] %||% "ALL")
+    mid <- paste0(prefix, "_metric")
+    observeEvent(geo(), {
+      ch <- metric_choices(geo(), drop); cur <- isolate(input[[mid]])
+      updateSelectInput(session, mid, choices = ch, selected = if (isTRUE(cur %in% ch)) cur else ch[[1]])
+    }, ignoreInit = TRUE)
+    metric <- reactive({ m <- METRICS[[geo()]]; k <- input[[mid]]; if (!isTRUE(k %in% setdiff(names(m), drop))) k <- setdiff(names(m), drop)[1]; c(key = k, m[[k]]) })
+    areas <- reactive(if (geo() == "vic") D$vic else if (st() == "ALL") D$lga else D$lga[state == st()])
+    eligible <- reactive({ a <- areas(); k <- metric()$key; a[(k == "income" | elig) & !is.na(a[[k]])] })
+    list(geo = geo, st = st, metric = metric, areas = areas, eligible = eligible)
+  }
+  mv <- view("map"); gv <- view("grp", drop = c("income", "add_c")); rv <- view("rank")
 
-  # ---- KPI row
+  # ---- area detail panel (Map and Rankings tabs each have their own)
+  detail_server <- function(id, v, sel) {
+    selected <- reactive({ s <- sel(); if (is.null(s)) NULL else { a <- v$areas()[id == s]; if (nrow(a)) a[1] else NULL } })
+    output[[paste0(id, "_head")]] <- renderUI({
+      a <- selected()
+      if (is.null(a)) return(tagList(div(class = "sel-name", if (v$geo() == "lga") sprintf("All %s council areas", if (v$st() == "ALL") "NSW and QLD" else v$st()) else "All VIC postcodes"),
+                                     div(class = "sel-meta", "No area selected: showing state averages.")))
+      k <- function(l, x) div(class = "kpi", tags$b(x), span(l))
+      ks <- if (v$geo() == "lga") list(k(sprintf("BEV share, %s", RW), pct(a$share)), k(sprintf("Crisis %s (year earlier)", crisis_label), sprintf("%s (%s)", pct(a$share_c), pct(a$share_p))),
+                                       if (a$state == "NSW") k("BEVs per 1,000 light vehicles", num1(a$per1000veh)) else k("BEVs seen per 1,000 earners", num1(a$per1000pop)))
+            else list(k("BEVs per 1,000 vehicles", num1(a$per1000veh)), k("BEV share, recent-model", pct(a$rshare)), k("Added in crisis qtr (yr earlier)", sprintf("%s (%s)", int(a$add_c), int(a$add_p))))
+      tagList(div(class = "sel-name", if (v$geo() == "vic") sprintf("%s — %s", a$name, a$id) else a$name,
+                  span(class = "sel-clear", onclick = sprintf("Shiny.setInputValue('%s_clear', Math.random())", id), "Clear ×")),
+              div(class = "sel-meta", sprintf("%s · median income %s · income group Q%d of %d%s", a$state, usd(a$income), a$group, NG, if (a$elig) "" else " · small area, treat with care")),
+              div(class = "kpis", ks))
+    })
+    output[[paste0(id, "_line_title")]] <- renderText(if (v$geo() == "lga") "BEV share of new private registrations, monthly" else "BEVs per 1,000 registered vehicles, quarterly")
+    output[[paste0(id, "_line_note")]] <- renderText({ a <- selected(); if (is.null(a)) "State averages. Shaded: fuel crisis." else sprintf("%s vs %s average. Shaded: fuel crisis.", a$name, a$state) })
+    output[[paste0(id, "_line")]] <- renderPlotly({
+      a <- selected(); p <- plot_ly()
+      if (v$geo() == "lga") {
+        x <- mdate(D$months); sm <- D$state_month
+        if (is.null(a)) {
+          for (s in if (v$st() == "ALL") c("NSW", "QLD") else v$st())
+            p <- p |> add_lines(x = x, y = sm[state == s][match(D$months, month), share], name = s, line = list(color = STATE_COL[[s]], width = 2))
+        } else {
+          y <- unlist(D$lga_series[state == a$state & lga_name == a$name, -(1:2)])
+          p <- p |> add_lines(x = x, y = y, name = a$name, line = list(color = STATE_COL[[a$state]], width = 2)) |>
+            add_lines(x = x, y = sm[state == a$state][match(D$months, month), share], name = paste(a$state, "average"), line = list(color = COL$low, width = 2, dash = "dash"))
+        }
+        p |> theme_plot(yfmt = ".0%") |> layout(shapes = list(crisis_band(mdate(D$crisis$start), mdate(D$crisis$end))), hovermode = "x unified")
+      } else {
+        x <- qdate(D$quarters)
+        p <- p |> add_lines(x = x, y = D$vic_q[match(D$quarters, quarter), per1000], name = "VIC average",
+                            line = list(color = if (is.null(a)) COL$vic else COL$low, width = 2, dash = if (is.null(a)) "solid" else "dash"))
+        if (!is.null(a)) p <- p |> add_lines(x = x, y = unlist(D$vic_series[postcode == as.integer(a$id), -1]), name = a$id, line = list(color = COL$vic, width = 2))
+        p |> theme_plot(yfmt = ".0f") |> layout(shapes = list(crisis_band(mdate(D$crisis$start), qdate(D$crisis$vic_quarter))), hovermode = "x unified")
+      }
+    })
+    observeEvent(input[[paste0(id, "_clear")]], sel(NULL))
+  }
+
+  # ---- Overview
   output$kpi_row <- renderUI({
     K <- D$kpi; G <- D$groups
     card <- function(l, v, s) div(class = "md-kpi-card", div(class = "md-kpi-label", l), div(class = "md-kpi-value", v), span(class = "md-kpi-sub", s))
@@ -253,22 +320,39 @@ server <- function(input, output, session) {
         card("BEVs in the fleet", int(K$NSW$fleet + K$VIC$fleet), sprintf("NSW %s · VIC %s", int(K$NSW$fleet), int(K$VIC$fleet))),
         card("Fuel crisis BEV share", sprintf("%s → %s", pct(K$NSW$share_p), pct(K$NSW$share_c)), sprintf("NSW, %s vs a year earlier", crisis_label)))
   })
+  output$findings <- renderUI({
+    G <- D$groups; g <- function(s, q, k) G[state == s & group == q][[k]]
+    items <- list(
+      c("Richer areas buy more BEVs. ", sprintf("In %s, the richest fifth of NSW council areas registered BEVs at %s of new private cars, vs %s in the poorest (%.1f×). In the fleet the gap is wider: %s vs %s BEVs per 1,000 light vehicles.",
+                                               RW, pct(g("NSW", NG, "share")), pct(g("NSW", 1, "share")), g("NSW", NG, "share") / g("NSW", 1, "share"), num1(g("NSW", NG, "per1000veh")), num1(g("NSW", 1, "per1000veh")))),
+      c("VIC postcodes show the same gradient. ", sprintf("%s BEVs per 1,000 vehicles in the top income group vs %s in the bottom.", num1(g("VIC", NG, "per1000veh")), num1(g("VIC", 1, "per1000veh")))),
+      c("QLD is flatter at council level. ", sprintf("Its LGAs are large (Brisbane alone is about a quarter of QLD earners), and lower-income coastal retiree areas such as the Sunshine Coast take up BEVs strongly. Top vs bottom group: %s vs %s.",
+                                                    pct(g("QLD", NG, "share")), pct(g("QLD", 1, "share")))),
+      c("The fuel crisis narrowed the gap in relative terms. ", sprintf("Comparing %s with the same months a year earlier, BEV share rose %s in NSW's lowest-income group vs %s in the highest (QLD: %s vs %s). In percentage points richer areas still gained more (%s vs %s in NSW).",
+                                                                        crisis_label, mult(g("NSW", 1, "mult")), mult(g("NSW", NG, "mult")), mult(g("QLD", 1, "mult")), mult(g("QLD", NG, "mult")),
+                                                                        pp(g("NSW", NG, "chg")), pp(g("NSW", 1, "chg")))),
+      c("Regional coastal areas moved most. ", "On the Map tab, colour areas by the crisis change: the biggest NSW jumps were in lower-income coastal LGAs such as Bellingen, Kiama, Byron, Eurobodalla and Ballina, alongside the wealthy North Shore."),
+      c("Caveat. ", "This compares areas, not people: it shows where BEVs are registered, not who bought them. Novated leases, retirees' wealth and business fleets all blur the link to income."))
+    tags$ul(lapply(items, function(x) tags$li(tags$b(x[1]), x[2])))
+  })
 
-  # ---- map
+  # ---- Map tab
+  map_sel <- reactiveVal(NULL)
+  detail_server("map_sel", mv, map_sel)
   shapes <- reactive({
-    g <- if (geo() == "vic") D$geo_poa else D$geo_lga
-    a <- areas()
+    g <- if (mv$geo() == "vic") D$geo_poa else D$geo_lga
+    a <- mv$areas()
     g <- g[g$id %in% a$id, ]
     cbind(g, a[match(g$id, a$id)])
   })
   bins <- reactive({
-    v <- sort(val(eligible()))
+    v <- sort(mv$eligible()[[mv$metric()$key]])
     if (!length(v)) return(NULL)
     unique(quantile(v, probs = seq(0, 1, length.out = length(SEQ) + 1), names = FALSE, type = 1))
   })
   colour_of <- function(d) {
-    b <- bins(); v <- d[[metric()$key]]
-    ok <- (metric()$key == "income" | d$elig) & !is.na(v)
+    b <- bins(); k <- mv$metric()$key; v <- d[[k]]
+    ok <- (k == "income" | d$elig) & !is.na(v)
     out <- rep(COL$na, length(v))
     if (!is.null(b) && length(b) > 1) out[ok] <- SEQ[pmin(findInterval(v[ok], b, rightmost.closed = TRUE, all.inside = TRUE), length(SEQ))]
     out
@@ -279,8 +363,9 @@ server <- function(input, output, session) {
       fitBounds(112.9, -43.8, 153.8, -10.4) |>
       addControl(html = "Boundaries © ABS (ASGS)", position = "bottomright", className = "leaflet-control-attribution")
   })
+  outputOptions(output, "map", suspendWhenHidden = FALSE)
   observe({
-    d <- shapes(); m <- metric()
+    d <- shapes(); m <- mv$metric()
     lab <- sprintf("<b>%s (%s)</b><br>%s: %s<br>Median income: %s<br>Income group: Q%d", htmlEscape(d$name), d$state, short(m$label),
                    ifelse((m$key == "income" | d$elig) & !is.na(d[[m$key]]), m$fmt(d[[m$key]]), "too few registrations"), usd(d$income), d$group)
     leafletProxy("map") |> clearGroup("areas") |>
@@ -290,75 +375,37 @@ server <- function(input, output, session) {
   })
   fit_view <- function() {
     p <- leafletProxy("map")
-    if (geo() == "vic") p |> fitBounds(144.3, -38.6, 145.6, -37.4)
-    else if (input$st == "ALL") p |> fitBounds(112.9, -43.8, 153.8, -10.4)
+    if (mv$geo() == "vic") p |> fitBounds(144.3, -38.6, 145.6, -37.4)
+    else if (mv$st() == "ALL") p |> fitBounds(112.9, -43.8, 153.8, -10.4)
     else { b <- st_bbox(shapes()); p |> fitBounds(b[["xmin"]], b[["ymin"]], b[["xmax"]], b[["ymax"]]) }
   }
-  observeEvent(list(geo(), input$st), { sel(NULL); fit_view() }, ignoreInit = TRUE)
-  observeEvent(input$reset, { sel(NULL); fit_view() })
-  observeEvent(input$map_shape_click, sel(input$map_shape_click$id))
-  observeEvent(input$pick, { sel(input$pick); nav_select("tab", "map") })
-  observeEvent(event_data("plotly_click", source = "sc"), { e <- event_data("plotly_click", source = "sc"); if (!is.null(e$customdata)) sel(e$customdata) })
-  observeEvent(sel(), {
-    p <- leafletProxy("map") |> clearGroup("sel")
-    if (!is.null(sel())) {
-      g <- shapes(); g <- g[g$id == sel(), ]
-      if (nrow(g)) p |> addPolylines(data = g, group = "sel", color = COL$text, weight = 2.5)
-    }
-  }, ignoreNULL = FALSE)
-  output$map_title <- renderText(metric()$label)
-  output$map_note <- renderText(if (geo() == "lga") "Council areas (LGAs) in NSW and QLD; other states in outline. Colour bins are sevenths of the areas shown. Grey = fewer than the minimum new registrations."
+  # the map is drawn while its tab is hidden, so fit it again the first time the tab opens
+  map_seen <- FALSE
+  observeEvent(input$tab, if (input$tab == "map" && !map_seen) { map_seen <<- TRUE; fit_view() })
+  observeEvent(list(mv$geo(), mv$st()), { map_sel(NULL); fit_view() }, ignoreInit = TRUE)
+  observeEvent(input$map_reset, { map_sel(NULL); fit_view() })
+  observeEvent(input$map_shape_click, map_sel(input$map_shape_click$id))
+  observeEvent(event_data("plotly_click", source = "sc"), { e <- event_data("plotly_click", source = "sc"); if (!is.null(e$customdata)) map_sel(e$customdata) })
+  observe({
+    s <- map_sel(); p <- leafletProxy("map") |> clearGroup("sel")
+    if (!is.null(s)) { g <- shapes(); g <- g[g$id == s, ]; if (nrow(g)) p |> addPolylines(data = g, group = "sel", color = COL$text, weight = 2.5) }
+  })
+  output$map_title <- renderText(mv$metric()$label)
+  output$map_note <- renderText(if (mv$geo() == "lga") "Council areas (LGAs) in NSW and QLD; other states in outline. Colour bins are sevenths of the areas shown. Grey = fewer than the minimum new registrations."
                                 else "Postcodes, named by their ABS suburbs. Opens on Greater Melbourne — zoom out for regional Victoria. Colour bins are sevenths of postcodes.")
   output$legend <- renderUI({
-    b <- bins(); if (is.null(b)) return(NULL); f <- metric()$fmt
+    b <- bins(); if (is.null(b)) return(NULL); f <- mv$metric()$fmt
     div(class = "legend-row", lapply(seq_len(length(b) - 1), function(i)
       div(class = "sw", tags$i(style = sprintf("background:%s", SEQ[i])), span(if (i < length(b) - 1) paste("≤", f(b[i + 1])) else paste(">", f(b[i]))))),
       div(style = "margin-left:12px;display:flex;gap:6px;align-items:center", tags$i(style = sprintf("width:14px;height:10px;background:%s;display:inline-block", COL$na)),
           "Too few registrations / no data"))
   })
-
-  # ---- selection panel
-  selected <- reactive({ a <- areas(); if (is.null(sel())) NULL else a[id == sel()][1] })
-  output$sel_head <- renderUI({
-    a <- selected()
-    if (is.null(a) || is.na(a$id)) return(tagList(div(class = "sel-name", if (geo() == "lga") "All NSW and QLD council areas" else "All VIC postcodes"),
-                                                 div(class = "sel-meta", "Click the map, the scatter or a table row to see one area.")))
-    k <- function(l, v) div(class = "kpi", tags$b(v), span(l))
-    ks <- if (geo() == "lga") list(k(sprintf("BEV share, %s", RW), pct(a$share)), k(sprintf("Crisis %s (year earlier)", crisis_label), sprintf("%s (%s)", pct(a$share_c), pct(a$share_p))),
-                                   if (a$state == "NSW") k("BEVs per 1,000 light vehicles", num1(a$per1000veh)) else k("BEVs seen per 1,000 earners", num1(a$per1000pop)))
-          else list(k("BEVs per 1,000 vehicles", num1(a$per1000veh)), k("BEV share, recent-model", pct(a$rshare)), k("Added in crisis qtr (yr earlier)", sprintf("%s (%s)", int(a$add_c), int(a$add_p))))
-    tagList(div(class = "sel-name", if (geo() == "vic") sprintf("%s — %s", a$name, a$id) else a$name),
-            div(class = "sel-meta", sprintf("%s · median income %s · income group Q%d of %d%s", a$state, usd(a$income), a$group, NG, if (a$elig) "" else " · small area, treat with care")),
-            div(class = "kpis", ks))
-  })
-  output$line_title <- renderText(if (geo() == "lga") "BEV share of new private registrations, monthly" else "BEVs per 1,000 registered vehicles, quarterly")
-  output$line_note <- renderText({ a <- selected(); if (is.null(a) || is.na(a$id)) "State averages. Shaded: fuel crisis." else sprintf("%s vs %s average. Shaded: fuel crisis.", a$name, a$state) })
-  output$sel_line <- renderPlotly({
-    a <- selected(); p <- plot_ly()
-    if (geo() == "lga") {
-      x <- mdate(D$months); sm <- D$state_month
-      if (is.null(a) || is.na(a$id)) {
-        for (s in c("NSW", "QLD")) p <- p |> add_lines(x = x, y = sm[state == s][match(D$months, month), share], name = s, line = list(color = STATE_COL[[s]], width = 2))
-      } else {
-        y <- unlist(D$lga_series[state == a$state & lga_name == a$name, -(1:2)])
-        p <- p |> add_lines(x = x, y = y, name = a$name, line = list(color = STATE_COL[[a$state]], width = 2)) |>
-          add_lines(x = x, y = sm[state == a$state][match(D$months, month), share], name = paste(a$state, "average"), line = list(color = COL$low, width = 2, dash = "dash"))
-      }
-      p |> theme_plot(yfmt = ".0%") |> layout(shapes = list(crisis_band(mdate(D$crisis$start), mdate(D$crisis$end))), hovermode = "x unified")
-    } else {
-      x <- qdate(D$quarters)
-      p <- p |> add_lines(x = x, y = D$vic_q[match(D$quarters, quarter), per1000], name = "VIC average", line = list(color = if (is.null(a) || is.na(a$id)) COL$vic else COL$low, width = 2, dash = if (is.null(a) || is.na(a$id)) "solid" else "dash"))
-      if (!is.null(a) && !is.na(a$id)) p <- p |> add_lines(x = x, y = unlist(D$vic_series[postcode == as.integer(a$id), -1]), name = a$id, line = list(color = COL$vic, width = 2))
-      p |> theme_plot(yfmt = ".0f") |> layout(shapes = list(crisis_band(mdate(D$crisis$start), qdate(D$crisis$vic_quarter))), hovermode = "x unified")
-    }
-  })
-
-  # ---- scatter
-  output$sc_title <- renderText({ m <- metric(); if (m$key == "income") "Median income vs BEV share" else paste("Median income vs", if (startsWith(m$label, "BEV")) m$label else sub("^(.)", "\\L\\1", m$label, perl = TRUE)) })
+  # scatter: income vs the map metric (vs BEV take-up when the map shows income itself)
+  sc_key <- reactive({ k <- mv$metric()$key; if (k == "income") (if (mv$geo() == "lga") "share" else "per1000veh") else k })
+  output$sc_title <- renderText({ l <- METRICS[[mv$geo()]][[sc_key()]]$label; paste("Median income vs", if (startsWith(l, "BEV")) l else sub("^(.)", "\\L\\1", l, perl = TRUE)) })
   output$scatter <- renderPlotly({
-    m <- metric(); key <- if (m$key == "income") (if (geo() == "lga") "share" else "per1000veh") else m$key
-    fmt <- METRICS[[geo()]][[key]]$fmt
-    a <- areas()[elig == TRUE & !is.na(get(key))]
+    key <- sc_key(); fmt <- METRICS[[mv$geo()]][[key]]$fmt
+    a <- mv$areas()[elig == TRUE & !is.na(get(key))]
     p <- plot_ly(source = "sc")
     for (s in unique(a$state)) {
       d <- a[state == s]
@@ -369,52 +416,47 @@ server <- function(input, output, session) {
         p <- p |> add_lines(x = xr, y = coef(f)[1] + coef(f)[2] * xr, name = paste(s, "fit"), showlegend = FALSE, hoverinfo = "skip",
                             line = list(color = STATE_COL[[s]], dash = "dash", width = 2)) }
     }
-    if (!is.null(sel())) { d <- a[id == sel()]; if (nrow(d)) p <- p |> add_markers(x = d$income, y = d[[key]], name = "Selected", showlegend = FALSE, hoverinfo = "skip",
-                                                                          marker = list(size = 13, color = "rgba(0,0,0,0)", line = list(color = COL$text, width = 2.5))) }
-    yf <- if (identical(fmt, pct)) ".0%" else if (identical(fmt, usd)) "$,.0f" else ",.1f"
-    p |> theme_plot(yfmt = yf, xtitle = "Area median income") |> layout(xaxis = list(tickprefix = "$", tickformat = ",.0f"), showlegend = FALSE) |> event_register("plotly_click")
+    if (!is.null(map_sel())) { d <- a[id == map_sel()]; if (nrow(d)) p <- p |> add_markers(x = d$income, y = d[[key]], name = "Selected", showlegend = FALSE, hoverinfo = "skip",
+                                                                                  marker = list(size = 13, color = "rgba(0,0,0,0)", line = list(color = COL$text, width = 2.5))) }
+    p |> theme_plot(yfmt = axis_of(fmt), xtitle = "Area median income") |> layout(xaxis = list(tickprefix = "$", tickformat = ",.0f"), showlegend = FALSE) |> event_register("plotly_click")
   })
+  outputOptions(output, "scatter", suspendWhenHidden = FALSE)  # render it while the Map tab is hidden, so its click event is registered
 
-  # ---- group bars
+  # ---- Income groups tab
   bars <- function(series, fmt_axis, hover_fmt) {
     p <- plot_ly()
     for (s in series) p <- p |> add_bars(x = QLAB, y = s$vals, name = s$name, marker = list(color = s$colour),
                                          text = hover_fmt(s$vals), hoverinfo = "text+name", textposition = "none")
     p |> theme_plot(yfmt = fmt_axis) |> layout(barmode = "group", bargap = 0.3, xaxis = list(categoryorder = "array", categoryarray = QLAB))
   }
-  axis_of <- function(f) if (identical(f, pct)) ".0%" else if (identical(f, usd)) "$,.0f" else ",.0f"
-  output$grp_title <- renderText({ m <- metric(); key <- if (m$key == "income") (if (geo() == "lga") "share" else "per1000veh") else m$key; paste(METRICS[[geo()]][[key]]$label, "— by income group") })
+  grp_col <- c(fleet_bev = "fleet", add_c = "add_c1000")   # area column -> income-group column
+  output$grp_title <- renderText(paste(gv$metric()$label, "— by income group"))
   output$grp_bars <- renderPlotly({
-    m <- metric(); key <- if (m$key == "income") (if (geo() == "lga") "share" else "per1000veh") else m$key
-    if (key == "fleet_bev") key <- "fleet"
-    if (key == "add_c") key <- "add_c1000"
-    fmt <- (METRICS[[geo()]][[m$key]] %||% METRICS[[geo()]]$per1000veh)$fmt
-    sts <- if (geo() == "vic") "VIC" else if (input$st == "ALL") c("NSW", "QLD") else input$st
-    series <- lapply(sts, function(s) list(name = s, colour = STATE_COL[[s]], vals = D$groups[state == s][order(group)][[key]] %||% rep(NA, NG)))
-    bars(series, axis_of(fmt), fmt)
+    m <- gv$metric(); key <- grp_col[m$key] %|NA|% m$key
+    sts <- if (gv$geo() == "vic") "VIC" else c("NSW", "QLD")
+    bars(lapply(sts, function(s) list(name = s, colour = STATE_COL[[s]], vals = D$groups[state == s][order(group)][[key]] %||% rep(NA, NG))), axis_of(m$fmt), m$fmt)
   })
   output$grp_method <- renderUI({
     M <- D$group_method
     steps <- tags$ol(lapply(M$steps, function(t) tags$li(tags$b(sub("\\. .*$", ".", t)), " ", sub("^[^.]*\\. ", "", t))))
-    sts <- if (geo() == "vic") "VIC" else if (input$st == "ALL") c("NSW", "QLD") else input$st
     tbl <- function(st) {
       g <- M$comp[state == st][order(group)]; who <- if (st == "VIC") "individuals" else "earners"
       tagList(h2(style = "margin-top:14px", sprintf("%s — %s", st, if (st == "VIC") "postcodes" else "council areas (LGAs)")),
               tags$table(class = "md", tags$thead(tags$tr(tags$th("Group"), tags$th(class = "num", "Areas"), tags$th(class = "num", tools::toTitleCase(who)),
                                                           tags$th(class = "num", paste("Share of", who)), tags$th(class = "num", "Median income range"),
                                                           tags$th("Largest areas"))),
-                         tags$tbody(lapply(seq_len(nrow(g)), function(i) tags$tr(style = "cursor:default",
+                         tags$tbody(lapply(seq_len(nrow(g)), function(i) tags$tr(
                            tags$td(QLAB[g$group[i]]), tags$td(class = "num", int(g$areas[i])), tags$td(class = "num", int(g$people[i])),
                            tags$td(class = "num", pct(g$share[i])), tags$td(class = "num", paste(usd(g$inc_lo[i]), "–", usd(g$inc_hi[i]))),
                            tags$td(g$largest[i]))))),
               p(class = "note", style = "margin-top:6px", M$lumpy[[st]]))
     }
-    tagList(steps, lapply(sts, tbl))
+    tagList(steps, lapply(if (gv$geo() == "vic") "VIC" else c("NSW", "QLD"), tbl))
   })
   output$fleet_bars <- renderPlotly(bars(list(list(name = "NSW (per 1,000 light vehicles)", colour = COL$nsw, vals = D$groups[state == "NSW"][order(group), per1000veh]),
                                               list(name = "VIC (per 1,000 vehicles)", colour = COL$vic, vals = D$groups[state == "VIC"][order(group), per1000veh])), ",.0f", num1))
 
-  # ---- fuel crisis
+  # ---- Fuel crisis tab
   output$fuel <- renderPlotly({
     F <- D$fuel; x <- mdate(F$month)
     plot_ly() |> add_lines(x = x, y = F$NSW_ULP, name = "NSW ULP", line = list(color = COL$nsw, width = 2)) |>
@@ -438,7 +480,7 @@ server <- function(input, output, session) {
   output$crisis_note_nsw <- renderText(crisis_note("NSW"))
   output$crisis_note_qld <- renderText(crisis_note("QLD"))
 
-  # ---- raw numbers
+  # ---- Registrations tab
   stacked <- function(s) {
     sm <- D$state_month[state == s]; x <- mdate(sm$month)
     plot_ly() |> add_bars(x = x, y = sm$bev, name = "BEV", marker = list(color = STATE_COL[[s]])) |>
@@ -457,70 +499,54 @@ server <- function(input, output, session) {
     list(name = "QLD yr earlier", colour = "#F8D2A8", vals = D$groups[state == "QLD"][order(group), p_bev]),
     list(name = "QLD crisis", colour = COL$qld, vals = D$groups[state == "QLD"][order(group), c_bev])), ",.0f", int))
 
-  # ---- top 10 tables
-  rank_table <- function(rows, key, fmt, lab) {
+  # ---- Rankings tab: clicking a row fills the detail panel beside it, nothing else
+  rank_sel <- reactiveVal(NULL)
+  detail_server("rank_sel", rv, rank_sel)
+  observeEvent(list(rv$geo(), rv$st()), rank_sel(NULL), ignoreInit = TRUE)
+  observeEvent(input$rank_pick, rank_sel(if (identical(input$rank_pick, rank_sel())) NULL else input$rank_pick))
+  rank_ord <- reactive(input$rank_ord %||% "top")
+  output$rank_title <- renderText(sprintf("%s: %s", if (rank_ord() == "top") "Highest 10" else "Lowest 10", rv$metric()$label))
+  output$rank_note <- renderText(if (rv$metric()$key == "income") "All areas." else "Areas with too few registrations are left out.")
+  output$rank_tbl <- renderUI({
+    e <- rv$eligible(); k <- rv$metric()$key; fmt <- rv$metric()$fmt; s <- rank_sel()
+    rows <- e[order(if (rank_ord() == "top") -get(k) else get(k))][seq_len(min(10, .N))]
     if (!nrow(rows)) return(p(class = "note", "No areas meet the size threshold for this metric."))
-    tags$table(class = "md", tags$thead(tags$tr(tags$th("#"), tags$th("Area"), tags$th(class = "num", "Income"), tags$th(class = "num", lab))),
+    tags$table(class = "md pick", tags$thead(tags$tr(tags$th("#"), tags$th("Area"), tags$th(class = "num", "Median income"), tags$th(class = "num", short(rv$metric()$label)))),
       tags$tbody(lapply(seq_len(nrow(rows)), function(i) { a <- rows[i]
-        tags$tr(onclick = sprintf("Shiny.setInputValue('pick', '%s', {priority: 'event'})", a$id),
-                tags$td(i), tags$td(sprintf("%s (%s)", a$name, if (geo() == "vic") a$id else a$state)), tags$td(class = "num", usd(a$income)),
-                tags$td(class = "num", fmt(a[[key]]))) })))
-  }
-  output$tbl_title <- renderText(sprintf("%s: %s", if (input$ord == "top") "Highest" else "Lowest", metric()$label))
-  output$tbl <- renderUI({
-    e <- eligible(); k <- metric()$key
-    rows <- e[order(if (input$ord == "top") -get(k) else get(k))][seq_len(min(10, .N))]
-    rank_table(rows, k, metric()$fmt, short(metric()$label))
-  })
-  cnt_key <- reactive(if (geo() == "lga") "bev" else "bev")
-  output$tbl2_title <- renderText(if (geo() == "lga") sprintf("Most BEVs: new BEVs, %s", RW) else "Most BEVs: BEVs in the fleet")
-  output$tbl2 <- renderUI({ a <- areas()[!is.na(bev)][order(-bev)][seq_len(min(10, .N))]; rank_table(a, "bev", int, "BEVs") })
-
-  # ---- findings
-  output$findings <- renderUI({
-    G <- D$groups; g <- function(s, q, k) G[state == s & group == q][[k]]
-    items <- list(
-      c("Richer areas buy more BEVs. ", sprintf("In %s, the richest fifth of NSW council areas registered BEVs at %s of new private cars, vs %s in the poorest (%.1f×). In the fleet the gap is wider: %s vs %s BEVs per 1,000 light vehicles.",
-                                               RW, pct(g("NSW", NG, "share")), pct(g("NSW", 1, "share")), g("NSW", NG, "share") / g("NSW", 1, "share"), num1(g("NSW", NG, "per1000veh")), num1(g("NSW", 1, "per1000veh")))),
-      c("VIC postcodes show the same gradient. ", sprintf("%s BEVs per 1,000 vehicles in the top income group vs %s in the bottom.", num1(g("VIC", NG, "per1000veh")), num1(g("VIC", 1, "per1000veh")))),
-      c("QLD is flatter at council level. ", sprintf("Its LGAs are large (Brisbane alone is about a quarter of QLD earners), and lower-income coastal retiree areas such as the Sunshine Coast take up BEVs strongly. Top vs bottom group: %s vs %s.",
-                                                    pct(g("QLD", NG, "share")), pct(g("QLD", 1, "share")))),
-      c("The fuel crisis narrowed the gap in relative terms. ", sprintf("Comparing %s with the same months a year earlier, BEV share rose %s in NSW's lowest-income group vs %s in the highest (QLD: %s vs %s). In percentage points richer areas still gained more (%s vs %s in NSW).",
-                                                                        crisis_label, mult(g("NSW", 1, "mult")), mult(g("NSW", NG, "mult")), mult(g("QLD", 1, "mult")), mult(g("QLD", NG, "mult")),
-                                                                        pp(g("NSW", NG, "chg")), pp(g("NSW", 1, "chg")))),
-      c("Regional coastal areas moved most. ", "Switch the map metric to the crisis change: the biggest NSW jumps were in lower-income coastal LGAs such as Bellingen, Kiama, Byron, Eurobodalla and Ballina, alongside the wealthy North Shore."),
-      c("Caveat. ", "This compares areas, not people: it shows where BEVs are registered, not who bought them. Novated leases, retirees' wealth and business fleets all blur the link to income."))
-    tags$ul(lapply(items, function(x) tags$li(tags$b(x[1]), x[2])))
+        tags$tr(class = if (identical(a$id, s)) "on", onclick = sprintf("Shiny.setInputValue('rank_pick', '%s', {priority: 'event'})", a$id),
+                tags$td(i), tags$td(sprintf("%s (%s)", a$name, if (rv$geo() == "vic") a$id else a$state)), tags$td(class = "num", usd(a$income)),
+                tags$td(class = "num", fmt(a[[k]]))) })))
   })
 
-  # ---- downloads
-  about <- reactive(data.frame(Item = c("Exported from", "Geography", "State filter", "Recent window", "Fuel crisis window", "Year-earlier comparison", "Sources and adjustments"),
-                               Value = c("EV × Income dashboard", if (geo() == "lga") "NSW + QLD council areas (LGAs)" else "VIC postcodes",
-                                         if (geo() == "lga") input$st else "VIC", RW, paste(D$crisis$start, "to", D$crisis$end),
-                                         paste(D$crisis$py_start, "to", D$crisis$py_end), "See the full workbook (Sources, Data_Adjustments, Notes sheets)")))
-  cols_lga <- c(state = "State", name = "LGA", id = "LGA code", income = "Median total income 2022-23 ($)", pop = "Earners", group = "Income group (1 = lowest)",
-                new = paste("New private regos,", RW), bev = paste("BEV,", RW), share = paste("BEV share,", RW), p_new = "New regos, year before crisis",
-                p_bev = "BEV, year before crisis", share_p = "BEV share, year before crisis", c_new = "New regos, crisis months", c_bev = "BEV, crisis months",
-                share_c = "BEV share, crisis months", chg = "Change (pp)", mult = "Crisis ÷ year earlier", fleet_bev = "BEV fleet (NSW est.; QLD BEVs seen since 2022)",
-                fleet_veh = "Light-vehicle fleet (NSW)", per1000veh = "BEV per 1,000 light vehicles (NSW)", per1000pop = "BEV fleet per 1,000 earners", elig = "Above size threshold")
-  cols_vic <- c(id = "Postcode", name = "Suburbs", income = "Median taxable income 2023-24 ($)", pop = "Individuals", group = "Income group (1 = lowest)",
-                vehicles = "Vehicles (latest)", bev = "BEV (latest)", per1000veh = "BEV per 1,000 vehicles", recent_vehicles = "Recent-model vehicles",
-                recent_bev = "Recent-model BEV", rshare = "BEV share of recent-model", add_c = "BEV added, crisis quarter", add_c1000 = "Added per 1,000 vehicles, crisis quarter",
-                add_p = "BEV added, same quarter a year earlier", add_p1000 = "Added per 1,000, year earlier", elig = "Above size threshold")
-  area_table <- function(a) { cols <- if (geo() == "lga") cols_lga else cols_vic; x <- as.data.frame(a[, names(cols), with = FALSE]); names(x) <- cols; x }
+  # ---- downloads (always both geographies, so they don't depend on any tab's settings)
+  about <- data.frame(Item = c("Exported from", "Recent window", "Fuel crisis window", "Year-earlier comparison", "Sources and adjustments"),
+                      Value = c("EV × Income dashboard", RW, paste(D$crisis$start, "to", D$crisis$end),
+                                paste(D$crisis$py_start, "to", D$crisis$py_end), "See the full workbook (Sources, Data_Adjustments, Notes sheets)"))
+  cols <- list(
+    lga = c(state = "State", name = "LGA", id = "LGA code", income = "Median total income 2022-23 ($)", pop = "Earners", group = "Income group (1 = lowest)",
+            new = paste("New private regos,", RW), bev = paste("BEV,", RW), share = paste("BEV share,", RW), p_new = "New regos, year before crisis",
+            p_bev = "BEV, year before crisis", share_p = "BEV share, year before crisis", c_new = "New regos, crisis months", c_bev = "BEV, crisis months",
+            share_c = "BEV share, crisis months", chg = "Change (pp)", mult = "Crisis ÷ year earlier", fleet_bev = "BEV fleet (NSW est.; QLD BEVs seen since 2022)",
+            fleet_veh = "Light-vehicle fleet (NSW)", per1000veh = "BEV per 1,000 light vehicles (NSW)", per1000pop = "BEV fleet per 1,000 earners", elig = "Above size threshold"),
+    vic = c(id = "Postcode", name = "Suburbs", income = "Median taxable income 2023-24 ($)", pop = "Individuals", group = "Income group (1 = lowest)",
+            vehicles = "Vehicles (latest)", bev = "BEV (latest)", per1000veh = "BEV per 1,000 vehicles", recent_vehicles = "Recent-model vehicles",
+            recent_bev = "Recent-model BEV", rshare = "BEV share of recent-model", add_c = "BEV added, crisis quarter", add_c1000 = "Added per 1,000 vehicles, crisis quarter",
+            add_p = "BEV added, same quarter a year earlier", add_p1000 = "Added per 1,000, year earlier", elig = "Above size threshold"))
+  area_table <- function(g) { a <- D[[g]]; cl <- cols[[g]]; x <- as.data.frame(a[, names(cl), with = FALSE]); names(x) <- cl; x }
   output$dl_workbook <- downloadHandler(filename = function() basename(WORKBOOK), content = function(f) file.copy(WORKBOOK, f))
-  output$dl_areas <- downloadHandler(filename = function() sprintf("EV_by_income_%s.xlsx", if (geo() == "lga") paste0("LGAs_", input$st) else "VIC_postcodes"),
-                                     content = function(f) write_xlsx(list(Areas = area_table(areas()), About = about()), f))
-  output$dl_top <- downloadHandler(filename = function() sprintf("EV_top10_%s.xlsx", if (geo() == "lga") input$st else "VIC"), content = function(f) {
+  output$dl_areas <- downloadHandler(filename = "EV_by_income_all_areas.xlsx",
+                                     content = function(f) write_xlsx(list(`NSW + QLD councils` = area_table("lga"), `VIC postcodes` = area_table("vic"), About = about), f))
+  output$dl_top <- downloadHandler(filename = "EV_top_and_bottom_10.xlsx", content = function(f) {
     sheets <- list()
-    for (k in names(METRICS[[geo()]])) {
-      a <- areas()[(k == "income" | elig) & !is.na(get(k))]
+    for (g in c("lga", "vic")) for (k in names(METRICS[[g]])) {
+      a <- D[[g]][(k == "income" | elig) & !is.na(get(k))]
       mk <- function(d) data.frame(Rank = seq_len(nrow(d)), Area = d$name, Code = d$id, State = d$state, `Median income ($)` = d$income, Value = d[[k]], check.names = FALSE) |>
-        setNames(c("Rank", "Area", "Code", "State", "Median income ($)", METRICS[[geo()]][[k]]$label))
-      sheets[[paste("Top", k)]] <- mk(a[order(-get(k))][seq_len(min(10, .N))])
-      sheets[[paste("Bottom", k)]] <- mk(a[order(get(k))][seq_len(min(10, .N))])
+        setNames(c("Rank", "Area", "Code", "State", "Median income ($)", METRICS[[g]][[k]]$label))
+      tag <- if (g == "lga") "" else "VIC "
+      sheets[[paste0(tag, "Top ", k)]] <- mk(a[order(-get(k))][seq_len(min(10, .N))])
+      sheets[[paste0(tag, "Bottom ", k)]] <- mk(a[order(get(k))][seq_len(min(10, .N))])
     }
-    write_xlsx(c(sheets, list(About = about())), f)
+    write_xlsx(c(sheets, list(About = about)), f)
   })
   group_method_sheet <- function() {
     M <- D$group_method; c_ <- M$comp[order(state, group)]
@@ -533,13 +559,17 @@ server <- function(input, output, session) {
   output$dl_groups <- downloadHandler(filename = "EV_income_groups.xlsx", content = function(f) {
     g <- copy(D$groups)[, `Income group` := paste0("Q", group)]
     write_xlsx(c(lapply(split(as.data.frame(g), g$state), function(x) x[, c("Income group", setdiff(names(x), c("Income group", "group", "state")))]),
-                 list(`How groups are built` = group_method_sheet(), About = about())), f)
+                 list(`How groups are built` = group_method_sheet(), About = about)), f)
   })
-  output$dl_series <- downloadHandler(filename = function() sprintf("EV_series_%s.xlsx", if (geo() == "lga") "monthly_BEV_share" else "quarterly_BEV_per_1000"), content = function(f) {
-    s <- if (geo() == "lga") as.data.frame(D$lga_series) else as.data.frame(D$vic_series)
-    write_xlsx(list(Series = s, `State totals` = as.data.frame(D$state_month), `Fuel prices (c per L)` = as.data.frame(D$fuel), About = about()), f)
+  output$dl_series <- downloadHandler(filename = "EV_series_and_fuel_prices.xlsx", content = function(f) {
+    write_xlsx(list(`NSW + QLD monthly BEV share` = as.data.frame(D$lga_series), `VIC quarterly BEV per 1000` = as.data.frame(D$vic_series),
+                    `State totals` = as.data.frame(D$state_month), `Fuel prices (c per L)` = as.data.frame(D$fuel), About = about), f)
   })
+  # the links sit in a closed dropdown, and Shiny doesn't wire up hidden download links
+  for (id in c("dl_workbook", "dl_areas", "dl_top", "dl_groups", "dl_series")) outputOptions(output, id, suspendWhenHidden = FALSE)
 }
 
 `%||%` <- function(a, b) if (is.null(a)) b else a
+`%|NA|%` <- function(a, b) if (is.null(a) || is.na(a)) b else unname(a)
+axis_of <- function(f) if (identical(f, pct)) ".0%" else if (identical(f, pp)) "+.1f" else if (identical(f, usd)) "$,.0f" else if (identical(f, int)) ",.0f" else ",.1f"
 shinyApp(ui, server)
