@@ -1,48 +1,85 @@
-# EV_income
+# EV uptake by regional income
 
-How battery-electric vehicle (BEV) take-up in NSW, QLD and VIC is distributed by area income,
-covering both new registrations and the registered fleet. It also looks at the effect of the
-2026 Middle East (Strait of Hormuz) fuel crisis. Every input is public open data.
+This project asks how battery-electric vehicle (BEV) take-up in **NSW, QLD and VIC** is spread across areas of
+different income. It covers new registrations (flow) and the registered fleet (stock), and looks at the effect
+of the **2026 Middle East / Strait of Hormuz fuel crisis**. Every input is public open data.
 
-## Outputs
+Written in **R**: the data pipeline, an Excel workbook with native charts, and a **Shiny** dashboard.
 
-| File | What it is |
-|---|---|
-| `EV_uptake_by_income.xlsx` | Workbook. The Charts sheet comes first, in four sections: raw numbers, income, fuel crisis, top areas. Then Summary (counts and shares); Raw_Numbers; Top10; Fuel_Crisis; Inputs (editable assumptions); group and area tables; Suppression; Sources (every dataset page and file URL); Data_Adjustments (every filter, relabel and imputation, with counts); Notes. All shares and totals are live formulas. |
-| `EV_income_map.html` | Interactive dashboard in the GARY / NELLY flat Material style: sidebar controls, KPI cards, and tabs for Map, Income groups, Fuel crisis, Raw numbers, Top 10 and Findings. The map covers all of Australia (states in outline). Data is embedded, so you can open it straight from disk. It has download-to-Excel buttons for each view; the full-workbook link expects the .xlsx in the same folder. |
-
-## Rebuild
+## Quick start
 
 ```bash
-cd ~/models/EV_income
-CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1 python3 build_data.py   # ~3 min; raw_data -> processed/
-python3 fetch_boundaries.py                                          # ABS boundaries + VIC suburb names
-python3 build_workbook.py                                            # -> EV_uptake_by_income.xlsx
-python3 build_dashboard.py                                           # -> EV_income_map.html
+git clone https://github.com/mhs795/EV-uptake-by-income.git
+cd EV-uptake-by-income
+Rscript R/install_packages.R   # first time only
+Rscript run_dashboard.R        # open the dashboard (uses the committed processed data)
 ```
 
-Parameters (windows, thresholds, fuel-label mappings, crisis-onset rule) live in `config.yaml`.
-`raw_data/` is not in git (~1.8 GB). Download the files listed in `raw_data/**/urls.txt` into the
-same folders, then run the steps above. `processed/` is committed, so the workbook and dashboard can
-be rebuilt without the raw data. The fuel prices come from `~/models/au_fuel_prices/work/*.csv`
-(path set in `config.yaml`), so run `PRICES` first.
+The processed tables, the dashboard data and the workbook are committed. You can open the dashboard or
+`EV_uptake_by_income.xlsx` straight away, without downloading any raw data.
+
+## Rebuild everything
+
+```bash
+Rscript run_all.R                  # install packages, download raw data, build everything
+Rscript run_all.R --from data      # skip install + download
+Rscript run_all.R --only workbook  # one step
+```
+
+| Step | Script | What it does |
+|---|---|---|
+| `install` | `R/install_packages.R` | Installs the R packages that are missing (binaries from Posit Package Manager on Linux) |
+| `download` | `R/download_raw.R` | Fetches ~1.8 GB of public raw data into `raw_data/`, from the URLs in `raw_data/**/urls.txt`; files you already have are skipped |
+| `data` | `R/build_data.R` | `raw_data/` → `processed/*.csv` (~5 min). Also writes `processed/adjustments.csv`, the log of every data adjustment |
+| `boundaries` | `R/fetch_boundaries.R` | ABS boundaries (LGAs, VIC postcodes, states) and suburb names for each VIC postcode |
+| `workbook` | `R/build_workbook.R` | `EV_uptake_by_income.xlsx`: charts first, then Summary, raw numbers, top 10s, fuel crisis, inputs, detailed tables, sources, data adjustments, notes. Shares and totals are live Excel formulas |
+| `dashboard` | `R/dashboard_data.R` | `processed/dashboard.rds` for the Shiny app |
+
+Then run `Rscript run_dashboard.R`. It opens the dashboard at http://127.0.0.1:8050.
+
+All settings (analysis windows, thresholds, fuel-label mappings, the crisis-onset rule, file paths) are
+in **`config.yaml`**. No numbers are hard-coded in the scripts.
+
+**Requirements:** R ≥ 4.3. On Linux, `sf` needs `libgdal-dev libgeos-dev libproj-dev libudunits2-dev`.
+
+## Folder layout
+
+```
+run_all.R            one command to run the whole project
+run_dashboard.R      open the Shiny dashboard
+config.yaml          every setting
+R/                   pipeline scripts (+ sources.csv, notes.csv used in the workbook)
+app/app.R            the Shiny dashboard (GARY / NELLY flat Material design)
+raw_data/            downloads (git-ignored except urls.txt lists and raw_data/fuel/*.csv)
+processed/           tidy tables, boundaries and dashboard.rds (committed)
+EV_uptake_by_income.xlsx
+```
 
 ## Data
 
-- **NSW** — TfNSW monthly registration transactions and monthly fleet snapshots, by LGA. Counts
-  of 5 or fewer are suppressed as `<=5`. The value used for those cells is estimated and
-  calibrated (Suppression sheet) and can be edited on Inputs.
-- **QLD** — TMR unit records of new and transfer registrations, by LGA. There is no public
-  fleet-by-fuel data by region, so fleet is a proxy: BEVs seen since 2022, at their last known LGA.
-- **VIC** — DTP quarterly whole-fleet snapshot by postcode. The monthly VIC file has no
-  location, so recent-model vehicles in the fleet stand in for new sales.
-- **Income** — ABS Personal Income in Australia 2022-23 (ATO-based) by LGA, and ATO Taxation
-  Statistics 2023-24 Table 8 by postcode.
-- **Suburbs** — no state publishes EV data by suburb. VIC postcodes are named by the ABS
-  suburbs/localities whose points fall inside them.
+- **NSW**: TfNSW monthly registration transactions and fleet snapshots, by council area (LGA).
+  Counts of 5 or fewer are published as `<=5`. The value used for those cells is estimated from QLD
+  unit records and calibrated against fleet totals (Suppression sheet), and can be edited on the
+  workbook's Inputs sheet.
+- **QLD**: TMR unit records of new and transferred registrations, by LGA. There is no public regional
+  fleet-by-fuel data, so the fleet figure is a proxy: BEVs seen since 2022, placed at their last known LGA.
+- **VIC**: DTP quarterly whole-fleet snapshot by postcode. The monthly VIC file has no location, so
+  recent-model vehicles in the fleet stand in for new sales.
+- **Income**: ABS Personal Income in Australia 2022-23 (ATO-based) by LGA; ATO Taxation Statistics 2023-24
+  (Table 8) by postcode.
+- **Fuel prices**: NSW FuelCheck, QLD Fuel Price Reporting and AIP terminal gate prices. Monthly averages are
+  kept in `raw_data/fuel/`, copied from the author's `au_fuel_prices` project.
+- **Suburbs**: no state publishes EV data by suburb. VIC postcodes are named by the ABS suburbs whose points
+  fall inside them.
+
+Every dataset page and file URL is on the workbook's **Sources** sheet. Every filter, relabel, imputation
+and proxy is on its **Data_Adjustments** sheet, with the number of records it affected.
 
 ## Caveats
 
-This compares areas, not people. Income groups are ranked within each state. QLD LGAs are
-large. The fuel-crisis comparison is before/after, so other 2026 changes also fall inside it.
-More detail is on the workbook's Notes sheet.
+- This compares areas, not people: it shows where BEVs are registered, not the income of the person who bought each one.
+- Income groups are ranked within each state. QLD council areas are large (Brisbane alone is about a quarter of QLD earners).
+- The fuel-crisis comparison is before/after (crisis months vs the same months a year earlier), so other
+  changes in 2026 fall inside it too.
+
+More on the workbook's **Notes** sheet.

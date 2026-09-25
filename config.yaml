@@ -5,7 +5,6 @@ paths:
   raw: raw_data
   processed: processed
   workbook: EV_uptake_by_income.xlsx
-  dashboard: EV_income_map.html
 
 period:
   # First month of the "recent take-up" window for the new-registration analysis
@@ -110,10 +109,11 @@ vic:
   postcode_max: 3999
 
 fuel:
-  # Monthly fuel prices from the au_fuel_prices project (built from NSW FuelCheck,
-  # QLD Fuel Price Reporting and AIP terminal gate prices), cents per litre
-  retail_file: /home/martinstevenson/models/au_fuel_prices/work/retail_monthly.csv
-  tgp_file: /home/martinstevenson/models/au_fuel_prices/work/tgp_monthly.csv
+  # Monthly fuel prices, cents per litre (built from NSW FuelCheck, QLD Fuel
+  # Price Reporting and AIP terminal gate prices by the au_fuel_prices project;
+  # copies are kept in raw_data/fuel so this repo runs on its own)
+  retail_file: raw_data/fuel/retail_monthly.csv
+  tgp_file: raw_data/fuel/tgp_monthly.csv
   retail_series: [NSW_ULP, NSW_Diesel, QLD_ULP, QLD_Diesel]
   tgp_series: [TGP_petrol_national, TGP_diesel_national]
   # Crisis onset = first month the onset series is at least this far above its
@@ -134,7 +134,7 @@ analysis:
   top_n: 10
 
 map:
-  # ArcGIS generalisation tolerance in degrees for the dashboard boundaries
+  # ArcGIS generalisation tolerance in degrees for the map boundaries
   lga_offset_deg: 0.004
   poa_offset_deg: 0.0015
   coord_decimals: 4

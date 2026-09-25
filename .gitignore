@@ -1,8 +1,11 @@
-# Raw downloads are ~1.8 GB; re-fetch from the URLs listed in raw_data/**/urls.txt
+# Raw downloads (~1.8 GB): fetch with `Rscript run_all.R --only download`
 raw_data/**
 !raw_data/**/
 !raw_data/**/urls.txt
 !raw_data/nsw/snapshot_urls.txt
-__pycache__/
+!raw_data/fuel/*.csv
+.Rhistory
+.RData
+.Rproj.user/
 .~lock.*
-*.pyc
+*.part

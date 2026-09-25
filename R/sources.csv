@@ -1,0 +1,15 @@
+dataset,publisher,page,coverage,licence
+NSW Vehicle Registration Transactions (monthly),Transport for NSW,https://opendata.transport.nsw.gov.au/data/dataset/transport-nsw-vehicle-registration-statistics,"Jul 2022 – latest month; new registrations by LGA, customer type, fuel",CC BY 4.0
+NSW Vehicle Registrations Snapshot (monthly),Transport for NSW,(same dataset page),Quarter-end snapshots Sep 2022 – latest; light-vehicle fleet by LGA and motive power,CC BY 4.0
+NSW Age of Registered Vehicles Snapshot,Transport for NSW,(same dataset page),Dec 2025; whole-register total used to calibrate suppressed cells,CC BY 4.0
+QLD Vehicle Registration New and Transferred Vehicle Details,Queensland Department of Transport and Main Roads,https://www.data.qld.gov.au/dataset/vehicle-registration-new-and-transfers-test,Jan 2022 – latest; unit records by LGA,CC BY 4.0
+VIC Whole Fleet Vehicle Registration Snapshot by Postcode,Victorian Department of Transport and Planning,https://discover.data.vic.gov.au/dataset/whole-fleet-vehicle-registration-snapshot-by-postcode,Q2 2023 – latest quarter,CC BY 4.0
+"VIC Monthly New Vehicle Registration (checked, not used)",Victorian Department of Transport and Planning,https://discover.data.vic.gov.au/dataset/monthly-new-vehicle-registration,"No location field, so it cannot be matched to income",CC BY 4.0
+"Personal Income in Australia 2022-23, Table 1",Australian Bureau of Statistics (ATO and other admin data),https://www.abs.gov.au/statistics/labour/earnings-and-working-conditions/personal-income-australia/latest-release,"Table 1.5 LGA: earners, median total income 2022-23",CC BY 4.0
+"Taxation Statistics 2023-24, Individuals Tables 6 and 8",Australian Taxation Office,https://data.gov.au/data/dataset/taxation-statistics-2023-24,Table 8: median taxable income and individuals by postcode,CC BY 2.5 AU
+NSW FuelCheck historical prices,NSW Government (via au_fuel_prices project),https://data.nsw.gov.au/data/dataset/fuel-check,"Monthly average retail ULP and diesel, NSW",CC BY 4.0
+QLD Fuel Price Reporting,Queensland Government (via au_fuel_prices project),https://www.data.qld.gov.au/dataset/fuel-price-reporting,"Monthly average retail ULP and diesel, QLD",CC BY 4.0
+Terminal gate prices,Australian Institute of Petroleum (via au_fuel_prices project),https://aip.com.au/resources/historical-ulp-and-diesel-tgp-data/,"National petrol TGP, used to detect the crisis onset",AIP terms of use
+"ASGS boundaries (LGA 2023, POA 2021, STE 2021, SAL 2021)",Australian Bureau of Statistics,https://geo.abs.gov.au/arcgis/rest/services/,Generalised polygons and suburb points for the map and suburb names,CC BY 4.0
+Context: 2026 Iran war fuel crisis (ABC News),ABC News,https://www.abc.net.au/news/2026-03-10/why-fuel-prices-are-going-up-australia/106437844,Timing of the conflict and price shock,
+Context: 2026 Iran war fuel crisis (Wikipedia),Wikipedia,https://en.wikipedia.org/wiki/2026_Iran_war_fuel_crisis,Timeline,

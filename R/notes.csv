@@ -1,0 +1,17 @@
+type,item,detail
+Definition,New private registration — NSW,"'Establish registration of new vehicle', customer type Private. Includes light commercials (no body-type field)."
+Definition,New private registration — QLD,"'Registration New', customer Individual, year of manufacture within one year. QLD file covers passenger body types only, so NSW and QLD levels are not directly comparable — compare gradients within each state."
+Definition,BEV,NSW: EV / BATTERY ELECTRIC / ELECTRICITY. QLD: Electric. VIC: fuel code E. PHEV only separable in NSW.
+Definition,Fleet — NSW,"Passenger, off-road, forward-control passenger and light goods vehicles; quarter-end snapshots."
+Definition,Fleet — QLD (proxy),"Distinct BEVs seen in any QLD transaction since Jan 2022 at their last known LGA; per 1,000 earners."
+Definition,Fleet — VIC,Vehicle class 2 (excludes motorcycles). Recent-model = year of manufacture >= snapshot year - 1.
+Definition,Income groups,Earner-weighted quintiles within each state. Q1 = lowest median income.
+Definition,Top-10 tables,"Areas ranked on the metric named; only areas above the minimum-size thresholds on Inputs are ranked, so tiny areas don't top the lists on noise."
+Caveat,Area vs person,"Shows where BEVs are registered, not the buyer's income. Retiree and student areas have low median taxable income but not necessarily low wealth."
+Caveat,Novated leases,"FBT-exempt EV novated leases (since Jul 2022) are usually registered to the employee, so they count as private and favour salaried areas."
+Caveat,Income year,"LGA income 2022-23, postcode income 2023-24; registrations 2023–2026. Area income rankings move slowly."
+Caveat,QLD geography,"QLD LGAs are large (Brisbane ~ a quarter of earners), so QLD income groups are lumpy."
+Caveat,Suburbs,"No state publishes EV registrations by suburb. The finest public geography is postcode (VIC) and LGA (NSW, QLD); the 'top 10' tables use those."
+Caveat,Fuel crisis attribution,"The crisis comparison is before/after: other 2026 changes (new cheaper BEV models, NVES penalties, incentives) also act on the same months. The same-months-a-year-earlier baseline removes seasonality, not those."
+Caveat,NSW data-gap months,"Some NSW months in 2023–24 have a block of rows with no make or fuel (TfNSW 'Other/Unmapped'); these are excluded, so counts in those months are low. Shares are unaffected if the block is spread across fuels."
+Reproduce,Scripts,Rscript run_all.R — see README.md. Parameters in config.yaml.
