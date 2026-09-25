@@ -5,7 +5,7 @@ Definition,BEV,NSW: EV / BATTERY ELECTRIC / ELECTRICITY. QLD: Electric. VIC: fue
 Definition,Fleet — NSW,"Passenger, off-road, forward-control passenger and light goods vehicles; quarter-end snapshots."
 Definition,Fleet — QLD (proxy),"Distinct BEVs seen in any QLD transaction since Jan 2022 at their last known LGA; per 1,000 earners."
 Definition,Fleet — VIC,Vehicle class 2 (excludes motorcycles). Recent-model = year of manufacture >= snapshot year - 1.
-Definition,Income groups,Earner-weighted quintiles within each state. Q1 = lowest median income.
+Definition,Income groups,"Earner-weighted quintiles, ranked within each state: areas are sorted by median income and cut so each group holds about a fifth of the state's earners (not a fifth of the areas); whole areas are never split. Q1 = lowest median income. Full method, cut-offs and the areas in each group: Income_Groups sheet."
 Definition,Top-10 tables,"Areas ranked on the metric named; only areas above the minimum-size thresholds on Inputs are ranked, so tiny areas don't top the lists on noise."
 Caveat,Area vs person,"Shows where BEVs are registered, not the buyer's income. Retiree and student areas have low median taxable income but not necessarily low wealth."
 Caveat,Novated leases,"FBT-exempt EV novated leases (since Jul 2022) are usually registered to the employee, so they count as private and favour salaried areas."

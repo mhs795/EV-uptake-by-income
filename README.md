@@ -78,7 +78,9 @@ and proxy is on its **Data_Adjustments** sheet, with the number of records it af
 ## Caveats
 
 - This compares areas, not people: it shows where BEVs are registered, not the income of the person who bought each one.
-- Income groups are ranked within each state. QLD council areas are large (Brisbane alone is about a quarter of QLD earners).
+- Income groups are ranked within each state and weighted by earners (each holds about a fifth of the state's earners, whole
+  areas kept together). QLD council areas are large (Brisbane alone is about a quarter of QLD earners), so QLD groups are uneven.
+  Full method and each group's make-up: the workbook's **Income_Groups** sheet and the dashboard's Income groups tab.
 - The fuel-crisis comparison is before/after (crisis months vs the same months a year earlier), so other
   changes in 2026 fall inside it too.
 

@@ -29,6 +29,8 @@ income:
   # Number of income groups; groups are cut so each holds an equal share of
   # the state's earners (earner-weighted quintiles when 5).
   n_groups: 5
+  # Largest areas (by earners) named for each group in the 'how groups are built' tables
+  examples_per_group: 3
 
 nsw:
   transactions_glob: nsw/tfnsw_vehicle_registration_transactions_*.zip

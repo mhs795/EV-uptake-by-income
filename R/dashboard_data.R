@@ -81,6 +81,17 @@ GV <- V[!is.na(vehicles), .(per1000veh = sum(bev) / sum(vehicles) * 1000, rshare
                             fleet = sum(bev), inc_lo = min(income), inc_hi = max(income)), keyby = group][, state := "VIC"][]
 G <- rbind(G, GV, fill = TRUE)
 
+# ---- how the groups are built (method text + make-up of each group) -------------
+pn <- copy(pc)[, nm := postcode_label(postcode, subs)]
+group_method <- list(
+  steps = income_group_method(),
+  comp = rbind(income_group_composition(lga[state == "NSW"], "lga_name", "median_income", "earners")[, state := "NSW"],
+               income_group_composition(lga[state == "QLD"], "lga_name", "median_income", "earners")[, state := "QLD"],
+               income_group_composition(pn, "nm", "median_income", "individuals")[, state := "VIC"]),
+  lumpy = c(NSW = income_group_lumpiness(lga[state == "NSW"], "NSW", "lga_name", "earners"),
+            QLD = income_group_lumpiness(lga[state == "QLD"], "QLD", "lga_name", "earners"),
+            VIC = income_group_lumpiness(pn, "VIC", "nm", "individuals")))
+
 # ---- state series and headline numbers ---------------------------------------------
 state_month <- flow[, .(new = sum(new), bev = sum(bev)), by = .(state, month)][, `:=`(share = bev / new, other = new - bev)][]
 vic_q <- vic[, .(per1000 = sum(bev) / sum(vehicles) * 1000), by = quarter]
@@ -104,7 +115,7 @@ saveRDS(list(lga = L, lga_series = L_series, vic = V, vic_series = V_series, gro
              months = months, quarters = quarters, fuel = fuel[month >= months[1]], kpi = kpi, gaps = gaps[gaps >= months[1]],
              crisis = list(start = cr0, end = cr1, py_start = py0, py_end = py1, vic_quarter = ql),
              recent = list(start = int_to_ym(ym_to_int(lastm[["NSW"]]) - WIN + 1L), end = lastm[["NSW"]]),
-             fleet_dates = list(NSW = max(snsw$month), QLD = max(sqld$month), VIC = ql), n_groups = NG,
+             fleet_dates = list(NSW = max(snsw$month), QLD = max(sqld$month), VIC = ql), n_groups = NG, group_method = group_method, windows = analysis_windows(flow),
              geo_lga = geo_lga, geo_poa = geo_poa, geo_aus = geo_aus, workbook = CFG$paths$workbook),
         file.path(OUT, "dashboard.rds"))
 logf("wrote %s", file.path(OUT, "dashboard.rds"))
