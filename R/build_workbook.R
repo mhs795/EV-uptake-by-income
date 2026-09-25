@@ -41,11 +41,11 @@ vic[, qdate := as.Date(sprintf("%s-%02d-01", substr(quarter, 1, 4), as.integer(s
 vic[, group := pcode$income_group[match(postcode, pcode$postcode)]]
 q_months <- sort(unique(sqld$month))
 sqld_q <- sqld[month %in% unique(c(q_months[as.integer(substr(q_months, 6, 7)) %in% CFG$nsw$snapshot_months_of_year], max(q_months)))]
-kv <- function(t, f) supp[table == t & fuel_group == f]
+kv <- function(t, f, cl = if (t == "stock") "all" else "private") supp[table == t & fuel_group == f & customers == cl]
 WIN <- analysis_windows(flow)
 
 # ---- workbook + helpers -------------------------------------------------------
-SHEETS <- c("Charts", "Summary", "Raw_Numbers", "Top10", "Fuel_Crisis", "Inputs", "Income_Groups", "Flow_Group_Summary", "Flow_Group_Month",
+SHEETS <- c("Charts", "Summary", "Raw_Numbers", "Top10", "Fuel_Crisis", "Customer_Types", "Inputs", "Income_Groups", "Flow_Group_Summary", "Flow_Group_Month",
             "Stock_Group", "LGA_Summary", "VIC_Postcode", "Suppression", "Sources", "Data_Adjustments", "Notes",
             "Flow_LGA_Month", "Stock_NSW_LGA", "Stock_QLD_LGA", "VIC_Postcode_Qtr", "Fuel_Prices", "Rank_Keys")
 wb <- wb_workbook(creator = "EV_income")
@@ -87,10 +87,10 @@ title(s, "Inputs and assumptions",
       "Blue text on yellow = assumption you can change. Black = formula. Everything else in the workbook recalculates from these.")
 head(s, 4, c("Item", "Value", "How it was set"))
 inputs <- data.table(
-  item = c("NSW new regos: value of a suppressed '<=5' cell — BEV", "NSW new regos: value of a suppressed '<=5' cell — PHEV",
-           "NSW new regos: value of a suppressed '<=5' cell — all other fuels", "NSW fleet: value of a suppressed '<=5' cell — BEV",
+  item = c("NSW new regos, private buyers: value of a suppressed '<=5' cell — BEV", "NSW new regos, private buyers: value of a suppressed '<=5' cell — PHEV",
+           "NSW new regos, private buyers: value of a suppressed '<=5' cell — all other fuels", "NSW fleet: value of a suppressed '<=5' cell — BEV",
            "NSW fleet: value of a suppressed '<=5' cell — PHEV", "NSW fleet: value of a suppressed '<=5' cell — all other fuels",
-           "Recent window length (months)", "Minimum new private regos in window for an LGA to appear on the scatter",
+           "Recent window length (months)", "Minimum new regos in window for an LGA to appear on the scatter",
            "Minimum recent-model vehicles for a VIC postcode to appear on the scatter"),
   value = c(kv("flow", "bev")$k, kv("flow", "phev")$k, kv("flow", "other")$k, kv("stock", "bev")$k, kv("stock", "phev")$k,
             kv("stock", "other")$k, CFG$period$recent_window_months, CFG$analysis$min_new_regs_scatter, CFG$analysis$min_recent_vehicles_vic),
@@ -134,20 +134,34 @@ putv(s, names(crisis), 29, 1); putv(s, FML(unname(crisis)), 29, 2); putv(s, unna
 nf(s, "B28:B31", MON); nf(s, "B32", "0"); nf(s, "B33:B34", MON)
 D <- c(D, list(cr_start = "Inputs!$B$28", cr_end = "Inputs!$B$29", py_start = "Inputs!$B$30", py_end = "Inputs!$B$31",
                pre_start = "Inputs!$B$33", pre_end = "Inputs!$B$34"))
+head(s, 36, c("Suppressed cells — business, dealer and government buyers", "Value", "How it was set"))
+oth <- data.table(item = c("NSW new regos, business/dealer/government: value of a suppressed '<=5' cell — BEV",
+                           "NSW new regos, business/dealer/government: value of a suppressed '<=5' cell — PHEV",
+                           "NSW new regos, business/dealer/government: value of a suppressed '<=5' cell — all other fuels"),
+                  value = c(kv("flow", "bev", "other")$k, kv("flow", "phev", "other")$k, kv("flow", "other", "other")$k),
+                  how = c(kv("flow", "bev", "other")$method, kv("flow", "phev", "other")$method, kv("flow", "other", "other")$method))
+put(s, oth, 37)
+wb$add_fill(sheet = s, dims = "B37:B39", color = wb_color("FFFF00"))
+wb$add_font(sheet = s, dims = "B37:B39", name = "Arial", size = 10, color = wb_color("0000FF"))
+nf(s, "B37:B39", DEC)
+IN <- c(IN, list(kfo_bev = "Inputs!$B$37", kfo_phev = "Inputs!$B$38", kfo_other = "Inputs!$B$39"))
 widths(s, c(70, 14, 110))
 
 # ======================================================= data sheets ========
 s <- "Flow_LGA_Month"
 setorder(flow, state, lga_name, month)
 head(s, 1, c("State", "LGA", "Month", "Income group", "BEV exact", "BEV suppressed cells", "PHEV exact", "PHEV suppressed cells",
-             "Other exact", "Other suppressed cells", "BEV (est.)", "PHEV (est.)", "Other (est.)", "New private regos (est.)"))
+             "Other exact", "Other suppressed cells", "BEV (est.)", "PHEV (est.)", "Other (est.)", "New regos (est.)", "Customer type"))
 r <- rows_of(nrow(flow), 2)
 x <- flow[, .(state, lga_name, mdate, group, bev_exact, bev_supp, phev_exact, phev_supp, other_exact, other_supp)]
-x[, k := FML(sprintf("E%d+%s*F%d", r, IN$kf_bev, r))]; x[, l := FML(sprintf("G%d+%s*H%d", r, IN$kf_phev, r))]
-x[, m := FML(sprintf("I%d+%s*J%d", r, IN$kf_other, r))]; x[, n := FML(sprintf("K%d+L%d+M%d", r, r, r))]
+# a suppressed cell's value depends on the customer class: private rows are cut finer (gender x age)
+kk <- function(priv, oth) sprintf('IF($O%d="%s",%s,%s)', r, PRIVATE, priv, oth)
+x[, k := FML(sprintf("E%d+%s*F%d", r, kk(IN$kf_bev, IN$kfo_bev), r))]; x[, l := FML(sprintf("G%d+%s*H%d", r, kk(IN$kf_phev, IN$kfo_phev), r))]
+x[, m := FML(sprintf("I%d+%s*J%d", r, kk(IN$kf_other, IN$kfo_other), r))]; x[, n := FML(sprintf("K%d+L%d+M%d", r, r, r))]
+x[, o := flow$customer]
 put(s, x, 2); NF <- max(r)
 nf(s, dims(2, 3, NF), MON); nf(s, dims(2, 11, NF, 14), "#,##0.0")
-widths(s, c(7, 26, 10, 9, rep(11, 10))); wb$freeze_pane(sheet = s, first_row = TRUE)
+widths(s, c(7, 26, 10, 9, rep(11, 10), 20)); wb$freeze_pane(sheet = s, first_row = TRUE)
 
 s <- "Stock_NSW_LGA"
 setorder(snsw, lga_name, month)
@@ -189,15 +203,18 @@ FCOL <- setNames(L(1 + seq_along(FSER)), FSER)
 # ========================================================= LGA summary =====
 s <- "LGA_Summary"
 title(s, "LGA summary — NSW and QLD",
-      paste0("Income: ABS Personal Income in Australia 2022-23 (ATO-based), median total income of earners. New regos = new private vehicles in ", WIN$recent, ". Fleet = latest snapshot."))
-head(s, 4, c("State", "LGA code", "LGA", "Median income ($)", "Earners", "Income group", paste0("New private regos (", WIN$recent, ")"),
-             paste0("BEV (", WIN$recent, ")"), paste0("PHEV (", WIN$recent, ", NSW)"), "BEV share of new", paste0("New private regos (", WIN$base, ")"),
+      paste0("Income: ABS Personal Income in Australia 2022-23 (ATO-based), median total income of earners. New regos = new vehicles, all customer types (private, business, dealer, government), in ", WIN$recent, ". Fleet = latest snapshot."))
+head(s, 4, c("State", "LGA code", "LGA", "Median income ($)", "Earners", "Income group", paste0("New regos (", WIN$recent, ")"),
+             paste0("BEV (", WIN$recent, ")"), paste0("PHEV (", WIN$recent, ", NSW)"), "BEV share of new", paste0("New regos (", WIN$base, ")"),
              paste0("BEV (", WIN$base, ")"), paste0("BEV share (", WIN$base, ")"), "Change (pp)", "BEV fleet (latest)", "Light-vehicle fleet (NSW)",
              "BEV per 1,000 light vehicles (NSW)", "BEV fleet per 1,000 earners", "On scatter? (1 = yes)",
              "BEV share — fuel crisis months", "BEV share — same months a year earlier", "Change during crisis (pp)"))
 # eligible LGAs first within each state so the scatter series are contiguous
 fl <- copy(flow)
-fl[, new := bev_exact + phev_exact + other_exact + kv("flow", "bev")$k * bev_supp + phev_supp + other_supp]
+fl[, cl := fifelse(customer == PRIVATE, "private", "other")]
+fl[, new := bev_exact + phev_exact + other_exact + fifelse(cl == "private", kv("flow", "bev")$k, kv("flow", "bev", "other")$k) * bev_supp +
+             fifelse(cl == "private", kv("flow", "phev")$k, kv("flow", "phev", "other")$k) * phev_supp +
+             fifelse(cl == "private", kv("flow", "other")$k, kv("flow", "other", "other")$k) * other_supp]
 fl[, last := max(month), by = state]
 recent <- fl[ym_to_int(month) > ym_to_int(last) - CFG$period$recent_window_months, .(new = sum(new)), by = .(state, lga_name)]
 lga[, elig := recent$new[match(paste(state, lga_name), paste(recent$state, recent$lga_name))] >= CFG$analysis$min_new_regs_scatter]
@@ -285,7 +302,7 @@ scat$VIC <- R0 - 1 + range(which(ps$elig))
 
 # ============================================ Flow by income group, monthly ==
 s <- "Flow_Group_Month"
-title(s, "New private registrations by LGA income group — monthly",
+title(s, "New registrations by LGA income group — monthly",
       "Groups are earner-weighted: each holds about a fifth of the state's earners. Q1 = lowest-income LGAs. Counts are SUMIFS over Flow_LGA_Month.")
 months <- sort(unique(flow$mdate))
 blocks <- list(c("NSW", "new", "N"), c("NSW", "BEV", "K"), c("QLD", "new", "N"), c("QLD", "BEV", "K"))
@@ -373,7 +390,7 @@ s <- "Flow_Group_Summary"
 title(s, sprintf("Who is buying the new BEVs? — %s vs %s", WIN$recent, WIN$base),
       sprintf("Recent window = the latest %d months of data (%s). Baseline = the first %d months of data (%s). Window length is on Inputs. How the income groups are built: see Income_Groups.",
               WIN$months, WIN$recent, WIN$months, WIN$base))
-head(s, 4, c("State", "Income group", "Lowest LGA median ($)", "Highest LGA median ($)", "Earners", "New private regos", "BEV",
+head(s, 4, c("State", "Income group", "Lowest LGA median ($)", "Highest LGA median ($)", "Earners", "New regos", "BEV",
              "BEV share of new", "Share of state's new BEVs", "Share of state's new regos", "BEV per 1,000 earners",
              paste0(c("New regos, ", "BEV, ", "BEV share, "), WIN$base)))
 grow <- list(); r0 <- 5
@@ -490,7 +507,7 @@ putv(s, FML(sprintf("Flow_Group_Month!%s%d", L(SH$NSW + NG), fr)), X0, 8)
 putv(s, FML(sprintf("Flow_Group_Month!%s%d", L(SH$QLD + NG), fr)), X0, 9)
 nf(s, dims(X0, 1, XN), MON); nf(s, dims(X0, 2, XN, 6), ONE); nf(s, dims(X0, 8, XN, 9), PCT); link(s, dims(X0, 8, XN, 9))
 r0 <- XN + 3
-put(s, "New private registrations by income group — crisis months vs same months a year earlier", r0); bold(s, dims(r0, 1))
+put(s, "New registrations by income group — crisis months vs same months a year earlier", r0); bold(s, dims(r0, 1))
 r0 <- r0 + 1
 head(s, r0, c("State", "Income group", "New regos (crisis)", "BEV (crisis)", "BEV share (crisis)", "New regos (year earlier)",
               "BEV (year earlier)", "BEV share (year earlier)", "Change vs year earlier (pp)", "BEV share multiple (× year earlier)",
@@ -538,11 +555,65 @@ nf(s, dims(r0, 13, allr), PCT); nf(s, dims(tr, 9, tr, 12), DEC)
 xgrow$VIC <- r0
 widths(s, c(9, 14, rep(12, 17))); wb$freeze_pane(sheet = s, first_active_row = 5, first_active_col = 3)
 
+# ========================================================= Customer types ===
+s <- "Customer_Types"
+title(s, "New registrations by customer type — NSW and QLD",
+      paste0("Every table in this workbook counts all customer types. NSW splits private, business, dealer (demonstrator) and government buyers; QLD only individuals vs organisations. ",
+             "Business, dealer and government vehicles are registered at the organisation's address, not where the driver lives, so they sit less well against area income."))
+CT <- list(NSW = unname(unlist(CFG$nsw$customer_types)), QLD = unname(unlist(CFG$qld$customer_types)))
+fsum <- function(colf, st_, extra) sprintf('SUMIFS(Flow_LGA_Month!$%s:$%s,Flow_LGA_Month!$A:$A,"%s"%s)', colf, colf, st_, extra)
+ctc <- function(t) if (is.na(t)) "" else sprintf(',Flow_LGA_Month!$O:$O,"%s"', t)
+since <- function(st_) sprintf(',Flow_LGA_Month!$C:$C,">="&%s', if (st_ == "NSW") D$nsw_start else D$qld_start)
+between <- function(a, b) sprintf(',Flow_LGA_Month!$C:$C,">="&%s,Flow_LGA_Month!$C:$C,"<="&%s', a, b)
+put(s, paste0("A. BEV take-up by customer type — ", WIN$recent, " and the fuel crisis"), 4); bold(s, "A4")
+head(s, 5, c("State", "Customer type", "New regos", "BEV", "BEV share", "Share of state's new regos", "Share of state's BEVs",
+             "BEV share — crisis months", "BEV share — same months a year earlier", "Change (pp)"))
+r0 <- 6; ctrow <- list()
+for (st_ in c("NSW", "QLD")) {
+  ty <- c(CT[[st_]], NA); r <- rows_of(length(ty), r0); allr <- max(r)
+  x <- data.table(a = st_, b = ifelse(is.na(ty), "All customers", ty),
+                  c = FML(vapply(ty, function(t) fsum("N", st_, paste0(ctc(t), since(st_))), "")),
+                  d = FML(vapply(ty, function(t) fsum("K", st_, paste0(ctc(t), since(st_))), "")),
+                  e = FML(sprintf("IFERROR(D%d/C%d,\"\")", r, r)), f = FML(sprintf("C%d/C$%d", r, allr)), g = FML(sprintf("D%d/D$%d", r, allr)),
+                  h = FML(vapply(ty, function(t) sprintf("IFERROR(%s/%s,\"\")", fsum("K", st_, paste0(ctc(t), between(D$cr_start, D$cr_end))),
+                                                        fsum("N", st_, paste0(ctc(t), between(D$cr_start, D$cr_end)))), "")),
+                  i = FML(vapply(ty, function(t) sprintf("IFERROR(%s/%s,\"\")", fsum("K", st_, paste0(ctc(t), between(D$py_start, D$py_end))),
+                                                        fsum("N", st_, paste0(ctc(t), between(D$py_start, D$py_end)))), "")),
+                  j = FML(sprintf("IFERROR((H%d-I%d)*100,\"\")", r, r)))
+  put(s, x, r0); bold(s, dims(allr, 1, allr, 10))
+  nf(s, dims(r0, 3, allr, 4), NUM); nf(s, dims(r0, 5, allr, 9), PCT); nf(s, dims(r0, 10, allr), ONE)
+  ctrow[[st_]] <- c(r0, allr - 1); r0 <- allr + 2
+}
+put(s, paste0("B. BEV share of new regos by income group and customer type — ", WIN$recent), r0); bold(s, dims(r0, 1)); r0 <- r0 + 1
+head(s, r0, c("State", "Customer type", GROUP_LABEL, "Top ÷ bottom group")); r0 <- r0 + 1; ctgrp <- list()
+for (st_ in c("NSW", "QLD")) {
+  ty <- c(NA, CT[[st_]]); r <- rows_of(length(ty), r0)
+  put(s, data.table(a = st_, b = ifelse(is.na(ty), "All customers", ty)), r0)
+  for (g in GROUPS) putv(s, FML(vapply(ty, function(t) {
+    ex <- paste0(ctc(t), sprintf(",Flow_LGA_Month!$D:$D,%d", g), since(st_))
+    sprintf("IFERROR(%s/%s,\"\")", fsum("K", st_, ex), fsum("N", st_, ex)) }, "")), r0, 2 + g)
+  putv(s, FML(sprintf('IFERROR(%s%d/C%d,"")', L(2 + NG), r, r)), r0, 3 + NG)
+  nf(s, dims(r0, 3, max(r), 2 + NG), PCT); nf(s, dims(r0, 3 + NG, max(r)), DEC)
+  ctgrp[[st_]] <- r0; r0 <- max(r) + 2
+}
+put(s, paste0("C. Share of each income group's new BEVs bought by customers other than private buyers — ", WIN$recent), r0); bold(s, dims(r0, 1)); r0 <- r0 + 1
+head(s, r0, c("State", "", GROUP_LABEL, "All groups")); r0 <- r0 + 1
+for (st_ in c("NSW", "QLD")) {
+  put(s, data.table(a = st_, b = "Not private"), r0)
+  for (g in c(GROUPS, NA)) {
+    gx <- if (is.na(g)) "" else sprintf(",Flow_LGA_Month!$D:$D,%d", g)
+    put(s, FML(sprintf("IFERROR(1-%s/%s,\"\")", fsum("K", st_, paste0(ctc(PRIVATE), gx, since(st_))), fsum("K", st_, paste0(gx, since(st_))))),
+        r0, if (is.na(g)) 3 + NG else 2 + g)
+  }
+  nf(s, dims(r0, 3, r0, 3 + NG), PCT); r0 <- r0 + 1
+}
+widths(s, c(9, 24, rep(13, 8)))
+
 # ============================================================ Raw numbers ===
 s <- "Raw_Numbers"
 title(s, "Raw numbers — vehicle counts, not shares",
-      "New private registrations per month (NSW, QLD) and BEV counts by income group. NSW counts include the estimate for suppressed '<=5' cells (Inputs).")
-head(s, 4, c("Month", "NSW new private regos", "NSW BEV", "NSW other fuels", "QLD new private regos", "QLD BEV", "QLD other fuels"))
+      "New registrations per month (NSW, QLD) and BEV counts by income group. NSW counts include the estimate for suppressed '<=5' cells (Inputs).")
+head(s, 4, c("Month", "NSW new regos", "NSW BEV", "NSW other fuels", "QLD new regos", "QLD BEV", "QLD other fuels"))
 RN0 <- 5; r <- rows_of(length(months), RN0); RNN <- max(r)
 putv(s, FML(sprintf("Flow_Group_Month!A%d", fr)), RN0, 1); nf(s, dims(RN0, 1, RNN), MON)
 for (bi in 0:1) {
@@ -580,13 +651,13 @@ title(s, sprintf("Top and bottom %d areas", TOPN),
 lga_show <- list(c("LGA", "C", ""), c("Median income ($)", "D", USD), c("Income group", "F", "0"))
 vic_show <- list(c("Postcode", "A", "0"), c("Suburbs", "O", ""), c("Median taxable income ($)", "B", USD), c("Income group", "D", "0"))
 specs <- list(
-  list(paste0("NSW LGAs — highest BEV share of new private cars (", WIN$recent, ")"), "LGA", "NSW", "J", -1, list(c("New regos", "G", NUM), c("BEV share", "J", PCT))),
-  list(paste0("NSW LGAs — lowest BEV share of new private cars (", WIN$recent, ")"), "LGA", "NSW", "J", 1, list(c("New regos", "G", NUM), c("BEV share", "J", PCT))),
+  list(paste0("NSW LGAs — highest BEV share of new cars (", WIN$recent, ")"), "LGA", "NSW", "J", -1, list(c("New regos", "G", NUM), c("BEV share", "J", PCT))),
+  list(paste0("NSW LGAs — lowest BEV share of new cars (", WIN$recent, ")"), "LGA", "NSW", "J", 1, list(c("New regos", "G", NUM), c("BEV share", "J", PCT))),
   list(paste0("NSW LGAs — most new BEVs registered (", WIN$recent, ", count)"), "LGA", "NSW", "H", -1, list(c("New regos", "G", NUM), c("New BEVs", "H", NUM))),
   list("NSW LGAs — largest BEV fleet (count)", "LGA", "NSW", "O", -1, list(c("Per 1,000 vehicles", "Q", ONE), c("BEV fleet", "O", NUM))),
   list("NSW LGAs — biggest rise in BEV share during the fuel crisis", "LGA", "NSW", "V", -1,
        list(c("Year earlier", "U", PCT), c("Crisis", "T", PCT), c("Change (pp)", "V", ONE))),
-  list(paste0("QLD LGAs — highest BEV share of new private cars (", WIN$recent, ")"), "LGA", "QLD", "J", -1, list(c("New regos", "G", NUM), c("BEV share", "J", PCT))),
+  list(paste0("QLD LGAs — highest BEV share of new cars (", WIN$recent, ")"), "LGA", "QLD", "J", -1, list(c("New regos", "G", NUM), c("BEV share", "J", PCT))),
   list(paste0("QLD LGAs — most new BEVs registered (", WIN$recent, ", count)"), "LGA", "QLD", "H", -1, list(c("New regos", "G", NUM), c("New BEVs", "H", NUM))),
   list("VIC suburbs (postcodes) — most BEVs per 1,000 vehicles", "VIC", NA, "G", -1, list(c("BEVs", "F", NUM), c("Per 1,000", "G", ONE))),
   list("VIC suburbs (postcodes) — most BEVs registered (fleet count)", "VIC", NA, "F", -1, list(c("Vehicles", "E", NUM), c("BEVs", "F", NUM))),
@@ -628,17 +699,19 @@ wb$set_sheet_visibility(sheet = "Rank_Keys", value = "hidden")
 s <- "Suppression"
 title(s, "NSW small-cell suppression — how the '<=5' cells are valued",
       "TfNSW publishes every count of 5 or fewer as '<=5'. Because each row is also split by colour, gender, age group etc., almost every row is suppressed, so the value given to a '<=5' cell sets the level of every NSW count.")
-head(s, 4, c("Table", "Fuel group", "Estimated value per '<=5' cell", "Method"))
-put(s, supp[, .(table, fuel_group, k, method)], 5); nf(s, "C5:C10", DEC)
+head(s, 4, c("Table", "Customers", "Fuel group", "Estimated value per '<=5' cell", "Method"))
+put(s, supp[, .(table, customers, fuel_group, k, method)], 5); SR <- 4 + nrow(supp); nf(s, dims(5, 4, SR), DEC)
 notes <- c(
   "Why it matters less than it looks: every NSW comparison in this workbook is a ratio within NSW (BEV share of new regos, BEVs per 1,000 vehicles), so a common scaling of all cells cancels. Only a difference between the size of BEV cells and other cells moves the income gradient.",
-  "Flow estimate: QLD publishes unit records. Each QLD new private vehicle was given a synthetic gender x age group drawn from the NSW private new-vehicle mix for its fuel group, then aggregated to NSW's grain (month x LGA x make x fuel x colour x gender x age). The mean of the cells that NSW would have suppressed is the estimate.",
+  "Flow estimate, private buyers: QLD publishes unit records. Each QLD individual's new vehicle was given a synthetic gender x age group drawn from the NSW private new-vehicle mix for its fuel group, then aggregated to NSW's grain (month x LGA x make x fuel x colour x gender x age). The mean of the cells that NSW would have suppressed is the estimate.",
+  "Flow estimate, business, dealer and government buyers: NSW publishes these rows without gender or age, so their cells are coarser (month x LGA x make x fuel x colour) and larger. QLD organisations' new vehicles, aggregated to that grain, give the estimate the same way.",
   "Fleet estimates: BEV — the value that makes growth in the NSW BEV fleet between the first and latest snapshots equal new BEV registrations (all customer types) over the same period. Other fuels — the value that makes the whole detailed snapshot add to the total in TfNSW's coarser 'Age of Registered Vehicles' snapshot for the same month.",
   "Sensitivity: change the yellow cells on Inputs (e.g. set all to 1 or to 3) and every table and chart recalculates.")
-putv(s, notes, 12, 1)
-for (i in 12:15) wb$merge_cells(sheet = s, dims = dims(i, 1, i, 4))
-wb$add_cell_style(sheet = s, dims = "A12:A15", wrap_text = TRUE, vertical = "top")
-wb$set_row_heights(sheet = s, rows = 12:15, heights = 62); widths(s, c(16, 12, 16, 100))
+NR <- SR + 2 + seq_along(notes) - 1
+putv(s, notes, NR[1], 1)
+for (i in NR) wb$merge_cells(sheet = s, dims = dims(i, 1, i, 5))
+wb$add_cell_style(sheet = s, dims = dims(NR[1], 1, max(NR)), wrap_text = TRUE, vertical = "top")
+wb$set_row_heights(sheet = s, rows = NR, heights = 62); widths(s, c(10, 12, 12, 16, 100))
 
 # ================================================================= Charts ===
 s <- "Charts"
@@ -655,10 +728,10 @@ top_chart <- function(k) {
 GRP <- c(RN0, RN0 + NG - 1)
 sections <- list(
   list("1. Raw numbers — how many BEVs", list(
-    chart_bar("NSW — new private registrations per month: BEV vs other fuels", "Raw_Numbers", rng(1, RN0, RNN),
+    chart_bar("NSW — new registrations per month: BEV vs other fuels", "Raw_Numbers", rng(1, RN0, RNN),
               list(list(name = "BEV", ref = rng(3, RN0, RNN), colour = STATE_COL[["NSW"]]), list(name = "Other fuels", ref = rng(4, RN0, RNN), colour = OTHER)),
               grouping = "stacked", date = TRUE),
-    chart_bar("QLD — new private registrations per month: BEV vs other fuels", "Raw_Numbers", rng(1, RN0, RNN),
+    chart_bar("QLD — new registrations per month: BEV vs other fuels", "Raw_Numbers", rng(1, RN0, RNN),
               list(list(name = "BEV", ref = rng(6, RN0, RNN), colour = STATE_COL[["QLD"]]), list(name = "Other fuels", ref = rng(7, RN0, RNN), colour = OTHER)),
               grouping = "stacked", date = TRUE),
     chart_bar(paste0("New BEVs registered in ", WIN$recent, ", by income group (count)"), "Raw_Numbers", rng(GC, GRP[1], GRP[2]),
@@ -674,16 +747,16 @@ sections <- list(
     chart_bar("VIC — BEV fleet by postcode income group (count, quarters)", "Stock_Group", rng(1, STK$VIC[1], vl_),
               grp_series(2 + NG, STK$VIC[1], vl_), grouping = "stacked", date = TRUE))),
   list("2. Income — BEV share and fleet rates", list(
-    chart_line("NSW — BEV share of new private registrations, by LGA income group", "Flow_Group_Month", rng(1, M0, MN), grp_series(SH$NSW, M0, MN)),
+    chart_line("NSW — BEV share of new registrations, by LGA income group", "Flow_Group_Month", rng(1, M0, MN), grp_series(SH$NSW, M0, MN)),
     chart_bar(paste0("BEV share of new vehicles, ", WIN$recent, ", by income group"), "Flow_Group_Summary", rng(2, grow$NSW, grow$NSW + NG - 1),
-              list(list(name = "NSW (new private regos)", ref = rng(8, grow$NSW, grow$NSW + NG - 1), colour = STATE_COL[["NSW"]]),
-                   list(name = "QLD (new private regos)", ref = rng(8, grow$QLD, grow$QLD + NG - 1), colour = STATE_COL[["QLD"]]),
+              list(list(name = "NSW (new regos)", ref = rng(8, grow$NSW, grow$NSW + NG - 1), colour = STATE_COL[["NSW"]]),
+                   list(name = "QLD (new regos)", ref = rng(8, grow$QLD, grow$QLD + NG - 1), colour = STATE_COL[["QLD"]]),
                    list(name = "VIC (recent-model vehicles in fleet)", ref = rng(8, grow$VIC, grow$VIC + NG - 1), colour = STATE_COL[["VIC"]])), y_fmt = PCT),
     chart_line("NSW fleet — BEVs per 1,000 light vehicles, by LGA income group", "Stock_Group", rng(1, STK$NSW[1], nl),
                grp_series(2 + 2 * NG, STK$NSW[1], nl), y_fmt = "0", y_title = "per 1,000"),
     chart_line("VIC fleet — BEVs per 1,000 vehicles, by postcode income group", "Stock_Group", rng(1, STK$VIC[1], vl_),
                grp_series(2 + 4 * NG, STK$VIC[1], vl_), y_fmt = "0", y_title = "per 1,000"),
-    chart_scatter(paste0("NSW LGAs — median income vs BEV share of new private regos (", WIN$recent, ")"), "LGA_Summary",
+    chart_scatter(paste0("NSW LGAs — median income vs BEV share of new regos (", WIN$recent, ")"), "LGA_Summary",
                   rng(4, scat$NSW[1], scat$NSW[2]), rng(10, scat$NSW[1], scat$NSW[2]), STATE_COL[["NSW"]],
                   "LGA median total income ($, 2022-23)", "BEV share"),
     chart_scatter("VIC postcodes — median taxable income vs BEVs per 1,000 vehicles", "VIC_Postcode",
@@ -705,7 +778,21 @@ sections <- list(
     chart_bar("QLD — BEV share by income group: crisis months vs same months a year earlier", "Fuel_Crisis", rng(2, xgrow$QLD, xgrow$QLD + NG - 1),
               list(list(name = "Same months a year earlier", ref = rng(8, xgrow$QLD, xgrow$QLD + NG - 1), colour = OTHER),
                    list(name = "Fuel-crisis months", ref = rng(5, xgrow$QLD, xgrow$QLD + NG - 1), colour = STATE_COL[["QLD"]])), y_fmt = PCT))),
-  list("4. Top areas (full tables on the Top10 sheet)", list(top_chart(1), top_chart(3), top_chart(9), top_chart(5)))
+  list("4. Customer types (tables on the Customer_Types sheet)", list(
+    chart_bar(paste0("NSW — BEV share of new regos by customer type, ", WIN$recent), "Customer_Types", rng(2, ctrow$NSW[1], ctrow$NSW[2]),
+              list(list(name = "BEV share", ref = rng(5, ctrow$NSW[1], ctrow$NSW[2]), colour = STATE_COL[["NSW"]])), y_fmt = PCT, legend = FALSE),
+    chart_bar("NSW — share of new BEVs by customer type", "Customer_Types", rng(2, ctrow$NSW[1], ctrow$NSW[2]),
+              list(list(name = "Share of state's BEVs", ref = rng(7, ctrow$NSW[1], ctrow$NSW[2]), colour = STATE_COL[["NSW"]]),
+                   list(name = "Share of state's new regos", ref = rng(6, ctrow$NSW[1], ctrow$NSW[2]), colour = OTHER)), y_fmt = PCT),
+    chart_bar(paste0("NSW — BEV share by income group: all customers vs private buyers, ", WIN$recent), "Customer_Types",
+              sprintf("$C$%d:$%s$%d", ctgrp$NSW - 1, L(2 + NG), ctgrp$NSW - 1),
+              list(list(name = "All customers", ref = sprintf("$C$%d:$%s$%d", ctgrp$NSW, L(2 + NG), ctgrp$NSW), colour = STATE_COL[["NSW"]]),
+                   list(name = "Private buyers", ref = sprintf("$C$%d:$%s$%d", ctgrp$NSW + 1, L(2 + NG), ctgrp$NSW + 1), colour = OTHER)), y_fmt = PCT),
+    chart_bar(paste0("QLD — BEV share by income group: all customers vs individuals, ", WIN$recent), "Customer_Types",
+              sprintf("$C$%d:$%s$%d", ctgrp$NSW - 1, L(2 + NG), ctgrp$NSW - 1),
+              list(list(name = "All customers", ref = sprintf("$C$%d:$%s$%d", ctgrp$QLD, L(2 + NG), ctgrp$QLD), colour = STATE_COL[["QLD"]]),
+                   list(name = "Private buyers", ref = sprintf("$C$%d:$%s$%d", ctgrp$QLD + 1, L(2 + NG), ctgrp$QLD + 1), colour = OTHER)), y_fmt = PCT))),
+  list("5. Top areas (full tables on the Top10 sheet)", list(top_chart(1), top_chart(3), top_chart(9), top_chart(5)))
 )
 ROWS_PER_CHART <- 21; row <- 4
 for (sec in sections) {
@@ -733,8 +820,8 @@ xarrow <- function(a, b) sprintf('%s&" → "&%s', xs(a), xs(b))
 rows <- list(
   list(paste("New cars —", WIN$recent), NULL),
   list("New BEVs registered", c(sprintf("%s!%s%d", rn, L(GC + 1), RG_ALL), sprintf("%s!%s%d", rn, L(GC + 2), RG_ALL), NA),
-       "NSW and QLD new private registrations", NUM),
-  list("BEV share of new private cars", c(sprintf("%s!H%d", fg, gN + NG), sprintf("%s!H%d", fg, gQ + NG), sprintf("%s!H%d", fg, gV + NG)),
+       "NSW and QLD new registrations", NUM),
+  list("BEV share of new cars", c(sprintf("%s!H%d", fg, gN + NG), sprintf("%s!H%d", fg, gQ + NG), sprintf("%s!H%d", fg, gV + NG)),
        "VIC: share of recent-model vehicles in the fleet", PCT),
   list("BEV share, poorest → richest fifth of areas",
        c(arrow(sprintf("%s!H%d", fg, gN), sprintf("%s!H%d", fg, gN + top), "0.0%"), arrow(sprintf("%s!H%d", fg, gQ), sprintf("%s!H%d", fg, gQ + top), "0.0%"),
@@ -753,7 +840,7 @@ rows <- list(
                                 arrow(sprintf("%s!G%d", fc, xQ + NG), sprintf("%s!D%d", fc, xQ + NG), "#,##0"),
                                 arrow(sprintf("%s!H%d", fc, xV + NG), sprintf("%s!E%d", fc, xV + NG), "#,##0")),
        "VIC: BEVs added to the fleet in the crisis quarter vs a year earlier", NA),
-  list("BEV share of new private cars", c(arrow(sprintf("%s!H%d", fc, xN + NG), sprintf("%s!E%d", fc, xN + NG), "0.0%"),
+  list("BEV share of new cars", c(arrow(sprintf("%s!H%d", fc, xN + NG), sprintf("%s!E%d", fc, xN + NG), "0.0%"),
                                           arrow(sprintf("%s!H%d", fc, xQ + NG), sprintf("%s!E%d", fc, xQ + NG), "0.0%"), NA), NA, NA),
   list("Growth in BEV share, poorest vs richest fifth", c(sprintf('%s&" vs "&%s', xs(sprintf("%s!J%d", fc, xN)), xs(sprintf("%s!J%d", fc, xN + top))),
                                                         sprintf('%s&" vs "&%s', xs(sprintf("%s!J%d", fc, xQ)), xs(sprintf("%s!J%d", fc, xQ + top))),

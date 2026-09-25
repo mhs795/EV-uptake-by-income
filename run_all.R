@@ -36,7 +36,7 @@ for (s in run) {
   cat(sprintf("\n==== %s  (%s) ====\n", s, steps[[s]]))
   t0 <- Sys.time()
   # each step runs in a fresh R process: clean memory, same as running it by hand
-  status <- system2(shQuote(file.path(R.home("bin"), "Rscript")), shQuote(steps[[s]]))  # quoted: R on Windows lives in "Program Files"
+  status <- system2(file.path(R.home("bin"), "Rscript"), shQuote(steps[[s]]))  # system2 quotes the command itself (R on Windows is in "Program Files")
   if (status != 0) stop(sprintf("step '%s' failed (exit %d)", s, status))
   cat(sprintf("---- %s done in %.0f s\n", s, as.numeric(difftime(Sys.time(), t0, units = "secs"))))
 }

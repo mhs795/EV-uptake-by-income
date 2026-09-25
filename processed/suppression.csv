@@ -1,7 +1,10 @@
-table,fuel_group,k,method
-flow,bev,1.274,QLD unit records re-cut at NSW grain (synthetic gender x age from NSW mix)
-flow,phev,1.274,Borrowed from flow BEV (QLD has no PHEV label)
-flow,other,1.24,QLD unit records re-cut at NSW grain (synthetic gender x age from NSW mix)
-stock,bev,2.076,NSW BEV fleet growth = new BEV registrations over the same period
-stock,phev,2.076,Borrowed from stock BEV
-stock,other,1.437,Detailed snapshot total = coarse age-of-vehicles snapshot total
+table,customers,fuel_group,k,method
+flow,private,bev,1.274,QLD individuals' vehicles re-cut at NSW private grain (synthetic gender x age from NSW mix)
+flow,private,phev,1.274,Borrowed from private flow BEV (QLD has no PHEV label)
+flow,private,other,1.24,QLD individuals' vehicles re-cut at NSW private grain (synthetic gender x age from NSW mix)
+flow,other,bev,1.503,QLD organisations' vehicles re-cut at NSW grain for business/dealer/government rows (LGA x make x fuel x colour)
+flow,other,phev,1.503,Borrowed from other-customer flow BEV (QLD has no PHEV label)
+flow,other,other,1.676,QLD organisations' vehicles re-cut at NSW grain for business/dealer/government rows (LGA x make x fuel x colour)
+stock,all,bev,2.288,NSW BEV fleet growth = new BEV registrations (all customers) over the same period
+stock,all,phev,2.288,Borrowed from stock BEV
+stock,all,other,1.437,Detailed snapshot total = coarse age-of-vehicles snapshot total

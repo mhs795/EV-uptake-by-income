@@ -37,6 +37,13 @@ nsw:
   snapshot_glob: nsw/snapshot/tfnsw_vehicle_registrations_snapshot_*.zip
   sep: "|"
   new_transaction: "Establish registration of new vehicle"
+  # Customer types kept, and the label each gets. Every type is counted in the
+  # analysis; the dashboard can also show private customers on their own.
+  # Business, dealer (demonstrator) and government vehicles are registered at
+  # the organisation's address, not where the driver lives.
+  customer_types: {Private: Private, Business: Business, Dealer: Dealer demonstrator, Government: Government}
+  # Private rows are also split by gender x age group; other types are not, so
+  # their suppressed '<=5' cells are estimated at the coarser grain
   private_customer_types: [Private]
   suppressed_token: "<=5"
   # TfNSW renamed fuel types mid-2022 and again in 2026; all spellings listed
@@ -86,6 +93,9 @@ nsw:
 qld:
   glob: qld/qld_*.csv
   new_transaction: "Registration New"
+  # QLD only splits individuals from organisations (business, government and
+  # dealers together)
+  customer_types: {Individual: Private, Organisation: Organisation}
   private_customer_types: [Individual]
   bev_labels: [Electric]
   # QLD "Petrol And Electric" mixes HEV and PHEV, so no PHEV series for QLD
@@ -127,7 +137,7 @@ fuel:
   onset_search_from: "2025-01"
 
 analysis:
-  # LGAs/postcodes need at least this many new private registrations in the
+  # LGAs/postcodes need at least this many new registrations in the
   # recent window (or recent-model vehicles for VIC) to appear on the scatter
   min_new_regs_scatter: 300
   min_recent_vehicles_vic: 300

@@ -24,6 +24,8 @@ OUT  <- file.path(HERE, Sys.getenv("EV_PROCESSED", CFG$paths$processed))
 dir.create(OUT, showWarnings = FALSE, recursive = TRUE)
 
 FUEL_GROUPS <- c("bev", "phev", "other")
+# label given to private buyers in both states (config nsw/qld customer_types)
+PRIVATE <- CFG$nsw$customer_types[[CFG$nsw$private_customer_types[[1]]]]
 
 logf <- function(...) { cat(sprintf(...), "\n", sep = ""); flush.console() }
 comma <- function(x, d = 0) formatC(x, format = "f", digits = d, big.mark = ",")

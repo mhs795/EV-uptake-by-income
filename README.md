@@ -71,6 +71,11 @@ EV_uptake_by_income.xlsx
   workbook's Inputs sheet.
 - **QLD**: TMR unit records of new and transferred registrations, by LGA. There is no public regional
   fleet-by-fuel data, so the fleet figure is a proxy: BEVs seen since 2022, placed at their last known LGA.
+- **Customer types**: NSW and QLD new registrations cover every customer type. NSW splits private, business,
+  dealer (demonstrator) and government buyers; QLD only individuals and organisations. The dashboard's
+  Customers switch shows private buyers on their own, and the Customer types tab and workbook sheet compare them.
+  NSW publishes business, dealer and government rows without gender or age, so their `<=5` cells are larger and
+  get their own estimate.
 - **VIC**: DTP quarterly whole-fleet snapshot by postcode. The monthly VIC file has no location, so
   recent-model vehicles in the fleet stand in for new sales.
 - **Income**: ABS Personal Income in Australia 2022-23 (ATO-based) by LGA; ATO Taxation Statistics 2023-24
@@ -86,6 +91,9 @@ and proxy is on its **Data_Adjustments** sheet, with the number of records it af
 ## Caveats
 
 - This compares areas, not people: it shows where BEVs are registered, not the income of the person who bought each one.
+- Business, dealer and government vehicles are registered at the organisation's address (head office, fleet or
+  leasing company, dealer), not where the driver lives. Area income fits private buyers best; compare with the
+  private-only view. VIC has no customer type, so VIC figures cover all owners.
 - Income groups are ranked within each state and weighted by earners (each holds about a fifth of the state's earners, whole
   areas kept together). QLD council areas are large (Brisbane alone is about a quarter of QLD earners), so QLD groups are uneven.
   Full method and each group's make-up: the workbook's **Income_Groups** sheet and the dashboard's Income groups tab.

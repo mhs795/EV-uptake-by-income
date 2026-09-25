@@ -18,6 +18,7 @@ COL <- list(primary = "#1F7AE0", text = "#1A1D21", med = "#6B7280", low = "#9AA5
             nsw = "#1976D2", qld = "#F57C00", vic = "#00897B", other = "#CFD6DE", band = "rgba(245,124,0,0.10)",
             na = "#E3E6EA", land = "#FFFFFF", coast = "#B8C1CC")
 STATE_COL <- c(NSW = COL$nsw, QLD = COL$qld, VIC = COL$vic)
+CT_COL <- c(Private = "#1F7AE0", Business = "#F57C00", `Dealer demonstrator` = "#00897B", Government = "#9AA5B1", Organisation = "#F57C00")
 SEQ <- c("#E3F2FD", "#BBDEFB", "#90CAF9", "#5AA2EE", "#1F7AE0", "#1565C0", "#0D47A1")
 GROUP_COL <- c("#90CAF9", "#5AA2EE", "#1F7AE0", "#1565C0", "#0D47A1")
 NG <- D$n_groups
@@ -38,7 +39,7 @@ crisis_label <- sprintf("%s–%s", mon(D$crisis$start), mon(D$crisis$end))
 
 METRICS <- list(
   lga = list(
-    share = list(label = sprintf("BEV share of new private cars (%s)", RW), fmt = pct),
+    share = list(label = sprintf("BEV share of new cars (%s)", RW), fmt = pct),
     share_c = list(label = sprintf("BEV share during the fuel crisis (%s)", crisis_label), fmt = pct),
     chg = list(label = "Change in BEV share: crisis vs same months a year earlier", fmt = pp),
     mult = list(label = "Crisis BEV share ÷ year-earlier share", fmt = mult),
@@ -166,6 +167,8 @@ geo_seg <- function(id) seg(id, c("NSW + QLD" = "lga", "VIC" = "vic"), "Geograph
 state_sel <- function(id, geo_id) conditionalPanel(sprintf("input.%s != 'vic'", geo_id),
                                                    selectInput(id, "State", c("NSW + QLD" = "ALL", "NSW", "QLD"), width = "160px"))
 metric_choices <- function(g, drop = NULL) { m <- METRICS[[g]][setdiff(names(METRICS[[g]]), drop)]; setNames(names(m), vapply(m, `[[`, "", "label")) }
+# all customers or private buyers only (NSW + QLD; VIC data have no customer type)
+cust_seg <- function(id, geo_id) conditionalPanel(sprintf("input.%s != 'vic'", geo_id), seg(id, c("All" = "all", "Private only" = "private"), "Customers"))
 metric_sel <- function(id, label, drop = NULL) div(class = "tb-metric", selectInput(id, label, metric_choices("lga", drop)))
 
 card <- function(title, note = NULL, ...) div(class = "card2", h2(title), if (!is.null(note)) p(class = "note", note), ...)
@@ -193,7 +196,7 @@ ui <- page(
                       dl_item("dl_workbook", "Full workbook", "Every table, chart, source and adjustment"),
                       dl_item("dl_areas", "All areas", "NSW + QLD councils and VIC postcodes"),
                       dl_item("dl_top", "Top & bottom 10s", "Every metric, both geographies"),
-                      dl_item("dl_groups", "Income-group summary", "Totals by income group, and how groups are built"),
+                      dl_item("dl_groups", "Income-group summary", "Totals by income group and customer type, and how groups are built"),
                       dl_item("dl_series", "Monthly series + fuel prices", "Per-area trends and state totals"))))),
   div(class = "md-content",
     navset_underline(id = "tab",
@@ -206,7 +209,7 @@ ui <- page(
             "Sources, data adjustments and method are in the full workbook (Download, top right).")),
 
       nav_panel("Map", value = "map",
-        div(class = "toolbar", geo_seg("map_geo"), state_sel("map_st", "map_geo"), metric_sel("map_metric", "Colour areas by"),
+        div(class = "toolbar", geo_seg("map_geo"), state_sel("map_st", "map_geo"), cust_seg("map_cust", "map_geo"), metric_sel("map_metric", "Colour areas by"),
             actionButton("map_reset", "Reset view", class = "md-btn"),
             span(class = "tb-hint", "Click an area on the map or a dot on the scatter to see its trend.")),
         div(class = "grid-2",
@@ -218,7 +221,7 @@ ui <- page(
                     plotlyOutput("scatter", height = 290))))),
 
       nav_panel("Income groups", value = "income",
-        div(class = "toolbar", geo_seg("grp_geo"), metric_sel("grp_metric", "Measure", drop = c("income", "add_c")),
+        div(class = "toolbar", geo_seg("grp_geo"), cust_seg("grp_cust", "grp_geo"), metric_sel("grp_metric", "Measure", drop = c("income", "add_c")),
             span(class = "tb-hint", "Areas are grouped into fifths of each state's earners, from the lowest-income areas (Q1) to the highest (Q5).")),
         div(class = "grid-even",
           card(textOutput("grp_title", inline = TRUE), "Weighted totals for each group, not averages of areas. Method below.", plotlyOutput("grp_bars", height = 280)),
@@ -229,19 +232,35 @@ ui <- page(
 
       nav_panel("Fuel crisis", value = "crisis", div(class = "grid-even",
         card("Pump prices and the 2026 fuel crisis", "Monthly average retail price, c/L. Shaded: crisis months (onset detected from terminal gate prices).", plotlyOutput("fuel", height = 260)),
-        card("BEV share of new private registrations — all areas", "Same months as the price chart.", plotlyOutput("share_all", height = 260)),
+        card("BEV share of new registrations — all areas and customers", "Same months as the price chart.", plotlyOutput("share_all", height = 260)),
         card("NSW — BEV share by income group: crisis vs a year earlier", textOutput("crisis_note_nsw"), plotlyOutput("crisis_nsw", height = 260)),
         card("QLD — BEV share by income group: crisis vs a year earlier", textOutput("crisis_note_qld"), plotlyOutput("crisis_qld", height = 260)))),
 
+      nav_panel("Customer types", value = "cust",
+        div(class = "toolbar", seg("ct_st", c(NSW = "NSW", QLD = "QLD"), "State"),
+            span(class = "tb-hint", style = "max-width:560px", "NSW splits private, business, dealer (demonstrator) and government buyers; QLD only individuals and organisations. ",
+                 "Organisations register vehicles at their own address, not where the driver lives, so their BEVs cluster in a few councils.")),
+        div(class = "grid-even",
+          card(sprintf("BEV take-up by customer type — %s", RW), textOutput("ct_note"), uiOutput("ct_tbl")),
+          card("Where each type's BEVs are registered", "Share of each type's new BEVs registered in its top 5 councils, against those councils' share of the state's earners.",
+               uiOutput("ct_conc")),
+          card("BEV share of new registrations by customer type, monthly", "Shaded: fuel crisis.", plotlyOutput("ct_share", height = 260)),
+          card("New BEVs per month by customer type (count)", "Shaded: fuel crisis.", plotlyOutput("ct_count", height = 260)),
+          card(sprintf("BEV share by income group and customer type — %s", RW), "Income group of the council where the vehicle is registered.", plotlyOutput("ct_grp", height = 260)),
+          card(sprintf("Share of each income group's new BEVs not bought privately — %s", RW), "Business, dealer and government (QLD: organisations).",
+               plotlyOutput("ct_notpriv", height = 260)),
+          div(class = "card2", style = "grid-column: 1 / -1;", h2(sprintf("Councils with the most BEVs bought by organisations — %s", RW)),
+              p(class = "note", "Head offices, fleet and leasing companies and dealers show up here, not where the cars are driven."), uiOutput("ct_top")))),
+
       nav_panel("Registrations", value = "raw", div(class = "grid-even",
-        card("NSW — new private registrations per month", textOutput("raw_note"), plotlyOutput("raw_nsw", height = 260)),
-        card("QLD — new private registrations per month", "BEV vs other fuels (count).", plotlyOutput("raw_qld", height = 260)),
-        card(sprintf("New BEVs registered by income group — %s (count)", RW), "NSW and QLD new private registrations.", plotlyOutput("raw_groups", height = 260)),
+        card("NSW — new registrations per month", textOutput("raw_note"), plotlyOutput("raw_nsw", height = 260)),
+        card("QLD — new registrations per month", "BEV vs other fuels (count).", plotlyOutput("raw_qld", height = 260)),
+        card(sprintf("New BEVs registered by income group — %s (count)", RW), "NSW and QLD new registrations, all customer types.", plotlyOutput("raw_groups", height = 260)),
         card("New BEVs by income group — crisis months vs a year earlier (count)", sprintf("%s vs %s–%s.", crisis_label, mon(D$crisis$py_start), mon(D$crisis$py_end)),
              plotlyOutput("raw_crisis", height = 260)))),
 
       nav_panel("Rankings", value = "rank",
-        div(class = "toolbar", geo_seg("rank_geo"), state_sel("rank_st", "rank_geo"), metric_sel("rank_metric", "Rank by"),
+        div(class = "toolbar", geo_seg("rank_geo"), state_sel("rank_st", "rank_geo"), cust_seg("rank_cust", "rank_geo"), metric_sel("rank_metric", "Rank by"),
             seg("rank_ord", c("Highest 10" = "top", "Lowest 10" = "bottom"), "Show"),
             span(class = "tb-hint", "Click a row to see that area's trend alongside.")),
         div(class = "grid-even",
@@ -254,15 +273,17 @@ server <- function(input, output, session) {
   view <- function(prefix, drop = NULL) {
     geo <- reactive(input[[paste0(prefix, "_geo")]] %||% "lga")
     st <- reactive(if (geo() == "vic") "VIC" else input[[paste0(prefix, "_st")]] %||% "ALL")
+    cust <- reactive(input[[paste0(prefix, "_cust")]] %||% "all")
+    dv <- reactive(D$views[[cust()]])   # lga, lga_series, groups, state_month for the chosen customers
     mid <- paste0(prefix, "_metric")
     observeEvent(geo(), {
       ch <- metric_choices(geo(), drop); cur <- isolate(input[[mid]])
       updateSelectInput(session, mid, choices = ch, selected = if (isTRUE(cur %in% ch)) cur else ch[[1]])
     }, ignoreInit = TRUE)
     metric <- reactive({ m <- METRICS[[geo()]]; k <- input[[mid]]; if (!isTRUE(k %in% setdiff(names(m), drop))) k <- setdiff(names(m), drop)[1]; c(key = k, m[[k]]) })
-    areas <- reactive(if (geo() == "vic") D$vic else if (st() == "ALL") D$lga else D$lga[state == st()])
+    areas <- reactive(if (geo() == "vic") D$vic else if (st() == "ALL") dv()$lga else dv()$lga[state == st()])
     eligible <- reactive({ a <- areas(); k <- metric()$key; a[(k == "income" | elig) & !is.na(a[[k]])] })
-    list(geo = geo, st = st, metric = metric, areas = areas, eligible = eligible)
+    list(geo = geo, st = st, cust = cust, dv = dv, metric = metric, areas = areas, eligible = eligible)
   }
   mv <- view("map"); gv <- view("grp", drop = c("income", "add_c")); rv <- view("rank")
 
@@ -271,7 +292,8 @@ server <- function(input, output, session) {
     selected <- reactive({ s <- sel(); if (is.null(s)) NULL else { a <- v$areas()[id == s]; if (nrow(a)) a[1] else NULL } })
     output[[paste0(id, "_head")]] <- renderUI({
       a <- selected()
-      if (is.null(a)) return(tagList(div(class = "sel-name", if (v$geo() == "lga") sprintf("All %s council areas", if (v$st() == "ALL") "NSW and QLD" else v$st()) else "All VIC postcodes"),
+      if (is.null(a)) return(tagList(div(class = "sel-name", if (v$geo() == "lga") sprintf("All %s council areas%s", if (v$st() == "ALL") "NSW and QLD" else v$st(),
+                                                                                           if (v$cust() == "private") " — private buyers" else "") else "All VIC postcodes"),
                                      div(class = "sel-meta", "No area selected: showing state averages.")))
       k <- function(l, x) div(class = "kpi", tags$b(x), span(l))
       ks <- if (v$geo() == "lga") list(k(sprintf("BEV share, %s", RW), pct(a$share)), k(sprintf("Crisis %s (year earlier)", crisis_label), sprintf("%s (%s)", pct(a$share_c), pct(a$share_p))),
@@ -282,17 +304,17 @@ server <- function(input, output, session) {
               div(class = "sel-meta", sprintf("%s · median income %s · income group Q%d of %d%s", a$state, usd(a$income), a$group, NG, if (a$elig) "" else " · small area, treat with care")),
               div(class = "kpis", ks))
     })
-    output[[paste0(id, "_line_title")]] <- renderText(if (v$geo() == "lga") "BEV share of new private registrations, monthly" else "BEVs per 1,000 registered vehicles, quarterly")
+    output[[paste0(id, "_line_title")]] <- renderText(if (v$geo() == "lga") "BEV share of new registrations, monthly" else "BEVs per 1,000 registered vehicles, quarterly")
     output[[paste0(id, "_line_note")]] <- renderText({ a <- selected(); if (is.null(a)) "State averages. Shaded: fuel crisis." else sprintf("%s vs %s average. Shaded: fuel crisis.", a$name, a$state) })
     output[[paste0(id, "_line")]] <- renderPlotly({
       a <- selected(); p <- plot_ly()
       if (v$geo() == "lga") {
-        x <- mdate(D$months); sm <- D$state_month
+        x <- mdate(D$months); sm <- v$dv()$state_month
         if (is.null(a)) {
           for (s in if (v$st() == "ALL") c("NSW", "QLD") else v$st())
             p <- p |> add_lines(x = x, y = sm[state == s][match(D$months, month), share], name = s, line = list(color = STATE_COL[[s]], width = 2))
         } else {
-          y <- unlist(D$lga_series[state == a$state & lga_name == a$name, -(1:2)])
+          y <- unlist(v$dv()$lga_series[state == a$state & lga_name == a$name, -(1:2)])
           p <- p |> add_lines(x = x, y = y, name = a$name, line = list(color = STATE_COL[[a$state]], width = 2)) |>
             add_lines(x = x, y = sm[state == a$state][match(D$months, month), share], name = paste(a$state, "average"), line = list(color = COL$low, width = 2, dash = "dash"))
         }
@@ -315,7 +337,7 @@ server <- function(input, output, session) {
     g5 <- G[state == "NSW" & group == NG, share]; g1 <- G[state == "NSW" & group == 1, share]
     div(class = "md-kpi-row",
         card(sprintf("New BEVs, %s", RW), int(K$NSW$bev + K$QLD$bev), sprintf("NSW %s · QLD %s", int(K$NSW$bev), int(K$QLD$bev))),
-        card("BEV share of new private cars", pct(K$NSW$share), sprintf("NSW · QLD %s", pct(K$QLD$share))),
+        card("BEV share of new cars", pct(K$NSW$share), sprintf("NSW · QLD %s", pct(K$QLD$share))),
         card("Richest vs poorest areas", sprintf("%.1f×", g5 / g1), "NSW BEV share, Q5 vs Q1"),
         card("BEVs in the fleet", int(K$NSW$fleet + K$VIC$fleet), sprintf("NSW %s · VIC %s", int(K$NSW$fleet), int(K$VIC$fleet))),
         card("Fuel crisis BEV share", sprintf("%s → %s", pct(K$NSW$share_p), pct(K$NSW$share_c)), sprintf("NSW, %s vs a year earlier", crisis_label)))
@@ -323,7 +345,7 @@ server <- function(input, output, session) {
   output$findings <- renderUI({
     G <- D$groups; g <- function(s, q, k) G[state == s & group == q][[k]]
     items <- list(
-      c("Richer areas buy more BEVs. ", sprintf("In %s, the richest fifth of NSW council areas registered BEVs at %s of new private cars, vs %s in the poorest (%.1f×). In the fleet the gap is wider: %s vs %s BEVs per 1,000 light vehicles.",
+      c("Richer areas buy more BEVs. ", sprintf("In %s, counting every customer type, the richest fifth of NSW council areas registered BEVs at %s of new cars, vs %s in the poorest (%.1f×). In the fleet the gap is wider: %s vs %s BEVs per 1,000 light vehicles.",
                                                RW, pct(g("NSW", NG, "share")), pct(g("NSW", 1, "share")), g("NSW", NG, "share") / g("NSW", 1, "share"), num1(g("NSW", NG, "per1000veh")), num1(g("NSW", 1, "per1000veh")))),
       c("VIC postcodes show the same gradient. ", sprintf("%s BEVs per 1,000 vehicles in the top income group vs %s in the bottom.", num1(g("VIC", NG, "per1000veh")), num1(g("VIC", 1, "per1000veh")))),
       c("QLD is flatter at council level. ", sprintf("Its LGAs are large (Brisbane alone is about a quarter of QLD earners), and lower-income coastal retiree areas such as the Sunshine Coast take up BEVs strongly. Top vs bottom group: %s vs %s.",
@@ -332,7 +354,14 @@ server <- function(input, output, session) {
                                                                         crisis_label, mult(g("NSW", 1, "mult")), mult(g("NSW", NG, "mult")), mult(g("QLD", 1, "mult")), mult(g("QLD", NG, "mult")),
                                                                         pp(g("NSW", NG, "chg")), pp(g("NSW", 1, "chg")))),
       c("Regional coastal areas moved most. ", "On the Map tab, colour areas by the crisis change: the biggest NSW jumps were in lower-income coastal LGAs such as Bellingen, Kiama, Byron, Eurobodalla and Ballina, alongside the wealthy North Shore."),
-      c("Caveat. ", "This compares areas, not people: it shows where BEVs are registered, not who bought them. Novated leases, retirees' wealth and business fleets all blur the link to income."))
+      local({ C <- D$cust$recent; cn <- function(t, k) C[state == "NSW" & customer == t][[k]]; pv <- D$views$private$groups
+        c("Business buyers take up BEVs more slowly, and register them in a few councils. ",
+          sprintf("In NSW, %s of new BEVs went to business, dealer and government buyers. Their BEV share was %s for businesses vs %s for private buyers, and a business's top 5 councils (%s) held %s of its BEVs but only %s of the state's earners. Counting private buyers only, the richest fifth of NSW areas reaches %s vs %s in the poorest (%.1f×) — see the Customer types tab and the Customers switch.",
+                  pct(1 - cn(D$private_label, "of_bev")), pct(cn("Business", "share")), pct(cn(D$private_label, "share")), cn("Business", "top5"),
+                  pct(cn("Business", "top5_bev")), pct(cn("Business", "top5_earners")),
+                  pct(pv[state == "NSW" & group == NG, share]), pct(pv[state == "NSW" & group == 1, share]),
+                  pv[state == "NSW" & group == NG, share] / pv[state == "NSW" & group == 1, share])) }),
+      c("Caveat. ", "This compares areas, not people: it shows where BEVs are registered, not who bought them. Business, dealer and government vehicles are registered at the organisation's address, and novated leases and retirees' wealth also blur the link to income."))
     tags$ul(lapply(items, function(x) tags$li(tags$b(x[1]), x[2])))
   })
 
@@ -383,6 +412,7 @@ server <- function(input, output, session) {
   map_seen <- FALSE
   observeEvent(input$tab, if (input$tab == "map" && !map_seen) { map_seen <<- TRUE; fit_view() })
   observeEvent(list(mv$geo(), mv$st()), { map_sel(NULL); fit_view() }, ignoreInit = TRUE)
+  observeEvent(mv$cust(), { s <- map_sel(); if (!is.null(s) && !nrow(mv$areas()[id == s])) map_sel(NULL) }, ignoreInit = TRUE)
   observeEvent(input$map_reset, { map_sel(NULL); fit_view() })
   observeEvent(input$map_shape_click, map_sel(input$map_shape_click$id))
   observeEvent(event_data("plotly_click", source = "sc"), { e <- event_data("plotly_click", source = "sc"); if (!is.null(e$customdata)) map_sel(e$customdata) })
@@ -390,7 +420,7 @@ server <- function(input, output, session) {
     s <- map_sel(); p <- leafletProxy("map") |> clearGroup("sel")
     if (!is.null(s)) { g <- shapes(); g <- g[g$id == s, ]; if (nrow(g)) p |> addPolylines(data = g, group = "sel", color = COL$text, weight = 2.5) }
   })
-  output$map_title <- renderText(mv$metric()$label)
+  output$map_title <- renderText(paste0(mv$metric()$label, if (mv$geo() != "vic" && mv$cust() == "private") " — private buyers only" else ""))
   output$map_note <- renderText(if (mv$geo() == "lga") "Council areas (LGAs) in NSW and QLD; other states in outline. Colour bins are sevenths of the areas shown. Grey = fewer than the minimum new registrations."
                                 else "Postcodes, named by their ABS suburbs. Opens on Greater Melbourne — zoom out for regional Victoria. Colour bins are sevenths of postcodes.")
   output$legend <- renderUI({
@@ -430,11 +460,12 @@ server <- function(input, output, session) {
     p |> theme_plot(yfmt = fmt_axis) |> layout(barmode = "group", bargap = 0.3, xaxis = list(categoryorder = "array", categoryarray = QLAB))
   }
   grp_col <- c(fleet_bev = "fleet", add_c = "add_c1000")   # area column -> income-group column
-  output$grp_title <- renderText(paste(gv$metric()$label, "— by income group"))
+  output$grp_title <- renderText(paste0(gv$metric()$label, " — by income group", if (gv$geo() != "vic" && gv$cust() == "private") ", private buyers" else ""))
   output$grp_bars <- renderPlotly({
     m <- gv$metric(); key <- grp_col[m$key] %|NA|% m$key
     sts <- if (gv$geo() == "vic") "VIC" else c("NSW", "QLD")
-    bars(lapply(sts, function(s) list(name = s, colour = STATE_COL[[s]], vals = D$groups[state == s][order(group)][[key]] %||% rep(NA, NG))), axis_of(m$fmt), m$fmt)
+    G <- gv$dv()$groups
+    bars(lapply(sts, function(s) list(name = s, colour = STATE_COL[[s]], vals = G[state == s][order(group)][[key]] %||% rep(NA, NG))), axis_of(m$fmt), m$fmt)
   })
   output$grp_method <- renderUI({
     M <- D$group_method
@@ -499,13 +530,64 @@ server <- function(input, output, session) {
     list(name = "QLD yr earlier", colour = "#F8D2A8", vals = D$groups[state == "QLD"][order(group), p_bev]),
     list(name = "QLD crisis", colour = COL$qld, vals = D$groups[state == "QLD"][order(group), c_bev])), ",.0f", int))
 
+  # ---- Customer types tab
+  ct_st <- reactive(input$ct_st %||% "NSW")
+  ct_types <- reactive(intersect(D$cust$order, D$cust$recent[state == ct_st(), customer]))
+  output$ct_note <- renderText({ r <- D$cust$recent[state == ct_st()]
+    sprintf("%s of %s's new BEVs were bought by customers other than private buyers.", pct(1 - r[customer == D$private_label, of_bev]), ct_st()) })
+  output$ct_tbl <- renderUI({
+    r <- D$cust$recent[state == ct_st()]
+    tags$table(class = "md", tags$thead(tags$tr(tags$th("Customer type"), tags$th(class = "num", "New regos"), tags$th(class = "num", "BEVs"),
+                                                tags$th(class = "num", "BEV share"), tags$th(class = "num", "Share of BEVs"),
+                                                tags$th(class = "num", sprintf("Crisis %s (year earlier)", crisis_label)))),
+      tags$tbody(lapply(seq_len(nrow(r)), function(i) tags$tr(tags$td(r$customer[i]), tags$td(class = "num", int(r$new[i])), tags$td(class = "num", int(r$bev[i])),
+        tags$td(class = "num", pct(r$share[i])), tags$td(class = "num", pct(r$of_bev[i])),
+        tags$td(class = "num", sprintf("%s (%s)", pct(r$share_c[i]), pct(r$share_p[i])))))))
+  })
+  output$ct_conc <- renderUI({
+    r <- D$cust$recent[state == ct_st()]
+    tags$table(class = "md", tags$thead(tags$tr(tags$th("Customer type"), tags$th("Top 5 councils by BEVs"), tags$th(class = "num", "Their share of the BEVs"),
+                                                tags$th(class = "num", "Their share of earners"))),
+      tags$tbody(lapply(seq_len(nrow(r)), function(i) tags$tr(tags$td(r$customer[i]), tags$td(r$top5[i]),
+        tags$td(class = "num", pct(r$top5_bev[i])), tags$td(class = "num", pct(r$top5_earners[i]))))))
+  })
+  ct_band <- function() list(crisis_band(mdate(D$crisis$start), mdate(D$crisis$end)))
+  output$ct_share <- renderPlotly({
+    m <- D$cust$month[state == ct_st()]; p <- plot_ly()
+    for (t in ct_types()) { d <- m[customer == t]; p <- p |> add_lines(x = mdate(d$month), y = d$share, name = t, line = list(color = CT_COL[[t]], width = 2)) }
+    p |> theme_plot(yfmt = ".0%") |> layout(shapes = ct_band(), hovermode = "x unified")
+  })
+  output$ct_count <- renderPlotly({
+    m <- D$cust$month[state == ct_st()]; p <- plot_ly()
+    for (t in ct_types()) { d <- m[customer == t]; p <- p |> add_bars(x = mdate(d$month), y = d$bev, name = t, marker = list(color = CT_COL[[t]])) }
+    p |> theme_plot(yfmt = ",.0f") |> layout(barmode = "stack", bargap = 0.15, hovermode = "x unified",
+                                             shapes = list(crisis_band(mdate(D$crisis$start) - 15, mdate(D$crisis$end) + 15)))
+  })
+  output$ct_grp <- renderPlotly({
+    g <- D$cust$group[state == ct_st()]
+    bars(lapply(ct_types(), function(t) list(name = t, colour = CT_COL[[t]], vals = g[customer == t][order(group), share])), ".0%", pct)
+  })
+  output$ct_notpriv <- renderPlotly({
+    g <- D$cust$group[state == ct_st()]
+    v <- g[, .(x = 1 - sum(bev[customer == D$private_label]) / sum(bev)), keyby = group]$x
+    bars(list(list(name = "Not private", colour = STATE_COL[[ct_st()]], vals = v)), ".0%", pct) |> layout(showlegend = FALSE)
+  })
+  output$ct_top <- renderUI({
+    t <- D$cust$top[state == ct_st()][order(-bev)][seq_len(min(12, .N))]
+    tags$table(class = "md", tags$thead(tags$tr(tags$th("#"), tags$th("Council"), tags$th("Customer type"), tags$th(class = "num", "New BEVs"),
+                                                tags$th(class = "num", "Median income"), tags$th(class = "num", "Income group"))),
+      tags$tbody(lapply(seq_len(nrow(t)), function(i) tags$tr(tags$td(i), tags$td(t$lga_name[i]), tags$td(t$customer[i]), tags$td(class = "num", int(t$bev[i])),
+        tags$td(class = "num", usd(t$income[i])), tags$td(class = "num", sprintf("Q%d", t$group[i]))))))
+  })
+
   # ---- Rankings tab: clicking a row fills the detail panel beside it, nothing else
   rank_sel <- reactiveVal(NULL)
   detail_server("rank_sel", rv, rank_sel)
   observeEvent(list(rv$geo(), rv$st()), rank_sel(NULL), ignoreInit = TRUE)
   observeEvent(input$rank_pick, rank_sel(if (identical(input$rank_pick, rank_sel())) NULL else input$rank_pick))
   rank_ord <- reactive(input$rank_ord %||% "top")
-  output$rank_title <- renderText(sprintf("%s: %s", if (rank_ord() == "top") "Highest 10" else "Lowest 10", rv$metric()$label))
+  output$rank_title <- renderText(sprintf("%s: %s%s", if (rank_ord() == "top") "Highest 10" else "Lowest 10", rv$metric()$label,
+                                           if (rv$geo() != "vic" && rv$cust() == "private") " — private buyers" else ""))
   output$rank_note <- renderText(if (rv$metric()$key == "income") "All areas." else "Areas with too few registrations are left out.")
   output$rank_tbl <- renderUI({
     e <- rv$eligible(); k <- rv$metric()$key; fmt <- rv$metric()$fmt; s <- rank_sel()
@@ -524,7 +606,7 @@ server <- function(input, output, session) {
                                 paste(D$crisis$py_start, "to", D$crisis$py_end), "See the full workbook (Sources, Data_Adjustments, Notes sheets)"))
   cols <- list(
     lga = c(state = "State", name = "LGA", id = "LGA code", income = "Median total income 2022-23 ($)", pop = "Earners", group = "Income group (1 = lowest)",
-            new = paste("New private regos,", RW), bev = paste("BEV,", RW), share = paste("BEV share,", RW), p_new = "New regos, year before crisis",
+            new = paste("New regos (all customer types),", RW), bev = paste("BEV,", RW), share = paste("BEV share,", RW), p_new = "New regos, year before crisis",
             p_bev = "BEV, year before crisis", share_p = "BEV share, year before crisis", c_new = "New regos, crisis months", c_bev = "BEV, crisis months",
             share_c = "BEV share, crisis months", chg = "Change (pp)", mult = "Crisis ÷ year earlier", fleet_bev = "BEV fleet (NSW est.; QLD BEVs seen since 2022)",
             fleet_veh = "Light-vehicle fleet (NSW)", per1000veh = "BEV per 1,000 light vehicles (NSW)", per1000pop = "BEV fleet per 1,000 earners", elig = "Above size threshold"),
@@ -559,7 +641,8 @@ server <- function(input, output, session) {
   output$dl_groups <- downloadHandler(filename = "EV_income_groups.xlsx", content = function(f) {
     g <- copy(D$groups)[, `Income group` := paste0("Q", group)]
     write_xlsx(c(lapply(split(as.data.frame(g), g$state), function(x) x[, c("Income group", setdiff(names(x), c("Income group", "group", "state")))]),
-                 list(`How groups are built` = group_method_sheet(), About = about)), f)
+                 list(`Customer types` = as.data.frame(D$cust$recent), `Customer type x income group` = as.data.frame(D$cust$group),
+                      `How groups are built` = group_method_sheet(), About = about)), f)
   })
   output$dl_series <- downloadHandler(filename = "EV_series_and_fuel_prices.xlsx", content = function(f) {
     write_xlsx(list(`NSW + QLD monthly BEV share` = as.data.frame(D$lga_series), `VIC quarterly BEV per 1000` = as.data.frame(D$vic_series),
