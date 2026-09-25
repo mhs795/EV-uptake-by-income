@@ -109,6 +109,8 @@ html, body { background: var(--md-bg) !important; color: var(--md-text); font-fa
 .toolbar label.control-label, .tb-label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .6px; font-weight: 600; color: var(--md-text-low); margin-bottom: 4px; }
 .toolbar .form-select, .toolbar .selectize-input { font-size: 13px; border-radius: 8px; border-color: var(--md-divider); min-height: 36px; }
 .toolbar .tb-metric .selectize-control { min-width: 380px; }
+.toolbar .selectize-control.single .selectize-input { padding-right: 32px !important; }   /* room for the dropdown arrow */
+.toolbar .tb-state .selectize-control { min-width: 150px; }
 .toolbar .tb-hint { font-size: 12px; color: var(--md-text-med); margin-left: auto; align-self: center; max-width: 340px; line-height: 1.4; }
 .seg { display: inline-flex; border: 1px solid var(--md-divider); border-radius: 8px; overflow: hidden; height: 36px; }
 .seg button { border: 0; background: transparent; color: var(--md-text-med); padding: 0 14px; font-size: 13px; font-weight: 600; white-space: nowrap; }
@@ -165,7 +167,7 @@ seg <- function(id, choices, label = NULL)
         tags$button(class = if (i == 1) "on", `data-value` = unname(choices[i]), names(choices)[i]))))
 geo_seg <- function(id) seg(id, c("NSW + QLD" = "lga", "VIC" = "vic"), "Geography")
 state_sel <- function(id, geo_id) conditionalPanel(sprintf("input.%s != 'vic'", geo_id),
-                                                   selectInput(id, "State", c("NSW + QLD" = "ALL", "NSW", "QLD"), width = "160px"))
+                                                   div(class = "tb-state", selectInput(id, "State", c("NSW + QLD" = "ALL", "NSW", "QLD"))))
 metric_choices <- function(g, drop = NULL) { m <- METRICS[[g]][setdiff(names(METRICS[[g]]), drop)]; setNames(names(m), vapply(m, `[[`, "", "label")) }
 # all customers or private buyers only (NSW + QLD; VIC data have no customer type)
 cust_seg <- function(id, geo_id) conditionalPanel(sprintf("input.%s != 'vic'", geo_id), seg(id, c("All" = "all", "Private only" = "private"), "Customers"))
