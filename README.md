@@ -18,6 +18,11 @@ Rscript run_dashboard.R        # open the dashboard (uses the committed processe
 The processed tables, the dashboard data and the workbook are committed. You can open the dashboard or
 `EV_uptake_by_income.xlsx` straight away, without downloading any raw data.
 
+### In RStudio
+
+Open `ev_uptake_income.Rproj` (File → Open Project). Then open `run_dashboard.R` and click **Source**. Any script
+also works with **Source** or line by line, whatever your working directory is.
+
 ## Rebuild everything
 
 ```bash

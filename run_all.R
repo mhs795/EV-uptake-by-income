@@ -29,6 +29,7 @@ if (length(bad)) stop("Unknown step: ", paste(bad, collapse = ", "), ". Steps ar
 
 # Run from the project folder, whatever the caller's working directory
 f <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))
+if (!length(f)) f <- sys.frames()[[1]]$ofile  # RStudio's Source button
 if (length(f)) setwd(dirname(normalizePath(f)))
 
 for (s in run) {

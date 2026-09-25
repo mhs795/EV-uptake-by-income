@@ -2,7 +2,10 @@
 # processed/dashboard.rds, so the app starts instantly.
 #
 # Run:  Rscript R/dashboard_data.R   (after build_data.R and fetch_boundaries.R)
-source(if (file.exists("R/common.R")) "R/common.R" else file.path(dirname(sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)[1])), "common.R"))
+# common.R sits next to this script: found via Rscript's --file, or source()'s ofile (RStudio's Source button)
+source(file.path(local({ f <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))
+  if (!length(f)) f <- sys.frames()[[1]]$ofile
+  if (length(f)) dirname(normalizePath(f)) else "R" }), "common.R"))
 suppressPackageStartupMessages(library(sf))
 
 NG <- CFG$income$n_groups

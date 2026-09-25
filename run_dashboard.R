@@ -4,6 +4,7 @@
 #   Rscript run_dashboard.R 8080       # another port
 # Needs processed/dashboard.rds — run `Rscript run_all.R` first if it is missing.
 f <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))
+if (!length(f)) f <- sys.frames()[[1]]$ofile  # RStudio's Source button
 root <- if (length(f)) dirname(normalizePath(f)) else getwd()
 Sys.setenv(EV_ROOT = root)
 if (!file.exists(file.path(root, "processed", "dashboard.rds")))

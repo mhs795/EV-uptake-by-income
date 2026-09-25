@@ -6,7 +6,10 @@
 # table and chart. Charts are native Excel charts linked to the tables.
 #
 # Run:  Rscript R/build_workbook.R   (after build_data.R and fetch_boundaries.R)
-source(if (file.exists("R/common.R")) "R/common.R" else file.path(dirname(sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)[1])), "common.R"))
+# common.R sits next to this script: found via Rscript's --file, or source()'s ofile (RStudio's Source button)
+source(file.path(local({ f <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))
+  if (!length(f)) f <- sys.frames()[[1]]$ofile
+  if (length(f)) dirname(normalizePath(f)) else "R" }), "common.R"))
 source(file.path(HERE, "R", "xlsx_charts.R"))
 suppressPackageStartupMessages(library(openxlsx2))
 

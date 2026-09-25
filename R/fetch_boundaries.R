@@ -5,7 +5,10 @@
 #   processed/vic_postcode_suburbs.csv         each VIC postcode named by its ABS suburbs
 #
 # Run:  Rscript R/fetch_boundaries.R
-source(if (file.exists("R/common.R")) "R/common.R" else file.path(dirname(sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE)[1])), "common.R"))
+# common.R sits next to this script: found via Rscript's --file, or source()'s ofile (RStudio's Source button)
+source(file.path(local({ f <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))
+  if (!length(f)) f <- sys.frames()[[1]]$ofile
+  if (length(f)) dirname(normalizePath(f)) else "R" }), "common.R"))
 suppressPackageStartupMessages({ library(jsonlite); library(httr2); library(sf) })
 M <- CFG$map
 

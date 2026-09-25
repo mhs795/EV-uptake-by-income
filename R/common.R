@@ -11,7 +11,11 @@ find_root <- function() {
   f <- sub("^--file=", "", args[grep("^--file=", args)])
   if (length(f)) return(normalizePath(file.path(dirname(f), "..")))
   if (!is.null(sys.frames()[[1]]$ofile)) return(normalizePath(file.path(dirname(sys.frames()[[1]]$ofile), "..")))
-  normalizePath(".")
+  # line-by-line in RStudio: walk up from the working directory to the folder holding config.yaml
+  d <- normalizePath(".")
+  while (!file.exists(file.path(d, "config.yaml")) && dirname(d) != d) d <- dirname(d)
+  if (!file.exists(file.path(d, "config.yaml"))) stop("Can't find the project folder: open ev_uptake_income.Rproj in RStudio, or setwd() to the project first")
+  d
 }
 HERE <- Sys.getenv("EV_ROOT", find_root())
 CFG  <- yaml::read_yaml(file.path(HERE, "config.yaml"))
