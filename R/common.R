@@ -112,10 +112,10 @@ income_group_method <- function() {
   n <- c$n_groups
   c(
     sprintf(
-      "Income measure. NSW and QLD: each council area's (LGA's) median total income of earners, %s, from ABS Personal Income in Australia (ATO tax data plus other administrative data), Table 1.5. VIC: each postcode's median taxable income, %s, from ATO Taxation Statistics, Individuals Table 8. It is the income of the typical earner living in the area, not household income or wealth.",
+      "Income measure. Council areas (LGAs), every state: each area's median total income of earners, %s, from ABS Personal Income in Australia (ATO tax data plus other administrative data), Table 1.5. VIC: each postcode's median taxable income, %s, from ATO Taxation Statistics, Individuals Table 8. It is the income of the typical earner living in the area, not household income or wealth.",
       c$lga_year, c$postcode_year
     ),
-    "Ranked within each state. NSW, QLD and VIC are each grouped separately, so 'Q5' means the highest-income areas of that state; the dollar cut-offs differ between states.",
+    "Ranked within each state. Every state is grouped separately, so 'Q5' means the highest-income areas of that state; the dollar cut-offs differ between states. 'All states' shows each state's own groups side by side, and Australia pools them.",
     sprintf(
       "Weighted by people, not by areas. Areas are lined up from lowest to highest median income and their earners are added up in that order (VIC: individuals lodging a return). The running total is cut into %d equal slices, so each group holds about 1/%d of the state's earners. Q1 therefore contains many small, mostly rural areas and Q%d only a few large metropolitan ones.",
       n, n, n
@@ -152,6 +152,9 @@ income_group_lumpiness <- function(d, state, name_col, weight_col) {
   gs <- tapply(w, d$income_group, sum) / tot
   top <- d[which.max(w)]
   sh <- max(w) / tot
+  if (nrow(d) == 1) {
+    return(sprintf("%s: a single area (%s), so all its earners fall in one group.", state, top[[name_col]]))
+  }
   if (sh < 1 / n) {
     return(sprintf(
       "%s: the largest area (%s) holds only %s of earners, so group shares differ from 1/%d just because whole areas are kept together (%s to %s).",

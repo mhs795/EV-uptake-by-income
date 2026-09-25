@@ -281,6 +281,9 @@ gv_ctx[, state := "VIC"]
 VG <- c("solar_per100", "solar_kw_dw", "bat_per1000", "bat_kwh_dw", "chg_sites", "chg_fast", "chg_per10k", "bev_per_site")
 for (v in names(views)) views[[v]]$groups[gv_ctx, (VG) := mget(paste0("i.", VG)), on = c("state", "group")]
 chargers <- fread(file.path(OUT, "chargers.csv"))[, .(lat, lon, name, operator, fast, capacity, state, lga_code = as.character(lga_code))]
+# make-up of the council-area income groups in every state (the all-states view)
+group_method$comp_lga <- rbindlist(lapply(AUS_STATES, function(s) income_group_composition(AUS[state == s, .(name, income, earners, income_group = group)], "name", "income", "earners")[, state := s]))
+group_method$lumpy_lga <- vapply(setNames(AUS_STATES, AUS_STATES), function(s) income_group_lumpiness(AUS[state == s, .(name, earners, income_group = group)], s, "name", "earners"), "")
 context <- list(
   areas = AUS, series = aus_series, state_year = aus_state_year, groups = aus_groups, month = aus_month, month_total = aus_month_total, corr = aus_corr,
   chargers = chargers, states = AUS_STATES, bitre_years = BY, y1 = y1, y0 = y0, cer_last = cdates[["cer_last_month"]],
