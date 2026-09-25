@@ -6,19 +6,30 @@
 #
 # Run:  Rscript R/fetch_boundaries.R
 # common.R sits next to this script: found via Rscript's --file, or source()'s ofile (RStudio's Source button)
-source(file.path(local({ f <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))
+source(file.path(local({
+  f <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))
   if (!length(f)) f <- sys.frames()[[1]]$ofile
-  if (length(f)) dirname(normalizePath(f)) else "R" }), "common.R"))
-suppressPackageStartupMessages({ library(jsonlite); library(httr2); library(sf) })
+  if (length(f)) dirname(normalizePath(f)) else "R"
+}), "common.R"))
+suppressPackageStartupMessages({
+  library(jsonlite)
+  library(httr2)
+  library(sf)
+})
 M <- CFG$map
 
 # Page through an ArcGIS query endpoint and return a GeoJSON FeatureCollection (list)
 query <- function(url, where, fields, offset_deg) {
-  feats <- list(); start <- 0
+  feats <- list()
+  start <- 0
   repeat {
-    req <- request(url) |> req_url_query(where = where, outFields = fields, returnGeometry = "true", outSR = "4326",
-                                         f = "geojson", maxAllowableOffset = offset_deg, geometryPrecision = M$coord_decimals,
-                                         resultOffset = start, orderByFields = "objectid") |> req_timeout(300)
+    req <- request(url) |>
+      req_url_query(
+        where = where, outFields = fields, returnGeometry = "true", outSR = "4326",
+        f = "geojson", maxAllowableOffset = offset_deg, geometryPrecision = M$coord_decimals,
+        resultOffset = start, orderByFields = "objectid"
+      ) |>
+      req_timeout(300)
     page <- resp_body_json(req_perform(req), simplifyVector = FALSE)
     got <- page$features
     feats <- c(feats, got)
@@ -45,7 +56,8 @@ postcode_suburbs <- function(poa_file) {
   d[, name := sub(" \\(Vic\\.\\)$", "", sal_name_2021)]
   k <- M$suburb_names_per_postcode
   out <- d[order(area_albers_sqkm), .(suburbs = paste0(paste(head(name, k), collapse = ", "), if (.N > k) paste0(" +", .N - k) else "")),
-           by = .(postcode = as.integer(poa_code_2021))]
+    by = .(postcode = as.integer(poa_code_2021))
+  ]
   setorder(out, postcode)
   write_out(out, "vic_postcode_suburbs.csv")
   logf("VIC postcodes named: %d", nrow(out))
@@ -56,13 +68,18 @@ save_geojson(lga, "lga_boundaries.geojson")
 logf("LGA features: %d", length(lga$features))
 
 v <- CFG$vic
-poa <- query(M$poa_service, sprintf("poa_code_2021 >= '%d' AND poa_code_2021 <= '%d'", v$postcode_min, v$postcode_max),
-             "poa_code_2021", M$poa_offset_deg)
+poa <- query(
+  M$poa_service, sprintf("poa_code_2021 >= '%d' AND poa_code_2021 <= '%d'", v$postcode_min, v$postcode_max),
+  "poa_code_2021", M$poa_offset_deg
+)
 save_geojson(poa, "vic_postcode_boundaries.geojson")
 logf("VIC postcode features: %d", length(poa$features))
 postcode_suburbs("vic_postcode_boundaries.geojson")
 
 ste <- query(M$ste_service, "state_code_2021 IN ('1','2','3','4','5','6','7','8')", "state_code_2021,state_name_2021", M$ste_offset_deg)
-ste$features <- lapply(ste$features, function(f) { f$properties <- list(name = f$properties$state_name_2021); f })
+ste$features <- lapply(ste$features, function(f) {
+  f$properties <- list(name = f$properties$state_name_2021)
+  f
+})
 save_geojson(ste, "australia_states.geojson")
 logf("State features: %d", length(ste$features))

@@ -11,7 +11,7 @@
 # ---- Locate the project root -------------------------------------------------
 
 f <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))
-if (!length(f)) f <- sys.frames()[[1]]$ofile  # RStudio's Source button
+if (!length(f)) f <- sys.frames()[[1]]$ofile # RStudio's Source button
 
 root <- if (length(f)) dirname(normalizePath(f)) else getwd()
 Sys.setenv(EV_ROOT = root)

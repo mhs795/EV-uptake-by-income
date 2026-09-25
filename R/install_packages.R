@@ -3,8 +3,10 @@
 # On Linux, binaries come from Posit Package Manager, which is much faster than
 # building from source. sf needs the GDAL/GEOS/PROJ system libraries
 # (Ubuntu: sudo apt install libgdal-dev libgeos-dev libproj-dev libudunits2-dev).
-pkgs <- c("data.table", "readxl", "yaml", "jsonlite", "httr2", "sf", "openxlsx2",
-          "shiny", "bslib", "leaflet", "plotly", "htmltools")
+pkgs <- c(
+  "data.table", "readxl", "yaml", "jsonlite", "httr2", "sf", "openxlsx2",
+  "shiny", "bslib", "leaflet", "plotly", "htmltools"
+)
 missing <- setdiff(pkgs, rownames(installed.packages()))
 # no quit() here: in RStudio that would close the whole R session
 if (!length(missing)) {
@@ -26,7 +28,12 @@ if (!length(missing)) {
   cat("Installing:", missing, "\nfrom", repo, "\ninto", lib, "\n")
   install.packages(missing, repos = repo, lib = lib, Ncpus = max(1L, parallel::detectCores() - 1L))
   still <- setdiff(pkgs, rownames(installed.packages()))
-  if (length(still)) stop("Could not install: ", paste(still, collapse = ", "),
-                          if ("sf" %in% still && Sys.info()[["sysname"]] == "Linux")
-                            "\nsf needs system libraries first: sudo apt install libgdal-dev libgeos-dev libproj-dev libudunits2-dev")
+  if (length(still)) {
+    stop(
+      "Could not install: ", paste(still, collapse = ", "),
+      if ("sf" %in% still && Sys.info()[["sysname"]] == "Linux") {
+        "\nsf needs system libraries first: sudo apt install libgdal-dev libgeos-dev libproj-dev libudunits2-dev"
+      }
+    )
+  }
 }

@@ -16,11 +16,16 @@
 # Then open the dashboard with:  Rscript run_dashboard.R
 # All settings are in config.yaml.
 
-steps <- c(install = "R/install_packages.R", download = "R/download_raw.R", data = "R/build_data.R",
-           boundaries = "R/fetch_boundaries.R", workbook = "R/build_workbook.R", dashboard = "R/dashboard_data.R")
+steps <- c(
+  install = "R/install_packages.R", download = "R/download_raw.R", data = "R/build_data.R",
+  boundaries = "R/fetch_boundaries.R", workbook = "R/build_workbook.R", dashboard = "R/dashboard_data.R"
+)
 
 args <- commandArgs(trailingOnly = TRUE)
-pick <- function(flag) { i <- match(flag, args); if (is.na(i)) NULL else args[i + 1] }
+pick <- function(flag) {
+  i <- match(flag, args)
+  if (is.na(i)) NULL else args[i + 1]
+}
 run <- names(steps)
 if (!is.null(f <- pick("--from"))) run <- run[seq(match(f, run), length(run))]
 if (!is.null(o <- pick("--only"))) run <- o
@@ -29,14 +34,14 @@ if (length(bad)) stop("Unknown step: ", paste(bad, collapse = ", "), ". Steps ar
 
 # Run from the project folder, whatever the caller's working directory
 f <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))
-if (!length(f)) f <- sys.frames()[[1]]$ofile  # RStudio's Source button
+if (!length(f)) f <- sys.frames()[[1]]$ofile # RStudio's Source button
 if (length(f)) setwd(dirname(normalizePath(f)))
 
 for (s in run) {
   cat(sprintf("\n==== %s  (%s) ====\n", s, steps[[s]]))
   t0 <- Sys.time()
   # each step runs in a fresh R process: clean memory, same as running it by hand
-  status <- system2(file.path(R.home("bin"), "Rscript"), shQuote(steps[[s]]))  # system2 quotes the command itself (R on Windows is in "Program Files")
+  status <- system2(file.path(R.home("bin"), "Rscript"), shQuote(steps[[s]])) # system2 quotes the command itself (R on Windows is in "Program Files")
   if (status != 0) stop(sprintf("step '%s' failed (exit %d)", s, status))
   cat(sprintf("---- %s done in %.0f s\n", s, as.numeric(difftime(Sys.time(), t0, units = "secs"))))
 }

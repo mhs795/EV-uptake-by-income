@@ -15,9 +15,11 @@
 #
 # Run:  Rscript R/build_data.R
 # common.R sits next to this script: found via Rscript's --file, or source()'s ofile (RStudio's Source button)
-source(file.path(local({ f <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))
+source(file.path(local({
+  f <- sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))
   if (!length(f)) f <- sys.frames()[[1]]$ofile
-  if (length(f)) dirname(normalizePath(f)) else "R" }), "common.R"))
+  if (length(f)) dirname(normalizePath(f)) else "R"
+}), "common.R"))
 suppressPackageStartupMessages(library(readxl))
 
 # ---------------------------------------------------------------- income ----
@@ -35,40 +37,56 @@ income_groups <- function(d, value_col, weight_col, n) {
 load_lga_income <- function() {
   c <- CFG$income
   f <- file.path(RAW, c$lga_file)
-  hdr <- as.data.table(read_excel(f, sheet = c$lga_sheet, skip = c$lga_header_rows[1], n_max = 2, col_names = FALSE,
-                                  .name_repair = "minimal"))
-  top <- unlist(hdr[1]); bot <- unlist(hdr[2])
+  hdr <- as.data.table(read_excel(f,
+    sheet = c$lga_sheet, skip = c$lga_header_rows[1], n_max = 2, col_names = FALSE,
+    .name_repair = "minimal"
+  ))
+  top <- unlist(hdr[1])
+  bot <- unlist(hdr[2])
   top <- zoo_fill(top)
   nm <- ifelse(is.na(top), bot, paste0(top, "|", bot))
-  d <- as.data.table(read_excel(f, sheet = c$lga_sheet, skip = c$lga_header_rows[2] + 1, col_names = FALSE,
-                                .name_repair = "minimal"))
+  d <- as.data.table(read_excel(f,
+    sheet = c$lga_sheet, skip = c$lga_header_rows[2] + 1, col_names = FALSE,
+    .name_repair = "minimal"
+  ))
   setnames(d, make.unique(nm[seq_len(ncol(d))]))
   d <- d[!is.na(suppressWarnings(as.numeric(LGA)))]
   d[, lga_code := as.character(as.integer(as.numeric(LGA)))]
   d[, state := fcase(substr(lga_code, 1, 1) == "1", "NSW", substr(lga_code, 1, 1) == "3", "QLD")]
   d <- d[!is.na(state)]
-  out <- data.table(state = d$state, lga_code = d$lga_code, lga_name = d[["LGA NAME"]],
-                    median_income = suppressWarnings(as.numeric(d[[paste0(c$lga_measure, "|", c$lga_year)]])),
-                    earners = suppressWarnings(as.numeric(d[[paste0(c$lga_weight, "|", c$lga_year)]])))
+  out <- data.table(
+    state = d$state, lga_code = d$lga_code, lga_name = d[["LGA NAME"]],
+    median_income = suppressWarnings(as.numeric(d[[paste0(c$lga_measure, "|", c$lga_year)]])),
+    earners = suppressWarnings(as.numeric(d[[paste0(c$lga_weight, "|", c$lga_year)]]))
+  )
   out <- na.omit(out)
   unin <- startsWith(out$lga_name, "Unincorporated")
   adj("ABS LGA income", "Dropped unincorporated areas", "No council area to match registrations to", sprintf("%d areas", sum(unin)))
   out <- out[!unin]
-  adj("ABS LGA income", "Earner-weighted income groups",
-      sprintf("LGAs ranked by median total income %s and cut into %d groups each holding ~1/%d of the state's earners (within state)",
-              c$lga_year, c$n_groups, c$n_groups), sprintf("%d LGAs", nrow(out)))
+  adj(
+    "ABS LGA income", "Earner-weighted income groups",
+    sprintf(
+      "LGAs ranked by median total income %s and cut into %d groups each holding ~1/%d of the state's earners (within state)",
+      c$lga_year, c$n_groups, c$n_groups
+    ), sprintf("%d LGAs", nrow(out))
+  )
   out <- rbindlist(lapply(split(out, out$state), income_groups, "median_income", "earners", c$n_groups))
   setorderv(out, c("state", "lga_name"))
   out
 }
 
 # forward-fill a header row (Excel merged cells come through as NA)
-zoo_fill <- function(x) { for (i in seq_along(x)[-1]) if (is.na(x[i])) x[i] <- x[i - 1]; x }
+zoo_fill <- function(x) {
+  for (i in seq_along(x)[-1]) if (is.na(x[i])) x[i] <- x[i - 1]
+  x
+}
 
 load_postcode_income <- function() {
   c <- CFG$income
-  d <- as.data.table(read_excel(file.path(RAW, c$postcode_file), sheet = c$postcode_sheet, skip = c$postcode_header_row,
-                                .name_repair = "minimal"))
+  d <- as.data.table(read_excel(file.path(RAW, c$postcode_file),
+    sheet = c$postcode_sheet, skip = c$postcode_header_row,
+    .name_repair = "minimal"
+  ))
   setnames(d, trimws(gsub("\\s+", " ", names(d))))
   yr <- c$postcode_year
   med <- grep(paste0("^Median.*", yr), names(d), value = TRUE)[1]
@@ -76,18 +94,26 @@ load_postcode_income <- function() {
   st <- grep("^State", names(d), value = TRUE)[1]
   pc <- grep("^Postcode", names(d), value = TRUE)[1]
   d <- d[get(st) == "VIC"]
-  out <- data.table(postcode = suppressWarnings(as.numeric(d[[pc]])), median_income = suppressWarnings(as.numeric(d[[med]])),
-                    individuals = suppressWarnings(as.numeric(d[[ind]])))
+  out <- data.table(
+    postcode = suppressWarnings(as.numeric(d[[pc]])), median_income = suppressWarnings(as.numeric(d[[med]])),
+    individuals = suppressWarnings(as.numeric(d[[ind]]))
+  )
   out <- na.omit(out)
   out[, postcode := as.integer(postcode)]
   v <- CFG$vic
   out <- out[postcode >= v$postcode_min & postcode <= v$postcode_max]
-  adj("ATO postcode income", "Kept VIC postcodes only",
-      sprintf("State = VIC and postcode %d-%d (drops PO-box-only codes outside the range); ATO omits postcodes with too few individuals",
-              v$postcode_min, v$postcode_max), sprintf("%d postcodes", nrow(out)))
-  adj("ATO postcode income", "Earner-weighted income groups",
-      sprintf("Postcodes ranked by median taxable income %s and cut into %d groups weighted by individuals", yr, c$n_groups),
-      sprintf("%d postcodes", nrow(out)))
+  adj(
+    "ATO postcode income", "Kept VIC postcodes only",
+    sprintf(
+      "State = VIC and postcode %d-%d (drops PO-box-only codes outside the range); ATO omits postcodes with too few individuals",
+      v$postcode_min, v$postcode_max
+    ), sprintf("%d postcodes", nrow(out))
+  )
+  adj(
+    "ATO postcode income", "Earner-weighted income groups",
+    sprintf("Postcodes ranked by median taxable income %s and cut into %d groups weighted by individuals", yr, c$n_groups),
+    sprintf("%d postcodes", nrow(out))
+  )
   out <- income_groups(out, "median_income", "individuals", c$n_groups)
   setorder(out, postcode)
   out
@@ -95,23 +121,36 @@ load_postcode_income <- function() {
 
 # ------------------------------------------------------------ NSW flows ----
 fuel_group <- function(labels, bev, phev) fifelse(labels %chin% bev, "bev", fifelse(labels %chin% phev, "phev", "other"))
-count_num <- function(x) { v <- suppressWarnings(as.numeric(x)); v[is.na(v)] <- 0; v }
+count_num <- function(x) {
+  v <- suppressWarnings(as.numeric(x))
+  v[is.na(v)] <- 0
+  v
+}
 
 # R's own unzip, not the unzip command, so this also works on Windows
 read_zip_member <- function(zipfile, member, select = NULL) {
-  tmp <- tempfile(); on.exit(unlink(tmp, recursive = TRUE))
+  tmp <- tempfile()
+  on.exit(unlink(tmp, recursive = TRUE))
   f <- unzip(zipfile, files = member, exdir = tmp, junkpaths = TRUE)
   fread(f, sep = CFG$nsw$sep, colClasses = "character", select = select, showProgress = FALSE)
 }
 zip_members <- function(zipfile) unzip(zipfile, list = TRUE)$Name
-member_month <- function(m) { p <- strsplit(m, "_")[[1]]; x <- p[length(p) - 1]; paste0(substr(x, 1, 4), "-", substr(x, 5, 6)) }
+member_month <- function(m) {
+  p <- strsplit(m, "_")[[1]]
+  x <- p[length(p) - 1]
+  paste0(substr(x, 1, 4), "-", substr(x, 5, 6))
+}
 
 load_nsw_transactions <- function() {
   n <- CFG$nsw
   zs <- sort(Sys.glob(file.path(RAW, n$transactions_glob)))
-  d <- rbindlist(lapply(zs, function(z) rbindlist(lapply(sort(zip_members(z)), function(m) {
-    x <- read_zip_member(z, m); x[, month := member_month(m)]; x
-  }))))
+  d <- rbindlist(lapply(zs, function(z) {
+    rbindlist(lapply(sort(zip_members(z)), function(m) {
+      x <- read_zip_member(z, m)
+      x[, month := member_month(m)]
+      x
+    }))
+  }))
   logf("NSW transactions: %s rows, %s to %s", comma(nrow(d)), min(d$month), max(d$month))
   d
 }
@@ -119,28 +158,40 @@ load_nsw_transactions <- function() {
 nsw_flows <- function(tx, lga_lookup) {
   n <- CFG$nsw
   is_new <- tx[["VEHICLE REGISTRATION TRANSACTION TYPE"]] == n$new_transaction
-  adj("NSW new registrations", "Kept new-vehicle registrations only",
-      sprintf("Transaction type '%s'; transfers and second-hand re-registrations dropped", n$new_transaction),
-      sprintf("%s of %s rows kept", comma(sum(is_new)), comma(nrow(tx))))
+  adj(
+    "NSW new registrations", "Kept new-vehicle registrations only",
+    sprintf("Transaction type '%s'; transfers and second-hand re-registrations dropped", n$new_transaction),
+    sprintf("%s of %s rows kept", comma(sum(is_new)), comma(nrow(tx)))
+  )
   ct <- unlist(n$customer_types)
   keep <- is_new & tx[["CUSTOMER TYPE"]] %chin% names(ct)
   priv <- keep & tx[["CUSTOMER TYPE"]] %chin% n$private_customer_types
   tab <- tx[is_new, .N, by = `CUSTOMER TYPE`]
-  adj("NSW new registrations", "All customer types kept",
-      sprintf("Customer types %s, labelled %s. Business, dealer (demonstrator) and government vehicles are registered at the organisation's address",
-              listing(names(ct)), listing(unname(ct))),
-      paste(sprintf("%s %s rows", tab$`CUSTOMER TYPE`, comma(tab$N)), collapse = "; "))
+  adj(
+    "NSW new registrations", "All customer types kept",
+    sprintf(
+      "Customer types %s, labelled %s. Business, dealer (demonstrator) and government vehicles are registered at the organisation's address",
+      listing(names(ct)), listing(unname(ct))
+    ),
+    paste(sprintf("%s %s rows", tab$`CUSTOMER TYPE`, comma(tab$N)), collapse = "; ")
+  )
   bad <- keep & tx[["FUEL TYPE"]] %chin% n$exclude_fuel_labels
   # data-gap months: judged on private rows, the bulk of the file
   unm <- tx[bad & priv & tx[["FUEL TYPE"]] == "Other/Unmapped", .N, by = month]
   gap <- sort(unm[N > n$unmapped_block_min_rows, month])
   fwrite(data.table(month = gap), file.path(OUT, "nsw_unmapped_months.csv"))
-  adj("NSW new registrations", "Dropped rows with no usable fuel type",
-      sprintf("Fuel type in %s (trailers/caravans and unmapped rows). A block of 'Other/Unmapped' rows (manufacturer also unmapped) appears in %s; assumed spread across fuels like mapped rows",
-              listing(n$exclude_fuel_labels), paste(gap, collapse = ", ")),
-      sprintf("%s rows dropped", comma(sum(bad))))
-  adj("NSW new registrations", "Harmonised fuel labels",
-      sprintf("TfNSW changed labels twice. BEV = %s; PHEV = %s; everything else = other", listing(n$bev_labels), listing(n$phev_labels)), "")
+  adj(
+    "NSW new registrations", "Dropped rows with no usable fuel type",
+    sprintf(
+      "Fuel type in %s (trailers/caravans and unmapped rows). A block of 'Other/Unmapped' rows (manufacturer also unmapped) appears in %s; assumed spread across fuels like mapped rows",
+      listing(n$exclude_fuel_labels), paste(gap, collapse = ", ")
+    ),
+    sprintf("%s rows dropped", comma(sum(bad)))
+  )
+  adj(
+    "NSW new registrations", "Harmonised fuel labels",
+    sprintf("TfNSW changed labels twice. BEV = %s; PHEV = %s; everything else = other", listing(n$bev_labels), listing(n$phev_labels)), ""
+  )
   d <- tx[keep & !bad]
   d[, fuel := fuel_group(`FUEL TYPE`, n$bev_labels, n$phev_labels)]
   d[, customer := ct[`CUSTOMER TYPE`]]
@@ -149,27 +200,41 @@ nsw_flows <- function(tx, lga_lookup) {
   d[, exact := count_num(COUNT)]
   alias <- unlist(n$lga_aliases)
   d[, lga_name := fifelse(`CUSTOMER ADDRESS LGA` %chin% names(alias), alias[`CUSTOMER ADDRESS LGA`], `CUSTOMER ADDRESS LGA`)]
-  adj("NSW new registrations", "LGA names mapped to ABS",
-      sprintf("Aliases %s", paste(sprintf("'%s' -> '%s'", names(alias), alias), collapse = "; ")),
-      sprintf("%s rows relabelled", comma(sum(d[["CUSTOMER ADDRESS LGA"]] %chin% names(alias)))))
+  adj(
+    "NSW new registrations", "LGA names mapped to ABS",
+    sprintf("Aliases %s", paste(sprintf("'%s' -> '%s'", names(alias), alias), collapse = "; ")),
+    sprintf("%s rows relabelled", comma(sum(d[["CUSTOMER ADDRESS LGA"]] %chin% names(alias))))
+  )
   miss <- !d$lga_name %chin% lga_lookup
-  adj("NSW new registrations", "Dropped rows with no matchable LGA",
-      sprintf("Labels: %s", listing(sort(unique(d$lga_name[miss])))), sprintf("%s rows dropped", comma(sum(miss))))
+  adj(
+    "NSW new registrations", "Dropped rows with no matchable LGA",
+    sprintf("Labels: %s", listing(sort(unique(d$lga_name[miss])))), sprintf("%s rows dropped", comma(sum(miss)))
+  )
   d <- d[!miss]
-  adj("NSW new registrations", "Suppressed counts imputed",
-      sprintf("Counts of 5 or fewer are published as '%s'; each such cell is valued at an estimated mean, separately for private customers and for other customer types (see Suppression sheet; editable on Inputs)",
-              n$suppressed_token),
-      sprintf("%s of %s rows (%s) suppressed", comma(sum(d$supp)), comma(nrow(d)), pct1(mean(d$supp))))
-  list(flows = wide_by_fuel(d[, .(exact = sum(exact), supp = sum(supp)), by = .(lga_name, month, customer, fuel)], c("lga_name", "month", "customer"))[
-         , state := "NSW"][], rows = d[private == TRUE])
+  adj(
+    "NSW new registrations", "Suppressed counts imputed",
+    sprintf(
+      "Counts of 5 or fewer are published as '%s'; each such cell is valued at an estimated mean, separately for private customers and for other customer types (see Suppression sheet; editable on Inputs)",
+      n$suppressed_token
+    ),
+    sprintf("%s of %s rows (%s) suppressed", comma(sum(d$supp)), comma(nrow(d)), pct1(mean(d$supp)))
+  )
+  flows <- wide_by_fuel(
+    d[, .(exact = sum(exact), supp = sum(supp)), by = .(lga_name, month, customer, fuel)],
+    c("lga_name", "month", "customer")
+  )
+  flows[, state := "NSW"]
+  list(flows = flows, rows = d[private == TRUE])
 }
 
 # long (keys, fuel, exact, supp) -> wide bev_exact, bev_supp, phev_exact, ...
 wide_by_fuel <- function(g, keys) {
   w <- dcast(g, as.formula(paste(paste(keys, collapse = "+"), "~ fuel")), value.var = c("exact", "supp"), fill = 0)
-  for (f in FUEL_GROUPS) for (m in c("exact", "supp")) {
-    src <- paste0(m, "_", f)
-    w[, (paste0(f, "_", m)) := if (src %in% names(w)) get(src) else 0]
+  for (f in FUEL_GROUPS) {
+    for (m in c("exact", "supp")) {
+      src <- paste0(m, "_", f)
+      w[, (paste0(f, "_", m)) := if (src %in% names(w)) get(src) else 0]
+    }
   }
   w[, c(keys, as.vector(outer(c("_exact", "_supp"), FUEL_GROUPS, function(a, b) paste0(b, a)))), with = FALSE]
 }
@@ -177,25 +242,35 @@ wide_by_fuel <- function(g, keys) {
 # -------------------------------------------------------------- QLD ----
 load_qld <- function() {
   q <- CFG$qld
-  cols <- c("RECORD_DATE", "OPEN_DATA_VEHICLE_IDENTIFIER", "TRANSACTION_TYPE", "CUSTOMER_TYPE",
-            "LGA_NAME", "MAKE", "COLOUR", "FUEL_TYPE", "YEAR_OF_MANUFACTURE")
+  cols <- c(
+    "RECORD_DATE", "OPEN_DATA_VEHICLE_IDENTIFIER", "TRANSACTION_TYPE", "CUSTOMER_TYPE",
+    "LGA_NAME", "MAKE", "COLOUR", "FUEL_TYPE", "YEAR_OF_MANUFACTURE"
+  )
   # A few records carry a backslash-escaped comma inside a field ("\\,") and stray
   # double quotes; strip the escape and read without quote handling so no row is lost.
-  rd <- function(f) fread(cmd = sprintf("sed 's/\\\\,/ /g' %s", shQuote(f)), select = cols, colClasses = "character",
-                          quote = "", showProgress = FALSE)
+  rd <- function(f) {
+    fread(
+      cmd = sprintf("sed 's/\\\\,/ /g' %s", shQuote(f)), select = cols, colClasses = "character",
+      quote = "", showProgress = FALSE
+    )
+  }
   d <- rbindlist(lapply(sort(Sys.glob(file.path(RAW, q$glob))), rd))
   before <- nrow(d)
   d <- unique(d)
   logf("QLD transactions: %s rows, %s exact duplicates dropped", comma(before), comma(before - nrow(d)))
-  adj("QLD registrations", "Dropped exact duplicate records", "Identical on every field read",
-      sprintf("%s of %s rows", comma(before - nrow(d)), comma(before)))
+  adj(
+    "QLD registrations", "Dropped exact duplicate records", "Identical on every field read",
+    sprintf("%s of %s rows", comma(before - nrow(d)), comma(before))
+  )
   d[, date := as.IDate(RECORD_DATE)]
   d[, month := substr(RECORD_DATE, 1, 7)]
   d[, lga_name := trimws(gsub(q$lga_suffix_regex, "", LGA_NAME, perl = TRUE))]
   adj("QLD registrations", "LGA names mapped to ABS", "Stripped council-type suffix, e.g. 'Brisbane (C)' -> 'Brisbane'", "all rows")
   d[, fuel := fuel_group(FUEL_TYPE, unlist(q$bev_labels), unlist(q$phev_labels))]
-  adj("QLD registrations", "Fuel groups",
-      sprintf("BEV = %s. 'Petrol And Electric' mixes HEV and PHEV so it stays in 'other'", listing(unlist(q$bev_labels))), "")
+  adj(
+    "QLD registrations", "Fuel groups",
+    sprintf("BEV = %s. 'Petrol And Electric' mixes HEV and PHEV so it stays in 'other'", listing(unlist(q$bev_labels))), ""
+  )
   d
 }
 
@@ -208,13 +283,21 @@ qld_new <- function(d) {
   young <- keep & !is.na(yom) & yom >= year(d$date) - q$max_new_vehicle_age_years
   adj("QLD registrations", "Kept 'Registration New' only", "Transfers dropped", sprintf("%s of %s rows kept", comma(sum(new)), comma(nrow(d))))
   tab <- d[new, .N, by = CUSTOMER_TYPE]
-  adj("QLD registrations", "All customer types kept",
-      sprintf("Customer types %s, labelled %s. QLD only separates individuals from organisations (business, government and dealers together)",
-              listing(names(ct)), listing(unname(ct))),
-      paste(sprintf("%s %s rows", tab$CUSTOMER_TYPE, comma(tab$N)), collapse = "; "))
-  adj("QLD registrations", "Dropped re-registrations of older vehicles",
-      sprintf("'Registration New' also covers used vehicles coming back on the register; kept only year of manufacture >= registration year - %d",
-              q$max_new_vehicle_age_years), sprintf("%s rows dropped", comma(sum(keep & !young))))
+  adj(
+    "QLD registrations", "All customer types kept",
+    sprintf(
+      "Customer types %s, labelled %s. QLD only separates individuals from organisations (business, government and dealers together)",
+      listing(names(ct)), listing(unname(ct))
+    ),
+    paste(sprintf("%s %s rows", tab$CUSTOMER_TYPE, comma(tab$N)), collapse = "; ")
+  )
+  adj(
+    "QLD registrations", "Dropped re-registrations of older vehicles",
+    sprintf(
+      "'Registration New' also covers used vehicles coming back on the register; kept only year of manufacture >= registration year - %d",
+      q$max_new_vehicle_age_years
+    ), sprintf("%s rows dropped", comma(sum(keep & !young)))
+  )
   out <- d[young]
   out[, `:=`(customer = ct[CUSTOMER_TYPE], private = CUSTOMER_TYPE %chin% q$private_customer_types)]
   out
@@ -229,8 +312,10 @@ qld_last_complete_month <- function(d) {
 
 qld_flows <- function(new, lga_lookup, last_month) {
   part <- new$month > last_month
-  adj("QLD registrations", "Dropped incomplete latest month",
-      sprintf("Extract ends %s; months after %s are partial", format(max(new$date), "%d %b %Y"), last_month), sprintf("%s rows", comma(sum(part))))
+  adj(
+    "QLD registrations", "Dropped incomplete latest month",
+    sprintf("Extract ends %s; months after %s are partial", format(max(new$date), "%d %b %Y"), last_month), sprintf("%s rows", comma(sum(part)))
+  )
   new <- new[lga_name %chin% lga_lookup & !part]
   g <- new[, .(exact = .N, supp = 0L), by = .(lga_name, month, customer, fuel)]
   wide_by_fuel(g, c("lga_name", "month", "customer"))[, state := "QLD"][]
@@ -247,9 +332,13 @@ qld_stock_proxy <- function(d, lga_lookup) {
     last <- b[month <= m, .SD[.N], by = OPEN_DATA_VEHICLE_IDENTIFIER, .SDcols = "lga_name"]
     last[, .(bev_seen = .N), by = lga_name][, month := m][]
   }))
-  adj("QLD fleet (proxy)", "Built a BEV stock proxy from transactions",
-      sprintf("QLD publishes no current fleet-by-fuel data by region. Each BEV appearing in any new or transfer record since %s is placed at the LGA of its latest record up to each month. Misses pre-2022 BEVs never transferred; keeps BEVs later written off or moved interstate",
-              min(b$month)), sprintf("%s distinct BEVs", comma(uniqueN(b$OPEN_DATA_VEHICLE_IDENTIFIER))))
+  adj(
+    "QLD fleet (proxy)", "Built a BEV stock proxy from transactions",
+    sprintf(
+      "QLD publishes no current fleet-by-fuel data by region. Each BEV appearing in any new or transfer record since %s is placed at the LGA of its latest record up to each month. Misses pre-2022 BEVs never transferred; keeps BEVs later written off or moved interstate",
+      min(b$month)
+    ), sprintf("%s distinct BEVs", comma(uniqueN(b$OPEN_DATA_VEHICLE_IDENTIFIER)))
+  )
   out[lga_name %chin% lga_lookup, .(lga_name, month, bev_seen)]
 }
 
@@ -280,23 +369,29 @@ estimate_suppression <- function(nsw_rows, qld_new) {
   token_max <- as.integer(gsub("\\D", "", n$suppressed_token))
   cells <- q[, .N, by = .(month, lga_name, MAKE, fuel, COLOUR, GENDER, `AGE GROUP`)]
   org <- qld_new[private == FALSE, .N, by = .(month, lga_name, MAKE, fuel, COLOUR)]
-  est <- function(cl) cl[, .(mean_suppressed_cell = round(mean(N[N <= token_max]), 3), share_of_cells_suppressed = round(mean(N <= token_max), 3)),
-                          by = .(fuel_group = fuel)]
+  est <- function(cl) {
+    cl[, .(mean_suppressed_cell = round(mean(N[N <= token_max]), 3), share_of_cells_suppressed = round(mean(N <= token_max), 3)),
+      by = .(fuel_group = fuel)
+    ]
+  }
   out <- rbind(est(cells)[, customers := "private"], est(org)[, customers := "other"])
   setcolorder(out, "customers")
   setorder(out, customers, fuel_group)
-  logf("Suppressed-cell estimate:"); print(out)
+  logf("Suppressed-cell estimate:")
+  print(out)
   out
 }
 
 # Imputed value for '<=5' cells in the NSW fleet snapshot (see config)
 calibrate_stock_suppression <- function(tx, statewide, register, k_flow_bev) {
   n <- CFG$nsw
-  first <- min(statewide$month); last <- max(statewide$month)
+  first <- min(statewide$month)
+  last <- max(statewide$month)
   b <- tx[`VEHICLE REGISTRATION TRANSACTION TYPE` == n$new_transaction & `FUEL TYPE` %chin% n$bev_labels & month > first & month <= last]
   k_row <- fifelse(b$`CUSTOMER TYPE` %chin% n$private_customer_types, k_flow_bev[["private"]], k_flow_bev[["other"]])
   new_bev <- sum(suppressWarnings(as.numeric(b$COUNT)), na.rm = TRUE) + sum(k_row * (b$COUNT == n$suppressed_token))
-  s1 <- statewide[month == last]; s0 <- statewide[month == first]
+  s1 <- statewide[month == last]
+  s0 <- statewide[month == first]
   d_exact <- s1$bev_exact - s0$bev_exact
   d_supp <- s1$bev_supp - s0$bev_supp
   k_bev <- (new_bev - d_exact) / d_supp
@@ -305,18 +400,23 @@ calibrate_stock_suppression <- function(tx, statewide, register, k_flow_bev) {
   a <- rbindlist(lapply(grep(paste0("_", tag, "_"), zip_members(z), value = TRUE), function(m) read_zip_member(z, m)))
   age_total <- sum(suppressWarnings(as.numeric(a$COUNT)), na.rm = TRUE) + n$age_file_suppressed_value * sum(a$COUNT == n$suppressed_token)
   k_other <- (age_total - register$exact) / register$supp
-  logf("Stock calibration: new BEV %s..%s = %s; BEV exact growth %s; suppressed BEV cells growth %s -> k_bev %.3f",
-       first, last, comma(new_bev), comma(d_exact), comma(d_supp), k_bev)
-  logf("  register %s: age-file total %s, detailed exact %s, suppressed cells %s -> k_other %.3f",
-       tag, comma(age_total), comma(register$exact), comma(register$supp), k_other)
+  logf(
+    "Stock calibration: new BEV %s..%s = %s; BEV exact growth %s; suppressed BEV cells growth %s -> k_bev %.3f",
+    first, last, comma(new_bev), comma(d_exact), comma(d_supp), k_bev
+  )
+  logf(
+    "  register %s: age-file total %s, detailed exact %s, suppressed cells %s -> k_other %.3f",
+    tag, comma(age_total), comma(register$exact), comma(register$supp), k_other
+  )
   c(bev = k_bev, other = k_other)
 }
 
 # ------------------------------------------------------------ NSW stock ----
 nsw_stock <- function(lga_lookup) {
   n <- CFG$nsw
-  files <- rbindlist(lapply(sort(Sys.glob(file.path(RAW, n$snapshot_glob))), function(z)
-    data.table(zip = z, member = zip_members(z))))
+  files <- rbindlist(lapply(sort(Sys.glob(file.path(RAW, n$snapshot_glob))), function(z) {
+    data.table(zip = z, member = zip_members(z))
+  }))
   files[, month := vapply(member, member_month, "")]
   latest <- max(files$month)
   calib <- n$age_calibration_month
@@ -336,16 +436,25 @@ nsw_stock <- function(lga_lookup) {
     if (!nrow(d)) next
     d[, fuel := fuel_group(`MOTIVE POWER`, n$snapshot_bev_labels, n$snapshot_phev_labels)]
     d[, lga_name := fifelse(`CUSTOMER ADDRESS LGA` %chin% names(alias), alias[`CUSTOMER ADDRESS LGA`], `CUSTOMER ADDRESS LGA`)]
-    rows[[length(rows) + 1]] <- d[, .(exact = sum(count_num(COUNT)), supp = sum(COUNT == n$suppressed_token)), by = .(lga_name, fuel)][
-      , month := f$month][]
+    snap <- d[, .(exact = sum(count_num(COUNT)), supp = sum(COUNT == n$suppressed_token)), by = .(lga_name, fuel)]
+    snap[, month := f$month]
+    rows[[length(rows) + 1]] <- snap
     logf("  NSW snapshot %s: %s light-vehicle rows", f$member, comma(nrow(d)))
   }
-  adj("NSW fleet", "Light vehicles only",
-      sprintf("Vehicle types %s; trailers, motorcycles, plant, buses and medium/heavy trucks excluded; motive power %s excluded",
-              listing(n$snapshot_vehicle_types), listing(n$snapshot_exclude_power)), "")
-  adj("NSW fleet", "Quarter-end snapshots", sprintf("Months %s plus the latest; %d snapshot files read",
-                                                   paste0("[", paste(n$snapshot_months_of_year, collapse = ", "), "]"), length(rows)),
-      sprintf("%d snapshot months", length(keep)))
+  adj(
+    "NSW fleet", "Light vehicles only",
+    sprintf(
+      "Vehicle types %s; trailers, motorcycles, plant, buses and medium/heavy trucks excluded; motive power %s excluded",
+      listing(n$snapshot_vehicle_types), listing(n$snapshot_exclude_power)
+    ), ""
+  )
+  adj(
+    "NSW fleet", "Quarter-end snapshots", sprintf(
+      "Months %s plus the latest; %d snapshot files read",
+      paste0("[", paste(n$snapshot_months_of_year, collapse = ", "), "]"), length(rows)
+    ),
+    sprintf("%d snapshot months", length(keep))
+  )
   adj("NSW fleet", "Suppressed counts imputed", "BEV and other-fuel cells valued by calibration (see Suppression sheet)", "")
   s <- wide_by_fuel(rbindlist(rows)[, .(exact = sum(exact), supp = sum(supp)), by = .(lga_name, month, fuel)], c("lga_name", "month"))
   statewide <- s[, .(bev_exact = sum(bev_exact), bev_supp = sum(bev_supp)), by = month]
@@ -357,7 +466,8 @@ vic_quarters <- function(pc_lookup) {
   v <- CFG$vic
   rows <- lapply(sort(Sys.glob(file.path(RAW, v$glob))), function(f) {
     m <- regmatches(f, regexec("_q(\\d)_(\\d{4})\\.csv$", f))[[1]]
-    qtr <- paste0(m[3], "Q", m[2]); yr <- as.integer(m[3])
+    qtr <- paste0(m[3], "Q", m[2])
+    yr <- as.integer(m[3])
     d <- fread(f, colClasses = "character", encoding = "UTF-8", showProgress = FALSE)
     setnames(d, trimws(sub("^﻿", "", names(d))))
     d <- d[trimws(CD_CLASS_VEH) %chin% v$vehicle_classes]
@@ -366,24 +476,37 @@ vic_quarters <- function(pc_lookup) {
     d[, n := count_num(TOTAL1)]
     d[, recent := !is.na(suppressWarnings(as.numeric(NB_YEAR_MFC_VEH))) & as.numeric(NB_YEAR_MFC_VEH) >= yr - v$recent_model_year_lag]
     d[, isbev := fuel_code == v$bev_code]
-    g <- d[, .(vehicles = sum(n), bev = sum(n * isbev), hybrid = sum(n * (fuel_code == v$hybrid_code)),
-               recent_vehicles = sum(n * recent), recent_bev = sum(n * (recent & isbev))),
-           by = .(postcode = suppressWarnings(as.integer(POSTCODE)))]
+    g <- d[, .(
+      vehicles = sum(n), bev = sum(n * isbev), hybrid = sum(n * (fuel_code == v$hybrid_code)),
+      recent_vehicles = sum(n * recent), recent_bev = sum(n * (recent & isbev))
+    ),
+    by = .(postcode = suppressWarnings(as.integer(POSTCODE)))
+    ]
     g[, quarter := qtr]
     logf("  VIC snapshot %s: %s vehicles, %s BEV", qtr, comma(sum(g$vehicles)), comma(sum(g$bev)))
     g
   })
   out <- rbindlist(rows)[!is.na(postcode)]
   keep <- out$postcode %in% pc_lookup
-  adj("VIC fleet", "Vehicle class and fuel filter",
-      sprintf("Class %s (motor vehicles; motorcycles excluded); blank fuel code excluded. BEV = code '%s'; code '%s' = hybrids (HEV+PHEV, not separable)",
-              listing(v$vehicle_classes), v$bev_code, v$hybrid_code), "")
-  adj("VIC fleet", "Recent-model proxy for new take-up",
-      sprintf("VIC's monthly new-registration file has no location, so 'recent-model' vehicles (year of manufacture >= snapshot year - %d) in each quarterly snapshot stand in for recent new-vehicle take-up",
-              v$recent_model_year_lag), "")
+  adj(
+    "VIC fleet", "Vehicle class and fuel filter",
+    sprintf(
+      "Class %s (motor vehicles; motorcycles excluded); blank fuel code excluded. BEV = code '%s'; code '%s' = hybrids (HEV+PHEV, not separable)",
+      listing(v$vehicle_classes), v$bev_code, v$hybrid_code
+    ), ""
+  )
+  adj(
+    "VIC fleet", "Recent-model proxy for new take-up",
+    sprintf(
+      "VIC's monthly new-registration file has no location, so 'recent-model' vehicles (year of manufacture >= snapshot year - %d) in each quarterly snapshot stand in for recent new-vehicle take-up",
+      v$recent_model_year_lag
+    ), ""
+  )
   lost <- out[!keep & quarter == max(quarter), sum(vehicles)]
-  adj("VIC fleet", "Dropped postcodes with no ATO income", "Postcodes absent from ATO Table 8 (too few taxpayers) or outside the VIC range",
-      sprintf("%s postcode-quarters; %s vehicles in latest quarter", comma(sum(!keep)), comma(lost)))
+  adj(
+    "VIC fleet", "Dropped postcodes with no ATO income", "Postcodes absent from ATO Table 8 (too few taxpayers) or outside the VIC range",
+    sprintf("%s postcode-quarters; %s vehicles in latest quarter", comma(sum(!keep)), comma(lost))
+  )
   out <- out[keep, .(postcode, vehicles, bev, hybrid, recent_vehicles, recent_bev, quarter)]
   setorder(out, postcode, quarter)
   out
@@ -402,11 +525,17 @@ fuel_prices <- function() {
   rise <- s / trail - 1
   i <- which(rise >= f$onset_threshold & d$month >= f$onset_search_from)[1]
   onset <- d$month[i]
-  adj("Fuel prices", "Crisis onset detected from prices",
-      sprintf("First month from %s where %s is >= %d%% above its trailing %d-month mean", f$onset_search_from, f$onset_series,
-              round(100 * f$onset_threshold), f$onset_trailing_months), sprintf("onset %s", onset))
-  logf("Fuel crisis onset: %s (%s %.1f c/L, %.0f%% above trailing %d-month mean %.1f)",
-       onset, f$onset_series, s[i], 100 * rise[i], f$onset_trailing_months, trail[i])
+  adj(
+    "Fuel prices", "Crisis onset detected from prices",
+    sprintf(
+      "First month from %s where %s is >= %d%% above its trailing %d-month mean", f$onset_search_from, f$onset_series,
+      round(100 * f$onset_threshold), f$onset_trailing_months
+    ), sprintf("onset %s", onset)
+  )
+  logf(
+    "Fuel crisis onset: %s (%s %.1f c/L, %.0f%% above trailing %d-month mean %.1f)",
+    onset, f$onset_series, s[i], 100 * rise[i], f$onset_trailing_months, trail[i]
+  )
   list(prices = d, onset = onset, price = s[i], trail = trail[i])
 }
 
@@ -422,14 +551,17 @@ main <- function() {
   start <- CFG$period$start_month
   fp <- fuel_prices()
   write_out(fp$prices[month >= start], "fuel_prices.csv")
-  write_out(data.table(onset_month = fp$onset, onset_series = CFG$fuel$onset_series, onset_price = round(fp$price, 1),
-                       trailing_mean = round(fp$trail, 1), threshold = CFG$fuel$onset_threshold), "fuel_crisis_onset.csv")
+  write_out(data.table(
+    onset_month = fp$onset, onset_series = CFG$fuel$onset_series, onset_price = round(fp$price, 1),
+    trailing_mean = round(fp$trail, 1), threshold = CFG$fuel$onset_threshold
+  ), "fuel_crisis_onset.csv")
 
   tx <- load_nsw_transactions()
   nsw_lgas <- lga[state == "NSW", lga_name]
   nf <- nsw_flows(tx, nsw_lgas)
   alias <- unlist(CFG$nsw$lga_aliases)
-  lab <- unique(tx[["CUSTOMER ADDRESS LGA"]]); lab <- fifelse(lab %chin% names(alias), alias[lab], lab)
+  lab <- unique(tx[["CUSTOMER ADDRESS LGA"]])
+  lab <- fifelse(lab %chin% names(alias), alias[lab], lab)
   logf("NSW LGA labels not matched to ABS (dropped): %s", listing(sort(setdiff(lab, nsw_lgas))))
 
   q <- load_qld()
@@ -444,7 +576,9 @@ main <- function() {
   # k_flow[[customers]][fuel]; PHEV borrows BEV's value (QLD has no PHEV label)
   k_flow <- lapply(c(private = "private", other = "other"), function(cl) {
     k <- supp[customers == cl, setNames(mean_suppressed_cell, fuel_group)]
-    k["phev"] <- k[[CFG$nsw$phev_suppression_from]]; k })
+    k["phev"] <- k[[CFG$nsw$phev_suppression_from]]
+    k
+  })
 
   flows <- rbindlist(list(nf$flows, qf), use.names = TRUE)
   adj("Both states", "Analysis window", sprintf("New-registration analysis starts %s (NSW data begin Jul 2022, QLD Jan 2022)", start), "")
@@ -456,26 +590,31 @@ main <- function() {
 
   qs <- qld_stock_proxy(q[month <= q_last], qld_lgas)
   write_out(qs, "stock_qld_proxy_lga.csv")
-  rm(q); invisible(gc())
+  rm(q)
+  invisible(gc())
 
   ns <- nsw_stock(nsw_lgas)
   setorder(ns$stock, lga_name, month)
   write_out(ns$stock, "stock_nsw_lga.csv")
   ks <- calibrate_stock_suppression(tx, ns$statewide, ns$register, c(private = k_flow$private[["bev"]], other = k_flow$other[["bev"]]))
-  rm(tx); invisible(gc())
+  rm(tx)
+  invisible(gc())
   k_stock <- c(bev = ks[["bev"]], other = ks[["other"]])
   k_stock["phev"] <- k_stock[[CFG$nsw$phev_suppression_from]]
   priv_m <- "QLD individuals' vehicles re-cut at NSW private grain (synthetic gender x age from NSW mix)"
   org_m <- "QLD organisations' vehicles re-cut at NSW grain for business/dealer/government rows (LGA x make x fuel x colour)"
-  method <- c(flow_private.bev = priv_m, flow_private.other = priv_m, flow_private.phev = "Borrowed from private flow BEV (QLD has no PHEV label)",
-              flow_other.bev = org_m, flow_other.other = org_m, flow_other.phev = "Borrowed from other-customer flow BEV (QLD has no PHEV label)",
-              stock_all.bev = "NSW BEV fleet growth = new BEV registrations (all customers) over the same period",
-              stock_all.other = "Detailed snapshot total = coarse age-of-vehicles snapshot total",
-              stock_all.phev = "Borrowed from stock BEV")
+  method <- c(
+    flow_private.bev = priv_m, flow_private.other = priv_m, flow_private.phev = "Borrowed from private flow BEV (QLD has no PHEV label)",
+    flow_other.bev = org_m, flow_other.other = org_m, flow_other.phev = "Borrowed from other-customer flow BEV (QLD has no PHEV label)",
+    stock_all.bev = "NSW BEV fleet growth = new BEV registrations (all customers) over the same period",
+    stock_all.other = "Detailed snapshot total = coarse age-of-vehicles snapshot total",
+    stock_all.phev = "Borrowed from stock BEV"
+  )
   sup <- rbindlist(list(
     data.table(table = "flow", customers = "private", fuel_group = FUEL_GROUPS, k = round(unname(k_flow$private[FUEL_GROUPS]), 3)),
     data.table(table = "flow", customers = "other", fuel_group = FUEL_GROUPS, k = round(unname(k_flow$other[FUEL_GROUPS]), 3)),
-    data.table(table = "stock", customers = "all", fuel_group = FUEL_GROUPS, k = round(unname(k_stock[FUEL_GROUPS]), 3))))
+    data.table(table = "stock", customers = "all", fuel_group = FUEL_GROUPS, k = round(unname(k_stock[FUEL_GROUPS]), 3))
+  ))
   sup[, method := method[paste0(table, "_", customers, ".", fuel_group)]]
   write_out(sup, "suppression.csv")
 
